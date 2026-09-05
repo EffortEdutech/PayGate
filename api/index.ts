@@ -84,6 +84,55 @@ function runtimeDiagnostics(requestId: string): unknown {
   };
 }
 
+
+async function readinessDiagnostics(requestId: string): Promise<unknown> {
+  const checks: Array<Record<string, unknown>> = [];
+  try {
+    const pgModule = await import("pg");
+    const pool = new pgModule.Pool({ connectionString: process.env.DATABASE_URL });
+    try {
+      const result = await pool.query("select current_database() as database, current_user as user, version() as version");
+      checks.push({ name: "DATABASE_CONNECT", ok: true, database: result.rows[0]?.database, user: result.rows[0]?.user, version: String(result.rows[0]?.version ?? "").split(" ").slice(0, 2).join(" ") });
+    } finally {
+      await pool.end();
+    }
+  } catch (error) {
+    checks.push(safeErrorCheck("DATABASE_CONNECT", error));
+  }
+
+  try {
+    const runtimeModule = await import("../payment-hub/src/runtime/runtime.js");
+    const runtime = await runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd());
+    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
+  } catch (error) {
+    checks.push(safeErrorCheck("RUNTIME_CREATE", error));
+  }
+
+  return {
+    status: checks.every((check) => check.ok) ? "ready_diagnostics_ok" : "ready_diagnostics_failed",
+    service: "paygate-payment-hub",
+    request_id: requestId,
+    checks,
+  };
+}
+
+function safeErrorCheck(name: string, error: unknown): Record<string, unknown> {
+  const err = error as { code?: unknown; name?: unknown; message?: unknown; cause?: unknown };
+  const cause = err.cause as { code?: unknown; message?: unknown } | undefined;
+  return {
+    name,
+    ok: false,
+    error_name: typeof err.name === "string" ? err.name : undefined,
+    error_code: typeof err.code === "string" ? err.code : typeof cause?.code === "string" ? cause.code : undefined,
+    message: sanitizeErrorMessage(typeof err.message === "string" ? err.message : String(error)),
+    cause_message: typeof cause?.message === "string" ? sanitizeErrorMessage(cause.message) : undefined,
+  };
+}
+
+function sanitizeErrorMessage(message: string): string {
+  return message.replace(/postgresql:\/\/[^\s]+/g, "postgresql://[redacted]").replace(/sk_(test|live)_[A-Za-z0-9]+/g, "sk_$1_[redacted]").replace(/whsec_[A-Za-z0-9]+/g, "whsec_[redacted]");
+}
+
 function checkRequired(name: string, value: string | undefined): unknown {
   return { name, ok: Boolean(value?.trim()), present: Boolean(value?.trim()), ...(hasMarkdown(value) ? { issue: "Value looks like a Markdown link. Paste plain text only." } : {}) };
 }
