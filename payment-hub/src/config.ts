@@ -6,7 +6,8 @@ export interface StripeProviderAccountConfig {
 
 export interface SupabaseJwtAuthConfig {
   readonly appId: string;
-  readonly jwtSecret: string;
+  readonly jwtSecret: string | undefined;
+  readonly jwksUrl: string | undefined;
   readonly issuer: string | undefined;
   readonly audience: string | undefined;
 }
@@ -77,12 +78,14 @@ export function parseAppAuthTokens(raw: string): Readonly<Record<string, string>
 
 function parseSupabaseJwtAuth(env: NodeJS.ProcessEnv): SupabaseJwtAuthConfig | undefined {
   const jwtSecret = optional(env, "SUPABASE_JWT_SECRET");
+  const jwksUrl = optional(env, "SUPABASE_JWKS_URL");
   const appId = optional(env, "SUPABASE_JWT_APP_ID");
-  if (!jwtSecret && !appId) return undefined;
-  if (!jwtSecret || !appId) throw new Error("SUPABASE_JWT_SECRET and SUPABASE_JWT_APP_ID must be configured together");
+  if (!jwtSecret && !jwksUrl && !appId) return undefined;
+  if (!appId || (!jwtSecret && !jwksUrl)) throw new Error("SUPABASE_JWT_APP_ID and either SUPABASE_JWKS_URL or SUPABASE_JWT_SECRET must be configured together");
   return {
     appId,
     jwtSecret,
+    jwksUrl,
     issuer: optional(env, "SUPABASE_JWT_ISSUER"),
     audience: optional(env, "SUPABASE_JWT_AUDIENCE"),
   };

@@ -29,7 +29,7 @@ Set these in the Vercel Payment Hub project. Do not commit values.
 | `APP_AUTH_ISSUER` | Production/Preview | Hub issuer label. |
 | `APP_AUTH_AUDIENCE` | Production/Preview | Hub audience label. |
 | `APP_AUTH_TOKENS` | Preview only if needed | Static operator/local fallback tokens. Avoid browser use. |
-| `SUPABASE_JWT_SECRET` | Production/Preview | Server-side secret used to verify AIntern user JWTs. |
+| `SUPABASE_JWKS_URL` | Production/Preview | Supabase public JWKS discovery URL used to verify AIntern ES256 user JWTs. |
 | `SUPABASE_JWT_APP_ID` | Production/Preview | `aintern`. |
 | `SUPABASE_JWT_ISSUER` | Production/Preview | `https://wdhdjhvvngssnszqgiyk.supabase.co/auth/v1`. |
 | `SUPABASE_JWT_AUDIENCE` | Production/Preview | Usually `authenticated`. |
@@ -54,7 +54,7 @@ The webhook secret from this endpoint must be stored only in Vercel as `STRIPE_A
 - [x] Payment Hub deployed runtime uses PostgreSQL persistence.
 - [x] Named provider account isolation exists in registry/config/router.
 - [x] AIntern browser client no longer requires a browser-visible app token when a Supabase session exists.
-- [x] AIntern user JWT is verified server-side by Payment Hub and bound to `user_ref`.
+- [x] AIntern user JWT is verified server-side by Payment Hub and bound to `user_ref`; modern Supabase ES256/JWKS keys are supported.
 - [ ] Production domain confirmed by operator.
 - [ ] Web-accessible PostgreSQL `DATABASE_URL` configured in Vercel.
 - [ ] Stripe Effort Edutech sandbox secrets configured in Vercel.
