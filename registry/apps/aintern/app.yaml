@@ -8,7 +8,7 @@ provider:
 billing:
   enabled: true
 application_urls:
-  test: http://127.0.0.1:4900
+  test: https://a-intern.vercel.app
   live: https://aintern.effortedutech.com
 identity:
   user_reference: supabase_user_id

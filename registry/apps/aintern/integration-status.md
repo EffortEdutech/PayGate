@@ -11,7 +11,7 @@
   - `aintern_pass_3m`
   - `aintern_pass_6m`
 - Entitlement bundle maps to AIntern review/report/export/bundled-AI gates.
-- Test application URL points to AIntern local dev server: `http://127.0.0.1:4900`.
+- Test application URL points to deployed AIntern sandbox: `https://a-intern.vercel.app`. Local development can still run AIntern on `http://127.0.0.1:4900`, but deployed PayGate sandbox checkout must return to the deployed app.
 - Local app token mapping added to `.env.local`.
 
 ## Pending Before AIntern App Wiring
