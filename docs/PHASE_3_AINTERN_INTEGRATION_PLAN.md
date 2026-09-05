@@ -1,6 +1,6 @@
 # Phase 3 AIntern Integration Plan
 
-**Status:** STARTED  
+**Status:** FROZEN — completed through deployed sandbox proof on 2026-09-06  
 **Selected app:** AIntern  
 **AIntern path:** `C:\Users\user\Documents\00 aWL_platform\AIntern`  
 **Payment Hub port family:** `301#`, default `3017`  
@@ -147,6 +147,17 @@ The operator gets one control layer for all apps:
 - Run AIntern relevant checks.
 - Record Phase 3 evidence before freezing.
 
+### Track 10 - Vercel Deployment Readiness
+
+- Deploy Payment Hub to Vercel.
+- Configure web-accessible PostgreSQL persistence.
+- Configure Stripe sandbox secrets for the named provider account.
+- Configure Stripe webhook endpoint for the deployed Hub URL.
+- Configure AIntern to call the deployed Hub URL.
+- Prove checkout, verified webhook, entitlement projection, portal session, and reconciliation endpoint through deployed services.
+- Remove temporary operator auth token after proof.
+- Rotate exposed sandbox Stripe key after setup proof.
+
 ## Non-Negotiable Guardrails
 
 - AIntern must not accept or store provider price IDs as application-owned authority.
@@ -180,7 +191,36 @@ The operator gets one control layer for all apps:
 - [x] Add thin AIntern billing integration.
 - [x] Define named provider account model for multi-company Stripe accounts.
 - [x] Map AIntern to its company Stripe account instead of temporary `primary`.
-- [ ] Validate actual AIntern browser checkout, webhook, entitlement, portal, and reconciliation flow.
+- [x] Validate actual AIntern browser checkout, webhook, entitlement, portal, and reconciliation flow.
+- [x] Deploy Payment Hub to Vercel at `https://pay-gate-beta.vercel.app`.
+- [x] Configure Supabase PostgreSQL pooler persistence for deployed PayGate.
+- [x] Apply PayGate database migrations `0001`, `0002`, and `0003` to Supabase PostgreSQL.
+- [x] Configure AIntern deployed app to call PayGate without a browser-visible Hub app token.
+- [x] Configure Stripe webhook endpoint for `stripe:nhl_global_solution`.
+- [x] Prove deployed checkout and verified webhook path.
+- [x] Prove deployed entitlement projection; AIntern read `active / pass_3m`.
+- [x] Prove deployed billing portal session.
+- [x] Prove deployed reconciliation endpoint; deeper Stripe object inspection deferred to Phase 4 hardening.
+- [x] Remove temporary `APP_AUTH_TOKENS` from Vercel after operator proof.
+- [x] Rotate exposed Stripe sandbox key after setup proof.
+
+## Phase 3 Freeze Notes
+
+- AIntern is the first real application integrated with the Central Payment Hub.
+- AIntern remains a separate application project and does not import Stripe, own Stripe price IDs, process Stripe webhooks, or mutate paid entitlements directly.
+- Payment Hub is deployed on Vercel and reachable at `https://pay-gate-beta.vercel.app`.
+- AIntern is deployed at `https://a-intern.vercel.app` and calls the deployed Hub over HTTPS.
+- AIntern is mapped to the named provider account `stripe:nhl_global_solution`.
+- The Stripe account belongs to NHL Global Solution and is represented inside the Hub by the internal provider alias `nhl_global_solution`.
+- Supabase JWT/JWKS authentication is used for browser app calls; temporary static operator auth was removed after proof.
+- Browser redirects remain UX hints only. Access is granted from verified webhooks or explicit reconciliation results.
+- Track 10 deployment proof is recorded in `docs/PHASE_3_TRACK_10_VERCEL_DEPLOYMENT_READINESS.md`.
+- Stripe reconciliation deep inspection is intentionally deferred to Phase 4 Production Hardening.
+
+## Next Phase
+
+Proceed to Phase 4: Production Hardening.
+
 ## Track 4/5 Verification Notes
 
 - Provider account router validates configured provider account before checkout, portal, webhook, or reconciliation.
