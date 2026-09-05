@@ -43,7 +43,8 @@ function optional(env: NodeJS.ProcessEnv, name: string): string | undefined {
 export function loadHubConfig(env: NodeJS.ProcessEnv): HubConfig {
   const rawPort = env.PORT ?? String(defaultLocalPort);
   const port = Number(rawPort);
-  if (!Number.isInteger(port) || port < localPortRange.min || port > localPortRange.max) {
+  const isVercelRuntime = env.VERCEL === "1" || Boolean(env.VERCEL_ENV);
+  if (!isVercelRuntime && (!Number.isInteger(port) || port < localPortRange.min || port > localPortRange.max)) {
     throw new Error(`PORT must stay in the project localhost 301# family (${localPortRange.min}-${localPortRange.max})`);
   }
   const nodeEnv = env.NODE_ENV ?? "development";

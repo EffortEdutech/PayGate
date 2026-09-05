@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { once } from "node:events";
 import { test } from "node:test";
 import type { AddressInfo } from "node:net";
