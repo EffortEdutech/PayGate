@@ -34,6 +34,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return writeJson(res, 200, runtimeDiagnostics(requestId));
   }
 
+  if (req.method === "GET" && url.pathname === "/diagnostics/ready") {
+    return writeJson(res, 200, await readinessDiagnostics(requestId));
+  }
+
   if (url.pathname.startsWith("/v1/webhooks/stripe/") && req.method !== "POST") {
     return writeJson(res, 405, {
       error: {
