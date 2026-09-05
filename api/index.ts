@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 
 let handlerPromise: Promise<(req: IncomingMessage, res: ServerResponse) => Promise<void>> | undefined;
 
@@ -31,10 +31,14 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 
   if (req.method === "GET" && url.pathname === "/diagnostics/runtime") {
+    const authError = requireOperatorDiagnosticsAuth(req, requestId);
+    if (authError) return writeJson(res, authError.status, authError.body);
     return writeJson(res, 200, runtimeDiagnostics(requestId));
   }
 
   if (req.method === "GET" && url.pathname === "/diagnostics/ready") {
+    const authError = requireOperatorDiagnosticsAuth(req, requestId);
+    if (authError) return writeJson(res, authError.status, authError.body);
     return writeJson(res, 200, await readinessDiagnostics(requestId));
   }
 
@@ -63,6 +67,55 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 }
 
+type DiagnosticsAuthError = {
+  readonly status: 401 | 503;
+  readonly body: {
+    readonly error: {
+      readonly code: "UNAUTHORIZED" | "DIAGNOSTICS_AUTH_NOT_CONFIGURED";
+      readonly message: string;
+      readonly requestId: string;
+    };
+  };
+};
+
+function requireOperatorDiagnosticsAuth(req: IncomingMessage, requestId: string): DiagnosticsAuthError | undefined {
+  const configuredToken = process.env.OPERATOR_DIAGNOSTICS_TOKEN?.trim();
+  if (!configuredToken) {
+    return {
+      status: 503,
+      body: {
+        error: {
+          code: "DIAGNOSTICS_AUTH_NOT_CONFIGURED",
+          message: "Operator diagnostics are protected, but OPERATOR_DIAGNOSTICS_TOKEN is not configured.",
+          requestId,
+        },
+      },
+    };
+  }
+
+  const authorization = req.headers.authorization?.toString() ?? "";
+  const [scheme, presentedToken] = authorization.split(/\s+/, 2);
+  if (scheme !== "Bearer" || !presentedToken || !constantTimeEqual(presentedToken, configuredToken)) {
+    return {
+      status: 401,
+      body: {
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Operator diagnostics require a valid bearer token.",
+          requestId,
+        },
+      },
+    };
+  }
+
+  return undefined;
+}
+
+function constantTimeEqual(a: string, b: string): boolean {
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  return aBuffer.length === bBuffer.length && timingSafeEqual(aBuffer, bBuffer);
+}
 function runtimeDiagnostics(requestId: string): unknown {
   const accounts = splitCsv(process.env.STRIPE_ACCOUNTS);
   const checks = [

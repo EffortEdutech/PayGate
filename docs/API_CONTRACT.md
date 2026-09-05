@@ -14,6 +14,15 @@ GET  /health
 GET  /ready
 ```
 
+## Protected operator diagnostics
+
+These endpoints are not part of the ordinary application API. They require `Authorization: Bearer <OPERATOR_DIAGNOSTICS_TOKEN>` and must not be called from browser app clients.
+
+```text
+GET  /diagnostics/runtime
+GET  /diagnostics/ready
+```
+
 Provider ingress is unauthenticated at the app layer but signature authenticated:
 
 ```text
