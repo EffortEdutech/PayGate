@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://payment-hub.local/schemas/entitlements.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "entitlements"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "entitlements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "description"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    }
+  }
+}

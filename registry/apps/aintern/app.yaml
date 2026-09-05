@@ -1,0 +1,14 @@
+schema_version: "1.0"
+app_id: aintern
+name: AIntern
+status: draft
+provider:
+  type: stripe
+  account: effort_edutech
+billing:
+  enabled: true
+application_urls:
+  test: http://127.0.0.1:4900
+  live: https://aintern.effortedutech.com
+identity:
+  user_reference: supabase_user_id

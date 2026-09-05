@@ -1,0 +1,10 @@
+schema_version: "1.0"
+entitlements:
+  - key: aintern.reviews
+    description: Allows requesting supervisor reviews after trial expiry.
+  - key: aintern.official_reports
+    description: Allows creating official verified report versions after trial expiry.
+  - key: aintern.exports
+    description: Allows exporting official logbook, weekly, monthly, final, and portfolio documents after trial expiry.
+  - key: aintern.bundled_ai
+    description: Allows using platform-bundled AI instead of BYOK-only AI.

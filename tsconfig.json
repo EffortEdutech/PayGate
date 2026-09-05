@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/payment-types" },
+    { "path": "./packages/payment-contracts" },
+    { "path": "./payment-hub" }
+  ]
+}

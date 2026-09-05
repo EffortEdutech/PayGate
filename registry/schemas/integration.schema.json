@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://payment-hub.local/schemas/integration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "authentication", "features", "return_contexts"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "authentication": { "enum": ["jwt"] },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkout", "subscriptions", "customer_portal", "entitlements"],
+      "properties": {
+        "checkout": { "type": "boolean" },
+        "subscriptions": { "type": "boolean" },
+        "customer_portal": { "type": "boolean" },
+        "entitlements": { "type": "boolean" }
+      }
+    },
+    "return_contexts": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["success_path", "cancel_path", "portal_path"],
+        "properties": {
+          "success_path": { "type": "string", "pattern": "^/(?!/)", "maxLength": 240 },
+          "cancel_path": { "type": "string", "pattern": "^/(?!/)", "maxLength": 240 },
+          "portal_path": { "type": "string", "pattern": "^/(?!/)", "maxLength": 240 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+schema_version: "1.0"
+authentication: jwt
+features:
+  checkout: true
+  subscriptions: false
+  customer_portal: true
+  entitlements: true
+return_contexts:
+  billing:
+    success_path: /profile?billing=success
+    cancel_path: /profile?billing=cancelled
+    portal_path: /profile?billing=portal_return

@@ -1,0 +1,13 @@
+schema_version: "1.0"
+app_id: app_analytics_pro
+repository:
+  path: ../analytics-professional-system
+integration_files:
+  create:
+    - src/payments/client.ts
+    - src/payments/types.ts
+  modify:
+    - .env.example
+  verify:
+    - package.json
+    - authentication-configuration

@@ -1,0 +1,6 @@
+schema_version: "1.0"
+entitlements:
+  - key: app_analytics_pro.advanced_reporting
+    description: Access to advanced reporting features.
+  - key: app_analytics_pro.unlimited_exports
+    description: Removes the standard export limit.

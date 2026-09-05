@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://payment-hub.local/schemas/files-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "app_id", "repository", "integration_files"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "app_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": { "path": { "type": "string", "minLength": 1 } }
+    },
+    "integration_files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["create", "modify", "verify"],
+      "properties": {
+        "create": { "$ref": "#/$defs/paths" },
+        "modify": { "$ref": "#/$defs/paths" },
+        "verify": { "$ref": "#/$defs/paths" }
+      }
+    }
+  },
+  "$defs": {
+    "paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "not": { "pattern": "(^|[\\\\/])\\.\\.([\\\\/]|$)|^[\\\\/]" } }
+    }
+  }
+}

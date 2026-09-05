@@ -1,0 +1,16 @@
+schema_version: "1.0"
+app_id: aintern
+repository:
+  path: ../00 aWL_platform/AIntern
+integration_files:
+  create:
+    - src/services/api/paymentHubService.js
+  modify:
+    - .env.example
+    - src/services/api/entitlementService.js
+    - src/components/pass/PassSection.jsx
+    - src/hooks/useAccess.js
+  verify:
+    - package.json
+    - src/context/AuthContext.jsx
+    - database/migrations/006_entitlements.sql

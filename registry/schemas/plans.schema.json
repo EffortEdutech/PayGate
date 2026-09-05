@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://payment-hub.local/schemas/plans.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plans"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["plan_key", "name", "type", "pricing", "provider", "entitlement_bundle", "status"],
+        "properties": {
+          "plan_key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "type": { "enum": ["subscription", "one_time"] },
+          "pricing": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["currency", "unit_amount_minor"],
+            "properties": {
+              "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+              "unit_amount_minor": { "type": "integer", "minimum": 0 },
+              "interval": { "enum": ["day", "week", "month", "year"] },
+              "interval_count": { "type": "integer", "minimum": 1, "maximum": 36 }
+            }
+          },
+          "provider": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["lookup_key"],
+              "properties": { "lookup_key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,199}$" } }
+            }
+          },
+          "entitlement_bundle": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$" }
+          },
+          "status": { "enum": ["draft", "active", "archived"] }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "subscription" } } },
+            "then": { "properties": { "pricing": { "type": "object", "properties": { "interval": {} }, "required": ["interval"] } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "one_time" } } },
+            "then": { "properties": { "pricing": { "type": "object", "not": { "type": "object", "properties": { "interval": {} }, "required": ["interval"] } } } }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+﻿schema_version: "1.0"
+plans:
+  - plan_key: growth_monthly
+    name: Growth Monthly
+    type: subscription
+    pricing:
+      currency: MYR
+      unit_amount_minor: 2900
+      interval: month
+      interval_count: 1
+    provider:
+      stripe:
+        lookup_key: app_analytics_pro_growth_monthly
+    entitlement_bundle:
+      - app_analytics_pro.advanced_reporting
+      - app_analytics_pro.unlimited_exports
+    status: active
+

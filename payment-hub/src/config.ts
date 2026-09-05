@@ -1,0 +1,113 @@
+export interface StripeProviderAccountConfig {
+  readonly account: string;
+  readonly secretKey: string;
+  readonly webhookSecret: string;
+}
+
+export interface SupabaseJwtAuthConfig {
+  readonly appId: string;
+  readonly jwtSecret: string;
+  readonly issuer: string | undefined;
+  readonly audience: string | undefined;
+}
+
+export interface HubConfig {
+  readonly nodeEnv: "development" | "test" | "production";
+  readonly port: number;
+  readonly databaseUrl: string;
+  readonly authIssuer: string;
+  readonly authAudience: string;
+  readonly appAuthTokens: Readonly<Record<string, string>>;
+  readonly supabaseJwtAuth: SupabaseJwtAuthConfig | undefined;
+  readonly stripeSecretKey: string | undefined;
+  readonly stripeWebhookSecret: string | undefined;
+  readonly stripeApiVersion: string;
+  readonly stripeAccounts: readonly StripeProviderAccountConfig[];
+}
+
+export const defaultLocalPort = 3017;
+export const localPortRange = { min: 3010, max: 3019 } as const;
+
+function required(env: NodeJS.ProcessEnv, name: string): string {
+  const value = env[name]?.trim();
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+function optional(env: NodeJS.ProcessEnv, name: string): string | undefined {
+  const value = env[name]?.trim();
+  return value ? value : undefined;
+}
+
+export function loadHubConfig(env: NodeJS.ProcessEnv): HubConfig {
+  const rawPort = env.PORT ?? String(defaultLocalPort);
+  const port = Number(rawPort);
+  if (!Number.isInteger(port) || port < localPortRange.min || port > localPortRange.max) {
+    throw new Error(`PORT must stay in the project localhost 301# family (${localPortRange.min}-${localPortRange.max})`);
+  }
+  const nodeEnv = env.NODE_ENV ?? "development";
+  if (!(["development", "test", "production"] as const).includes(nodeEnv as HubConfig["nodeEnv"])) {
+    throw new Error("NODE_ENV must be development, test, or production");
+  }
+  const stripeSecretKey = optional(env, "STRIPE_SECRET_KEY");
+  const stripeWebhookSecret = optional(env, "STRIPE_WEBHOOK_SECRET");
+  return {
+    nodeEnv: nodeEnv as HubConfig["nodeEnv"],
+    port,
+    databaseUrl: required(env, "DATABASE_URL"),
+    authIssuer: required(env, "APP_AUTH_ISSUER"),
+    authAudience: required(env, "APP_AUTH_AUDIENCE"),
+    appAuthTokens: parseAppAuthTokens(env.APP_AUTH_TOKENS ?? ""),
+    supabaseJwtAuth: parseSupabaseJwtAuth(env),
+    stripeSecretKey,
+    stripeWebhookSecret,
+    stripeApiVersion: env.STRIPE_API_VERSION?.trim() || "2026-02-25.clover",
+    stripeAccounts: parseStripeAccounts(env, stripeSecretKey, stripeWebhookSecret),
+  };
+}
+
+export function parseAppAuthTokens(raw: string): Readonly<Record<string, string>> {
+  if (!raw.trim()) return {};
+  return Object.fromEntries(raw.split(",").map((entry) => {
+    const [appId, token] = entry.split(":");
+    if (!appId?.trim() || !token?.trim()) throw new Error("APP_AUTH_TOKENS must use app_id:token entries");
+    return [appId.trim(), token.trim()];
+  }));
+}
+
+function parseSupabaseJwtAuth(env: NodeJS.ProcessEnv): SupabaseJwtAuthConfig | undefined {
+  const jwtSecret = optional(env, "SUPABASE_JWT_SECRET");
+  const appId = optional(env, "SUPABASE_JWT_APP_ID");
+  if (!jwtSecret && !appId) return undefined;
+  if (!jwtSecret || !appId) throw new Error("SUPABASE_JWT_SECRET and SUPABASE_JWT_APP_ID must be configured together");
+  return {
+    appId,
+    jwtSecret,
+    issuer: optional(env, "SUPABASE_JWT_ISSUER"),
+    audience: optional(env, "SUPABASE_JWT_AUDIENCE"),
+  };
+}
+
+export function envNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
+  return `STRIPE_ACCOUNT_${account.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_${suffix}`;
+}
+
+function parseStripeAccounts(env: NodeJS.ProcessEnv, legacySecretKey?: string, legacyWebhookSecret?: string): StripeProviderAccountConfig[] {
+  const accountNames = new Set<string>();
+  const rawAccounts = env.STRIPE_ACCOUNTS ?? env.STRIPE_PROVIDER_ACCOUNTS ?? "";
+  for (const account of rawAccounts.split(",")) {
+    const trimmed = account.trim();
+    if (trimmed) accountNames.add(trimmed);
+  }
+  if (legacySecretKey && legacyWebhookSecret) {
+    accountNames.add("primary");
+    accountNames.add("effort_edutech");
+  }
+  const accounts: StripeProviderAccountConfig[] = [];
+  for (const account of [...accountNames].sort()) {
+    const secretKey = optional(env, envNameForProviderAccount(account, "SECRET_KEY")) ?? (account === "primary" || account === "effort_edutech" ? legacySecretKey : undefined);
+    const webhookSecret = optional(env, envNameForProviderAccount(account, "WEBHOOK_SECRET")) ?? (account === "primary" || account === "effort_edutech" ? legacyWebhookSecret : undefined);
+    if (secretKey && webhookSecret) accounts.push({ account, secretKey, webhookSecret });
+  }
+  return accounts;
+}

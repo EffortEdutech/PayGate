@@ -1,0 +1,32 @@
+schema_version: "1.0"
+plans:
+  - plan_key: pass_3m
+    name: AIntern 3-Month Pass
+    type: one_time
+    pricing:
+      currency: MYR
+      unit_amount_minor: 3900
+    provider:
+      stripe:
+        lookup_key: aintern_pass_3m
+    entitlement_bundle:
+      - aintern.reviews
+      - aintern.official_reports
+      - aintern.exports
+      - aintern.bundled_ai
+    status: active
+  - plan_key: pass_6m
+    name: AIntern 6-Month Pass
+    type: one_time
+    pricing:
+      currency: MYR
+      unit_amount_minor: 5900
+    provider:
+      stripe:
+        lookup_key: aintern_pass_6m
+    entitlement_bundle:
+      - aintern.reviews
+      - aintern.official_reports
+      - aintern.exports
+      - aintern.bundled_ai
+    status: active

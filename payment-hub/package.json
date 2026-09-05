@@ -1,0 +1,16 @@
+{
+  "name": "@payment-hub/service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@payment-hub/contracts": "0.1.0",
+    "@payment-hub/types": "0.1.0",
+    "@types/pg": "^8.23.1",
+    "pg": "^8.23.0",
+    "stripe": "^22.5.0",
+    "yaml": "^2.8.1"
+  }
+}

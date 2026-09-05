@@ -1,0 +1,39 @@
+{
+  "name": "central-payment-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Provider-neutral payment hub with Stripe as the first adapter",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "payment-hub"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "typecheck": "tsc -b --pretty false",
+    "validate:registry": "tsx scripts/validate-registry.ts",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "phase0:verify": "npm run validate:registry && npm test",
+    "check": "npm run validate:registry && npm run typecheck && npm test",
+    "dev": "tsx payment-hub/src/dev-server.ts",
+    "dev:local": "node --env-file=.env.local node_modules/tsx/dist/cli.mjs payment-hub/src/dev-server.ts",
+    "phase2:check": "npm run check"
+  },
+  "dependencies": {
+    "@types/pg": "^8.23.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "pg": "^8.23.0",
+    "stripe": "^22.5.0",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
