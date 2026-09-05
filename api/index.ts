@@ -1,16 +1,17 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-import { createPostgresPaymentHubRuntime } from "../payment-hub/src/runtime/runtime.js";
-import { createPaymentHubHttpHandler } from "../payment-hub/src/server/http-server.js";
 
 let handlerPromise: Promise<(req: IncomingMessage, res: ServerResponse) => Promise<void>> | undefined;
 
 async function getHandler() {
-  handlerPromise ??= createPostgresPaymentHubRuntime(process.env, process.cwd()).then((runtime) => createPaymentHubHttpHandler({
+  handlerPromise ??= Promise.all([
+    import("../payment-hub/src/runtime/runtime.js"),
+    import("../payment-hub/src/server/http-server.js"),
+  ]).then(([runtimeModule, serverModule]) => runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd()).then((runtime) => serverModule.createPaymentHubHttpHandler({
     service: runtime.service,
     authenticator: runtime.authenticator,
     idempotencyLedger: runtime.idempotencyLedger,
-  }));
+  })));
   return handlerPromise;
 }
 
