@@ -104,12 +104,12 @@ function parseStripeAccounts(env: NodeJS.ProcessEnv, legacySecretKey?: string, l
   }
   if (legacySecretKey && legacyWebhookSecret) {
     accountNames.add("primary");
-    accountNames.add("effort_edutech");
+    accountNames.add("nhl_global_solution");
   }
   const accounts: StripeProviderAccountConfig[] = [];
   for (const account of [...accountNames].sort()) {
-    const secretKey = optional(env, envNameForProviderAccount(account, "SECRET_KEY")) ?? (account === "primary" || account === "effort_edutech" ? legacySecretKey : undefined);
-    const webhookSecret = optional(env, envNameForProviderAccount(account, "WEBHOOK_SECRET")) ?? (account === "primary" || account === "effort_edutech" ? legacyWebhookSecret : undefined);
+    const secretKey = optional(env, envNameForProviderAccount(account, "SECRET_KEY")) ?? (account === "primary" || account === "nhl_global_solution" ? legacySecretKey : undefined);
+    const webhookSecret = optional(env, envNameForProviderAccount(account, "WEBHOOK_SECRET")) ?? (account === "primary" || account === "nhl_global_solution" ? legacyWebhookSecret : undefined);
     if (secretKey && webhookSecret) accounts.push({ account, secretKey, webhookSecret });
   }
   return accounts;

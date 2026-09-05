@@ -4,7 +4,7 @@ name: AIntern
 status: draft
 provider:
   type: stripe
-  account: effort_edutech
+  account: nhl_global_solution
 billing:
   enabled: true
 application_urls:

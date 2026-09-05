@@ -41,14 +41,14 @@ Each app registry package must declare the provider account it belongs to. Examp
 ```yaml
 provider:
   type: stripe
-  account: effort_edutech
+  account: nhl_global_solution
 ```
 
 The provider account controls which company's Stripe credentials, webhook secret, portal, reconciliation, and settlement context are used.
 
 This protects company separation and allows future expansion:
 
-- AIntern -> `stripe:effort_edutech`
+- AIntern -> `stripe:nhl_global_solution`
 - WorkLedger -> `stripe:bina_jaya`
 - Future app -> `stripe:company_x`
 
@@ -184,6 +184,6 @@ The operator gets one control layer for all apps:
 ## Track 4/5 Verification Notes
 
 - Provider account router validates configured provider account before checkout, portal, webhook, or reconciliation.
-- AIntern registry now maps to stripe:effort_edutech.
-- Local .env.local contains named effort_edutech Stripe sandbox account variables copied from the existing sandbox credentials.
+- AIntern registry now maps to stripe:nhl_global_solution.
+- Local .env.local contains named nhl_global_solution Stripe sandbox account variables copied from the existing sandbox credentials.
 - AIntern thin client build passed and contains no Stripe SDK dependency.

@@ -34,18 +34,18 @@ Set these in the Vercel Payment Hub project. Do not commit values.
 | `SUPABASE_JWT_ISSUER` | Production/Preview | `https://wdhdjhvvngssnszqgiyk.supabase.co/auth/v1`. |
 | `SUPABASE_JWT_AUDIENCE` | Production/Preview | Usually `authenticated`. |
 | `PAYMENT_HUB_CORS_ALLOW_ORIGIN` | Production/Preview | AIntern deployed origin. Use preview origin for preview proof. |
-| `STRIPE_ACCOUNTS` | Production/Preview | `effort_edutech` for AIntern sandbox proof. |
-| `STRIPE_ACCOUNT_EFFORT_EDUTECH_SECRET_KEY` | Preview sandbox | Stripe test secret key for the Effort Edutech account. |
-| `STRIPE_ACCOUNT_EFFORT_EDUTECH_WEBHOOK_SECRET` | Preview sandbox | Stripe webhook signing secret for the deployed endpoint. |
+| `STRIPE_ACCOUNTS` | Production/Preview | `nhl_global_solution` for AIntern sandbox proof. |
+| `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY` | Preview sandbox | Stripe test secret key for the nhl.global.solution@gmail.com Stripe account. |
+| `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET` | Preview sandbox | Stripe webhook signing secret for the deployed endpoint. |
 | `STRIPE_API_VERSION` | Production/Preview | Stripe API version used for adapter calls. |
 
 ## Stripe sandbox webhook endpoint
 
-Configure this endpoint in Stripe test mode for the Effort Edutech Stripe account:
+Configure this endpoint in Stripe test mode for the NHL Global Solution Stripe account:
 
-`https://<payment-hub-domain>/v1/webhooks/stripe/effort_edutech/test`
+`https://<payment-hub-domain>/v1/webhooks/stripe/nhl_global_solution/test`
 
-The webhook secret from this endpoint must be stored only in Vercel as `STRIPE_ACCOUNT_EFFORT_EDUTECH_WEBHOOK_SECRET`.
+The webhook secret from this endpoint must be stored only in Vercel as `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`.
 
 ## Gate closure checklist
 
@@ -63,7 +63,7 @@ The webhook secret from this endpoint must be stored only in Vercel as `STRIPE_A
 - [ ] Deployed `/health` and `/ready` pass.
 - [ ] Deployed AIntern checkout session created.
 - [ ] Deployed Stripe checkout completed in test mode.
-- [ ] Deployed webhook proof accepted for `stripe:effort_edutech`.
+- [ ] Deployed webhook proof accepted for `stripe:nhl_global_solution`.
 - [ ] Deployed entitlement projection proof passes.
 - [ ] Deployed portal session proof passes.
 - [ ] Deployed reconciliation proof passes.

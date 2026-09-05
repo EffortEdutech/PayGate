@@ -23,7 +23,7 @@ AIntern must not know the Stripe account directly. The Hub registry decides whic
 Target shape:
 
 ```text
-AIntern -> Payment Hub -> stripe:effort_edutech
+AIntern -> Payment Hub -> stripe:nhl_global_solution
 WorkLedger -> Payment Hub -> stripe:bina_jaya
 Future app -> Payment Hub -> stripe:company_x
 ```
