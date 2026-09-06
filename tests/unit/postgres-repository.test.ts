@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { QueryResult, QueryResultRow } from "pg";
 import type { VerifiedProviderEvent } from "@payment-hub/contracts";
@@ -139,6 +139,18 @@ test("Postgres idempotency ledger rejects same key with a different request hash
   assert.notEqual(hashIdempotentRequest({ app_id: "app_test" }), hashIdempotentRequest({ app_id: "app_test", changed: true }));
 });
 
+
+test("Postgres monitoring query qualifies reconciliation status columns", async () => {
+  const db = new RecordingQueryClient();
+  const repository = new PostgresPaymentRepository(db);
+  await repository.monitoringSnapshot({ appId: "app_test", environment: "test" });
+  const reconciliationCall = db.calls.find((call) => call.text.includes("FROM reconciliation_runs rr"));
+  assert.ok(reconciliationCall, "expected reconciliation monitoring query");
+  assert.match(reconciliationCall.text, /rr\.status = 'failed'/);
+  assert.match(reconciliationCall.text, /rr\.status = 'no_provider_customer'/);
+  assert.match(reconciliationCall.text, /rr\.status = 'no_provider_subscription'/);
+}
+);
 function verifiedEvent(): VerifiedProviderEvent {
   return {
     providerId: "stripe",

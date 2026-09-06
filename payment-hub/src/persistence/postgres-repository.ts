@@ -241,7 +241,7 @@ export class PostgresPaymentRepository implements PaymentRepository {
       unprocessed: string;
     }>(
       `SELECT
-         count(*) FILTER (WHERE status::text = 'failed')::text AS failed,
+         count(*) FILTER (WHERE rr.status = 'failed')::text AS failed,
          count(*) FILTER (WHERE status::text = 'pending')::text AS pending,
          count(*) FILTER (WHERE status::text = 'retryable')::text AS retryable,
          count(*) FILTER (WHERE status::text = 'dead_letter')::text AS dead_letter,
@@ -256,9 +256,9 @@ export class PostgresPaymentRepository implements PaymentRepository {
       no_provider_subscription: string;
     }>(
       `SELECT
-         count(*) FILTER (WHERE status::text = 'failed')::text AS failed,
-         count(*) FILTER (WHERE status = 'no_provider_customer')::text AS no_provider_customer,
-         count(*) FILTER (WHERE status = 'no_provider_subscription')::text AS no_provider_subscription
+         count(*) FILTER (WHERE rr.status = 'failed')::text AS failed,
+         count(*) FILTER (WHERE rr.status = 'no_provider_customer')::text AS no_provider_customer,
+         count(*) FILTER (WHERE rr.status = 'no_provider_subscription')::text AS no_provider_subscription
        FROM reconciliation_runs rr
        JOIN payment_applications a ON a.id = rr.application_id
        WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR rr.environment = $2)`,
