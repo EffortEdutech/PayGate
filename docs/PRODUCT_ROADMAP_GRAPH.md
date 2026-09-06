@@ -13,9 +13,11 @@ flowchart TD
   PH3 --> PH4[Phase 4\nProduction hardening\nCurrent closeout]
   PH4 --> F4[Phase 4 freeze note\nRequired before Phase 5]
   F4 --> PH5[Phase 5\nLive-mode implementation readiness\nPlanned, no live money]
-  PH5 --> A6[Explicit operator approval\nRequired outside source control]
+  PH5 --> F5[Phase 5 freeze note\nRequired before Phase 6]
+  F5 --> A6[Explicit operator approval\nRequired outside source control]
   A6 --> PH6[Phase 6\nControlled live pilot\nFuture approval required]
-  PH6 --> PH7[Phase 7\nMulti-app scale-out\nFuture]
+  PH6 --> F6[Phase 6 freeze/go-no-go\nRequired before scale-out]
+  F6 --> PH7[Phase 7\nMulti-app scale-out\nPlanned future]
 
   PH4 --> T41[Diagnostics auth]
   PH4 --> T42[Reconciliation inspection]
@@ -34,6 +36,23 @@ flowchart TD
   PH5 --> T56[Live operator diagnostics]
   PH5 --> T57[Phase 6 entry gate]
 
+  PH6 --> T61[Approval packet]
+  PH6 --> T62[Preflight verification]
+  PH6 --> T63[One live checkout pilot]
+  PH6 --> T64[Live webhook and entitlement proof]
+  PH6 --> T65[Portal and reconciliation proof]
+  PH6 --> T66[Refund pilot if approved]
+  PH6 --> T67[Evidence and go/no-go]
+
+  PH7 --> T71[App #2 intake]
+  PH7 --> T72[Registry package]
+  PH7 --> T73[Provider account setup]
+  PH7 --> T74[Thin payment client]
+  PH7 --> T75[App auth boundary]
+  PH7 --> T76[Sandbox E2E proof]
+  PH7 --> T77[Multi-app console readiness]
+  PH7 --> T78[Scale-out freeze]
+
   BLOCK[Blocked until approval\nLive checkout, live payment, live refund, broad rollout] -.-> PH5
   BLOCK -.-> PH6
 ```
@@ -43,4 +62,5 @@ flowchart TD
 - Phase 4 must be frozen before Phase 5 implementation begins.
 - Phase 5 may prepare live-mode code boundaries, but it must not run live money.
 - Phase 6 is the first possible real-money pilot and requires explicit operator approval.
-- Phase 7 is app scale-out after the first controlled live path is proven.
+- Phase 7 is app scale-out after the first controlled live path is proven or explicitly deferred by operator decision.
+- Phase 5, Phase 6, and Phase 7 each have documented sprint plans before execution.

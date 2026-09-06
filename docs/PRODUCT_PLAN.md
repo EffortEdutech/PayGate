@@ -45,9 +45,22 @@ This roadmap is intentionally finite. We do not create new phases unless a new p
 | 3 | First app integration - AIntern | Frozen | Connect AIntern to PayGate through a thin client and named provider account, without app-owned Stripe logic. | AIntern deployed sandbox checkout, webhook, entitlement, portal, and reconciliation proof complete. |
 | 4 | Production hardening | Current closeout | Protect diagnostics, improve reconciliation inspection, admin console, onboarding, live readiness, monitoring, account isolation, and live-test gate. | Phase 4 checklist complete and freeze note recorded. |
 | 5 | Live-mode implementation readiness | Planned, not started | Design and implement explicit live-mode boundaries only after Phase 4 freeze. | Sandbox/live separation tests pass; live credentials still not used without approval. |
-| 6 | Controlled live pilot | Future approval required | Run one approved low-value real payment/refund test. | Evidence recorded; refund and entitlement behavior confirmed. |
-| 7 | Multi-app scale-out | Future | Onboard app #2 and later apps using the multi-app runbook. | New app passes onboarding, sandbox proof, monitoring, and isolation gates. |
+| 6 | Controlled live pilot | Planned, future approval required | Run one approved low-value real payment/refund test. | Evidence recorded; refund and entitlement behavior confirmed. |
+| 7 | Multi-app scale-out | Planned, future | Onboard app #2 and later apps using the multi-app runbook. | New app passes onboarding, sandbox proof, monitoring, and isolation gates. |
 
+
+## Documentation Set Through Product Finish
+
+- Master product plan: `docs/PRODUCT_PLAN.md`.
+- Master completion checklist: `docs/PRODUCT_COMPLETION_CHECKLIST.md`.
+- Product roadmap graph: `docs/PRODUCT_ROADMAP_GRAPH.md`.
+- Implementation roadmap: `IMPLEMENTATION_ROADMAP.md`.
+- Phase 4 freeze: `PHASE_4_FREEZE.md`.
+- Phase 5 sprint plan: `docs/PHASE_5_LIVE_MODE_IMPLEMENTATION_READINESS_SPRINT_PLAN.md`.
+- Phase 6 sprint plan: `docs/PHASE_6_CONTROLLED_LIVE_PILOT_SPRINT_PLAN.md`.
+- Phase 7 sprint plan: `docs/PHASE_7_MULTI_APP_SCALE_OUT_SPRINT_PLAN.md`.
+- Controlled live payment/refund gate: `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
+- Multi-app onboarding runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 ## Current Sprint Authority
 
 Current sprint: Phase 4 - Production Hardening.
