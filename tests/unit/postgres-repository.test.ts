@@ -53,6 +53,17 @@ class IdempotencyQueryClient extends RecordingQueryClient {
     return result([]);
   }
 }
+class FailingWebhookMonitoringClient extends RecordingQueryClient {
+  override async query<R extends QueryResultRow = QueryResultRow>(text: string, values: readonly unknown[] = []): Promise<QueryResult<R>> {
+    this.calls.push({ text, values });
+    if (text.includes("FROM webhook_inbox")) {
+      const error = new Error("operator does not exist: webhook_processing_status = text") as Error & { code: string };
+      error.code = "42883";
+      throw error;
+    }
+    return result([]);
+  }
+}
 
 function result<R extends QueryResultRow>(rows: R[]): QueryResult<R> {
   return { rows, rowCount: rows.length, command: "", oid: 0, fields: [] };
@@ -146,11 +157,21 @@ test("Postgres monitoring query qualifies reconciliation status columns", async 
   await repository.monitoringSnapshot({ appId: "app_test", environment: "test" });
   const reconciliationCall = db.calls.find((call) => call.text.includes("FROM reconciliation_runs rr"));
   assert.ok(reconciliationCall, "expected reconciliation monitoring query");
-  assert.match(reconciliationCall.text, /rr\.status = 'failed'/);
-  assert.match(reconciliationCall.text, /rr\.status = 'no_provider_customer'/);
-  assert.match(reconciliationCall.text, /rr\.status = 'no_provider_subscription'/);
-}
-);
+  assert.match(reconciliationCall.text, /rr\.status::text = 'failed'/);
+  assert.match(reconciliationCall.text, /rr\.status::text = 'no_provider_customer'/);
+  assert.match(reconciliationCall.text, /rr\.status::text = 'no_provider_subscription'/);
+});
+
+test("Postgres monitoring snapshot returns safe diagnostics when one monitoring query fails", async () => {
+  const repository = new PostgresPaymentRepository(new FailingWebhookMonitoringClient());
+  const snapshot = await repository.monitoringSnapshot({ appId: "app_test", environment: "test" });
+  assert.equal(snapshot.database.reachable, false);
+  assert.equal(snapshot.webhookInbox.failed, 0);
+  assert.equal(snapshot.reconciliation.failed, 0);
+  assert.deepEqual(snapshot.diagnostics?.map((entry) => entry.name), ["WEBHOOK_INBOX_COUNTS"]);
+  assert.equal(snapshot.diagnostics?.[0]?.errorCode, "42883");
+});
+
 function verifiedEvent(): VerifiedProviderEvent {
   return {
     providerId: "stripe",

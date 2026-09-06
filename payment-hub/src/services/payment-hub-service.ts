@@ -176,6 +176,7 @@ export class PaymentHubService {
         webhook_inbox: snapshot.webhookInbox,
         reconciliation: snapshot.reconciliation,
       },
+      diagnostics: snapshot.diagnostics ?? [],
       alerts,
     };
   }
@@ -212,6 +213,7 @@ function serializeSubscription(subscription: SubscriptionProjection): Record<str
 }
 function monitoringAlerts(snapshot: Awaited<ReturnType<PaymentHubService["repository"]["monitoringSnapshot"]>>): Array<{ readonly code: string; readonly severity: "warning" | "critical"; readonly message: string }> {
   const alerts: Array<{ readonly code: string; readonly severity: "warning" | "critical"; readonly message: string }> = [];
+  if ((snapshot.diagnostics?.length ?? 0) > 0) alerts.push({ code: "MONITORING_PARTIAL_FAILURE", severity: "warning", message: "Some monitoring queries failed; partial counts are shown with diagnostics." });
   if (!snapshot.database.reachable) alerts.push({ code: "DATABASE_UNREACHABLE", severity: "critical", message: "Database connectivity failed." });
   if (snapshot.webhookInbox.deadLetter > 0) alerts.push({ code: "WEBHOOK_DEAD_LETTER", severity: "critical", message: "Webhook events are in dead-letter state." });
   if (snapshot.webhookInbox.retryable > 0) alerts.push({ code: "WEBHOOK_RETRYABLE", severity: "warning", message: "Webhook events are waiting for retry." });

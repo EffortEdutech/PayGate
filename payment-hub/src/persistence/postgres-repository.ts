@@ -233,39 +233,58 @@ export class PostgresPaymentRepository implements PaymentRepository {
 
   async monitoringSnapshot(input: { readonly appId?: string; readonly environment?: Environment } = {}): Promise<MonitoringSnapshot> {
     const filters = adminFilters(input);
-    const webhookResult = await this.db.query<{
-      failed: string;
-      pending: string;
-      retryable: string;
-      dead_letter: string;
-      unprocessed: string;
-    }>(
-      `SELECT
-         count(*) FILTER (WHERE rr.status = 'failed')::text AS failed,
-         count(*) FILTER (WHERE status::text = 'pending')::text AS pending,
-         count(*) FILTER (WHERE status::text = 'retryable')::text AS retryable,
-         count(*) FILTER (WHERE status::text = 'dead_letter')::text AS dead_letter,
-         count(*) FILTER (WHERE status::text <> 'processed')::text AS unprocessed
-       FROM webhook_inbox
-       WHERE ($1::text IS NULL OR payload->>'appId' = $1) AND ($2::payment_environment IS NULL OR environment = $2)`,
-      filters,
+    const diagnostics: Array<NonNullable<MonitoringSnapshot["diagnostics"]>[number]> = [];
+    const webhook = await this.safeMonitoringQuery(
+      "WEBHOOK_INBOX_COUNTS",
+      {
+        failed: "0",
+        pending: "0",
+        retryable: "0",
+        dead_letter: "0",
+        unprocessed: "0",
+      },
+      () => this.db.query<{
+        failed: string;
+        pending: string;
+        retryable: string;
+        dead_letter: string;
+        unprocessed: string;
+      }>(
+        `SELECT
+           count(*) FILTER (WHERE status::text = 'failed')::text AS failed,
+           count(*) FILTER (WHERE status::text = 'pending')::text AS pending,
+           count(*) FILTER (WHERE status::text = 'retryable')::text AS retryable,
+           count(*) FILTER (WHERE status::text = 'dead_letter')::text AS dead_letter,
+           count(*) FILTER (WHERE status::text <> 'processed')::text AS unprocessed
+         FROM webhook_inbox
+         WHERE ($1::text IS NULL OR payload->>'appId' = $1) AND ($2::payment_environment IS NULL OR environment = $2)`,
+        filters,
+      ),
+      diagnostics,
     );
-    const reconciliationResult = await this.db.query<{
-      failed: string;
-      no_provider_customer: string;
-      no_provider_subscription: string;
-    }>(
-      `SELECT
-         count(*) FILTER (WHERE rr.status = 'failed')::text AS failed,
-         count(*) FILTER (WHERE rr.status = 'no_provider_customer')::text AS no_provider_customer,
-         count(*) FILTER (WHERE rr.status = 'no_provider_subscription')::text AS no_provider_subscription
-       FROM reconciliation_runs rr
-       JOIN payment_applications a ON a.id = rr.application_id
-       WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR rr.environment = $2)`,
-      filters,
+    const reconciliation = await this.safeMonitoringQuery(
+      "RECONCILIATION_COUNTS",
+      {
+        failed: "0",
+        no_provider_customer: "0",
+        no_provider_subscription: "0",
+      },
+      () => this.db.query<{
+        failed: string;
+        no_provider_customer: string;
+        no_provider_subscription: string;
+      }>(
+        `SELECT
+           count(*) FILTER (WHERE rr.status::text = 'failed')::text AS failed,
+           count(*) FILTER (WHERE rr.status::text = 'no_provider_customer')::text AS no_provider_customer,
+           count(*) FILTER (WHERE rr.status::text = 'no_provider_subscription')::text AS no_provider_subscription
+         FROM reconciliation_runs rr
+         JOIN payment_applications a ON a.id = rr.application_id
+         WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR rr.environment = $2)`,
+        filters,
+      ),
+      diagnostics,
     );
-    const webhook = webhookResult.rows[0] ?? { failed: "0", pending: "0", retryable: "0", dead_letter: "0", unprocessed: "0" };
-    const reconciliation = reconciliationResult.rows[0] ?? { failed: "0", no_provider_customer: "0", no_provider_subscription: "0" };
     return {
       generatedAt: new Date(),
       webhookInbox: {
@@ -280,8 +299,19 @@ export class PostgresPaymentRepository implements PaymentRepository {
         noProviderCustomer: numberFromPgCount(reconciliation.no_provider_customer),
         noProviderSubscription: numberFromPgCount(reconciliation.no_provider_subscription),
       },
-      database: { reachable: true },
+      database: { reachable: diagnostics.length === 0 },
+      ...(diagnostics.length > 0 ? { diagnostics } : {}),
     };
+  }
+
+  private async safeMonitoringQuery<R extends QueryResultRow>(name: string, fallback: R, query: () => Promise<QueryResult<R>>, diagnostics: Array<NonNullable<MonitoringSnapshot["diagnostics"]>[number]>): Promise<R> {
+    try {
+      const result = await query();
+      return result.rows[0] ?? fallback;
+    } catch (error) {
+      diagnostics.push(safeMonitoringDiagnostic(name, error));
+      return fallback;
+    }
   }
   private async applyVerifiedEventWithClient(client: PgQueryClient, event: VerifiedProviderEvent): Promise<void> {
     const payload = event.payload;
@@ -394,6 +424,19 @@ export class PostgresPaymentRepository implements PaymentRepository {
 
 
 
+function safeMonitoringDiagnostic(name: string, error: unknown): NonNullable<MonitoringSnapshot["diagnostics"]>[number] {
+  const err = error as { code?: unknown; message?: unknown };
+  return {
+    name,
+    ok: false,
+    ...(typeof err.code === "string" ? { errorCode: err.code } : {}),
+    ...(typeof err.message === "string" ? { message: sanitizeMonitoringMessage(err.message) } : {}),
+  };
+}
+
+function sanitizeMonitoringMessage(message: string): string {
+  return message.replace(/postgresql:\/\/[^\s]+/g, "postgresql://[redacted]").replace(/sk_(test|live)_[A-Za-z0-9]+/g, "sk_$1_[redacted]").replace(/whsec_[A-Za-z0-9]+/g, "whsec_[redacted]");
+}
 function numberFromPgCount(value: string | number | null | undefined): number {
   return Number(value ?? 0);
 }

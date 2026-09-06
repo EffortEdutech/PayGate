@@ -93,6 +93,12 @@ export interface MonitoringSnapshot {
   readonly database: {
     readonly reachable: boolean;
   };
+  readonly diagnostics?: readonly {
+    readonly name: string;
+    readonly ok: boolean;
+    readonly errorCode?: string;
+    readonly message?: string;
+  }[];
 }
 export interface PaymentRepository {
   ensureApplication(input: { readonly appId: string; readonly registryVersion: string; readonly status: string }): Promise<string>;
