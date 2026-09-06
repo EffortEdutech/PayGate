@@ -99,13 +99,19 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
 
   async reconcileCustomer(command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> {
     try {
-      const subscriptions = await this.#stripe.subscriptions.list({ customer: command.providerCustomerRef, status: "all", limit: 1, expand: ["data.items.data.price"] });
-      const subscription = subscriptions.data[0];
-      if (!subscription) return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: "none", observedAt: new Date(), state: "none", evidence: { provider: "stripe", customer: command.providerCustomerRef, subscriptions: [] } };
+      const [customer, subscriptions, checkoutSessions, invoices] = await Promise.all([
+        this.#stripe.customers.retrieve(command.providerCustomerRef),
+        this.#stripe.subscriptions.list({ customer: command.providerCustomerRef, status: "all", limit: 3, expand: ["data.items.data.price", "data.latest_invoice"] }),
+        this.#stripe.checkout.sessions.list({ customer: command.providerCustomerRef, limit: 3, expand: ["data.subscription", "data.payment_intent"] }),
+        this.#stripe.invoices.list({ customer: command.providerCustomerRef, limit: 3, expand: ["data.payment_intent", "data.subscription"] }),
+      ]);
+      const subscription = preferredSubscription(subscriptions.data);
+      const evidence = buildStripeReconciliationEvidence(command, customer, subscriptions.data, checkoutSessions.data, invoices.data);
+      if (!subscription) return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: "none", observedAt: new Date(), state: "none", evidence };
       const item = subscription.items.data[0];
       const price = item?.price;
       const currentPeriodEnd = item?.current_period_end;
-      return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: subscription.id, observedAt: new Date(), state: mapStripeSubscriptionState(subscription.status), ...(subscription.metadata.cph_plan_key ? { planKey: subscription.metadata.cph_plan_key } : price?.lookup_key ? { planKey: price.lookup_key } : {}), ...(currentPeriodEnd ? { currentPeriodEnd: new Date(currentPeriodEnd * 1000) } : {}), evidence: { provider: "stripe", subscription_id: subscription.id, customer: command.providerCustomerRef, status: subscription.status, current_period_end: currentPeriodEnd ?? null, metadata: subscription.metadata, price_lookup_key: price?.lookup_key ?? null } };
+      return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: subscription.id, observedAt: new Date(), state: mapStripeSubscriptionState(subscription.status), ...(subscription.metadata.cph_plan_key ? { planKey: subscription.metadata.cph_plan_key } : price?.lookup_key ? { planKey: price.lookup_key } : {}), ...(currentPeriodEnd ? { currentPeriodEnd: new Date(currentPeriodEnd * 1000) } : {}), evidence };
     } catch (error) {
       throw translateStripeError(error);
     }
@@ -117,6 +123,137 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
   }
 }
 
+type StripeReconciliationMismatch =
+  | "in_sync_candidate"
+  | "no_provider_subscription"
+  | "checkout_payment_mode_without_subscription"
+  | "checkout_completed_subscription_missing"
+  | "inactive_subscription_only"
+  | "missing_plan_metadata"
+  | "provider_customer_app_metadata_mismatch";
+
+type StripeReconciliationEvidence = {
+  readonly provider: "stripe";
+  readonly classification: StripeReconciliationMismatch;
+  readonly customer: Record<string, unknown>;
+  readonly expected: {
+    readonly app_id: string;
+    readonly user_ref: string;
+    readonly provider_account: string;
+    readonly environment: Environment;
+  };
+  readonly subscriptions: readonly Record<string, unknown>[];
+  readonly checkout_sessions: readonly Record<string, unknown>[];
+  readonly invoices: readonly Record<string, unknown>[];
+};
+
+function preferredSubscription(subscriptions: readonly Stripe.Subscription[]): Stripe.Subscription | undefined {
+  return subscriptions.find((subscription) => ["active", "trialing", "past_due", "paused"].includes(subscription.status)) ?? subscriptions[0];
+}
+
+function buildStripeReconciliationEvidence(command: ResolvedReconciliationCommand, customer: Stripe.Response<Stripe.Customer | Stripe.DeletedCustomer>, subscriptions: readonly Stripe.Subscription[], checkoutSessions: readonly Stripe.Checkout.Session[], invoices: readonly Stripe.Invoice[]): StripeReconciliationEvidence {
+  const subscriptionSummaries = subscriptions.map(summarizeSubscription);
+  const checkoutSummaries = checkoutSessions.map(summarizeCheckoutSession);
+  const invoiceSummaries = invoices.map(summarizeInvoice);
+  return {
+    provider: "stripe",
+    classification: classifyStripeReconciliationEvidence(command, subscriptionSummaries, checkoutSummaries),
+    customer: summarizeCustomer(customer),
+    expected: {
+      app_id: command.appId,
+      user_ref: command.userRef,
+      provider_account: command.providerAccount,
+      environment: command.environment,
+    },
+    subscriptions: subscriptionSummaries,
+    checkout_sessions: checkoutSummaries,
+    invoices: invoiceSummaries,
+  };
+}
+
+export function classifyStripeReconciliationEvidence(command: Pick<ResolvedReconciliationCommand, "appId" | "userRef">, subscriptions: readonly Record<string, unknown>[], checkoutSessions: readonly Record<string, unknown>[]): StripeReconciliationMismatch {
+  const metadataMismatch = [...subscriptions, ...checkoutSessions].some((record) => {
+    const metadata = record.metadata as Record<string, unknown> | undefined;
+    return metadata && ((typeof metadata.cph_app_id === "string" && metadata.cph_app_id !== command.appId) || (typeof metadata.cph_user_ref === "string" && metadata.cph_user_ref !== command.userRef));
+  });
+  if (metadataMismatch) return "provider_customer_app_metadata_mismatch";
+
+  const activeLikeSubscription = subscriptions.find((record) => ["active", "trialing", "past_due", "paused"].includes(String(record.status)));
+  if (activeLikeSubscription) {
+    const metadata = activeLikeSubscription.metadata as Record<string, unknown> | undefined;
+    const hasPlanMetadata = typeof metadata?.cph_plan_key === "string" || typeof activeLikeSubscription.price_lookup_key === "string";
+    return hasPlanMetadata ? "in_sync_candidate" : "missing_plan_metadata";
+  }
+
+  if (subscriptions.length > 0) return "inactive_subscription_only";
+
+  const completedCheckout = checkoutSessions.find((record) => record.status === "complete");
+  if (completedCheckout?.mode === "payment") return "checkout_payment_mode_without_subscription";
+  if (completedCheckout?.mode === "subscription") return "checkout_completed_subscription_missing";
+
+  return "no_provider_subscription";
+}
+
+function summarizeCustomer(customer: Stripe.Customer | Stripe.DeletedCustomer): Record<string, unknown> {
+  if (customer.deleted) return { id: customer.id, deleted: true };
+  return {
+    id: customer.id,
+    deleted: false,
+    email_present: Boolean(customer.email),
+    metadata: allowedMetadata(customer.metadata),
+  };
+}
+function summarizeSubscription(subscription: Stripe.Subscription): Record<string, unknown> {
+  const item = subscription.items.data[0];
+  const price = item?.price;
+  return {
+    id: subscription.id,
+    status: subscription.status,
+    current_period_end: item?.current_period_end ?? null,
+    latest_invoice_id: providerRef(subscription.latest_invoice),
+    metadata: allowedMetadata(subscription.metadata),
+    price_id: price?.id ?? null,
+    price_lookup_key: price?.lookup_key ?? null,
+  };
+}
+
+function summarizeCheckoutSession(session: Stripe.Checkout.Session): Record<string, unknown> {
+  return {
+    id: session.id,
+    mode: session.mode,
+    status: session.status,
+    payment_status: session.payment_status,
+    customer: providerRef(session.customer),
+    subscription_id: providerRef(session.subscription),
+    payment_intent_id: providerRef(session.payment_intent),
+    client_reference_id: session.client_reference_id,
+    metadata: allowedMetadata(session.metadata),
+  };
+}
+
+function summarizeInvoice(invoice: Stripe.Invoice): Record<string, unknown> {
+  const invoiceWithExpandableRefs = invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null; payment_intent?: string | Stripe.PaymentIntent | null };
+  return {
+    id: invoice.id,
+    status: invoice.status,
+    customer: providerRef(invoice.customer),
+    subscription_id: providerRef(invoiceWithExpandableRefs.subscription),
+    payment_intent_id: providerRef(invoiceWithExpandableRefs.payment_intent),
+    amount_due: invoice.amount_due,
+    amount_paid: invoice.amount_paid,
+    currency: invoice.currency?.toUpperCase(),
+    metadata: allowedMetadata(invoice.metadata),
+  };
+}
+
+function allowedMetadata(metadata: Stripe.Metadata | null | undefined): Record<string, string> {
+  const safe: Record<string, string> = {};
+  for (const key of ["cph_app_id", "cph_user_ref", "cph_plan_key", "cph_environment", "cph_provider_account", "cph_request_id"]) {
+    const value = metadata?.[key];
+    if (typeof value === "string") safe[key] = value;
+  }
+  return safe;
+}
 export class StripeAdapterRuntimeError extends Error {
   constructor(readonly code: "PROVIDER_PRICE_NOT_FOUND" | "PROVIDER_SESSION_URL_MISSING" | "PROVIDER_AUTHENTICATION_FAILED" | "PROVIDER_RATE_LIMITED" | "PROVIDER_REQUEST_FAILED", message: string) {
     super(message);

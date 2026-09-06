@@ -1,6 +1,6 @@
 # Phase 4 - Production Hardening Sprint Plan
 
-**Status:** started - Track 1 completed  
+**Status:** started - Tracks 1 and 2 completed  
 **Starts after:** Phase 3 AIntern deployed sandbox proof freeze  
 **Live payments:** not authorized in this phase until the live-mode readiness gate is explicitly passed by the operator.
 
@@ -49,15 +49,23 @@ Goal: make reconciliation explain provider state mismatches clearly.
 
 Checklist:
 
-- [ ] Inspect Stripe Checkout Session by provider session id when available.
-- [ ] Inspect Stripe Customer linked to the Hub payment customer.
-- [ ] Inspect Stripe Subscription when present.
-- [ ] Inspect latest Invoice and PaymentIntent when relevant.
-- [ ] Inspect Price/Product metadata and lookup keys.
-- [ ] Explain mismatch classes: missing provider subscription, one-time payment mode, wrong customer, delayed provider state, canceled subscription, missing metadata, or registry mapping mismatch.
-- [ ] Keep returned reconciliation output provider-neutral for app callers.
-- [ ] Store detailed provider evidence only in server-side audit records.
-- [ ] Add tests for mismatch classification.
+- [x] Inspect recent Stripe Checkout Sessions for the provider customer.
+- [x] Inspect Stripe Customer linkage through the Hub provider customer reference.
+- [x] Inspect recent Stripe Subscriptions when present.
+- [x] Inspect recent Invoices and expandable PaymentIntent references when relevant.
+- [x] Inspect subscription item Price IDs and lookup keys.
+- [x] Explain mismatch classes: missing provider subscription, one-time payment mode, wrong customer/user metadata, delayed provider state, inactive subscription, or missing plan metadata.
+- [x] Keep returned reconciliation output provider-neutral for app callers.
+- [x] Store detailed provider evidence only in server-side reconciliation audit records.
+- [x] Add tests for mismatch classification.
+
+Implementation notes:
+
+- Reconciliation now inspects recent Stripe subscriptions, checkout sessions, and invoices for the Hub-owned provider customer.
+- Stored evidence includes safe summaries only: provider object IDs, statuses, payment mode, payment status, amount fields, currency, expected app/user/provider account, and whitelisted `cph_*` metadata.
+- Evidence classification now distinguishes `in_sync_candidate`, `no_provider_subscription`, `checkout_payment_mode_without_subscription`, `checkout_completed_subscription_missing`, `inactive_subscription_only`, `missing_plan_metadata`, and `provider_customer_app_metadata_mismatch`.
+- The public reconciliation response remains provider-neutral and still returns only Hub state/status to callers.
+
 
 ### Track 3 - Audit/Admin Console
 
@@ -177,7 +185,7 @@ Live test sequence:
 ## Phase 4 Exit Criteria
 
 - [x] Diagnostics are protected.
-- [ ] Reconciliation gives useful mismatch diagnostics.
+- [x] Reconciliation gives useful mismatch diagnostics.
 - [ ] Operator can inspect payment state safely.
 - [ ] App #2 onboarding can follow a documented checklist.
 - [ ] Live-mode readiness checklist exists and is reviewed.
