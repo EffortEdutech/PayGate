@@ -4,7 +4,7 @@ import type { CheckoutResult, PaymentProviderAdapter, PortalResult, ProviderCapa
 import { envNameForProviderAccount, loadHubConfig } from "../../payment-hub/src/config.js";
 import { InMemoryPaymentRepository, PaymentHubService, Registry } from "../../payment-hub/src/index.js";
 import { ProviderAccountNotConfiguredError, ProviderAccountRouter } from "../../payment-hub/src/providers/provider-account-router.js";
-import { StripeAdapterSkeleton } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
+import { StripeAdapterSkeleton, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
 
 
 const accountAApp = {
@@ -128,4 +128,10 @@ test("provider customer mappings are isolated by provider account and environmen
   assert.equal(await repository.findProviderCustomer({ appId: "account_a_app", userRef: "user_1", providerId: "stripe", providerAccount: "bina_jaya", environment: "test" }), "cus_bina_test");
   assert.equal(await repository.findProviderCustomer({ appId: "account_a_app", userRef: "user_1", providerId: "stripe", providerAccount: "nhl_global_solution", environment: "live" }), "cus_nhl_live");
   assert.equal(await repository.findProviderCustomer({ appId: "account_a_app", userRef: "user_1", providerId: "stripe", providerAccount: "unknown_company", environment: "test" }), undefined);
+});
+test("current Stripe adapter blocks live credentials until an explicit live-mode implementation exists", () => {
+  assert.throws(
+    () => new StripeSandboxAdapter({ secretKey: "sk_live_not_allowed", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" }),
+    /sandbox secret key/,
+  );
 });

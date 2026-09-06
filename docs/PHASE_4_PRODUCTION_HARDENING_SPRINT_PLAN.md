@@ -189,39 +189,43 @@ Implementation notes:
 - Verified provider customer mappings are isolated by app, user, provider, provider account, and environment.
 - Verified named Stripe account configuration does not borrow secrets from another named account; incomplete named accounts are not configured.
 - Verified unknown provider accounts fail closed through `ProviderAccountNotConfiguredError`.
-- Verification command: `npm run check` passed with registry validation, TypeScript, and 47 tests.
+- Verification command: `npm run check` passed with registry validation, TypeScript, and 48 tests.
 ### Track 8 - Controlled Live Stripe Payment and Refund Test
 
-Goal: define when and how live payments/refunds will be tested.
+Goal: define when and how live payments/refunds will be tested without authorizing live execution yet.
 
-Live Stripe payments and refunds should only run after Tracks 1, 5, 6, and 7 are complete, and after the operator explicitly approves a live test window.
+Live Stripe payments and refunds may run only after Tracks 1, 5, 6, and 7 are complete, the remaining live account/business settings are reviewed, and the operator explicitly approves a narrow live test window.
+
+Checklist:
+
+- [x] Define controlled live payment/refund gate.
+- [x] Define required approval record outside source control.
+- [x] Define pre-live checklist.
+- [x] Define controlled live test sequence.
+- [x] Define refund decision points.
+- [x] Define safe evidence checklist.
+- [x] Define stop conditions.
+- [x] Confirm live execution remains deferred until explicit operator approval.
 
 Minimum gate before first live payment:
 
-- [ ] Operator diagnostics protected.
-- [ ] Live-mode readiness checklist completed.
-- [ ] Monitoring/alerting baseline in place.
+- [x] Operator diagnostics protected.
+- [ ] Live-mode readiness checklist completed by operator.
+- [x] Monitoring/alerting baseline in place.
 - [x] Provider account isolation tests passed.
-- [ ] Live Stripe account settings reviewed.
+- [ ] Live Stripe account settings reviewed by operator.
 - [ ] Live Product/Price created intentionally, not copied blindly from sandbox.
 - [ ] Live webhook endpoint configured and verified.
 - [ ] Small controlled live amount selected.
 - [ ] Real payment method and refund path approved by operator.
-- [ ] Rollback/support plan written.
+- [x] Rollback/support plan template written.
 - [ ] Explicit operator approval recorded outside source control.
 
-Live test sequence:
+Implementation notes:
 
-1. Create one low-value live checkout session from the production app.
-2. Complete real payment.
-3. Verify live webhook ingestion.
-4. Verify live entitlement projection.
-5. Verify receipt/invoice behavior.
-6. Create billing portal session.
-7. Perform partial or full refund in Stripe.
-8. Verify refund webhook handling.
-9. Verify entitlement/business-state decision after refund.
-10. Record evidence and freeze live proof notes.
+- The controlled live payment/refund gate is recorded in `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
+- Track 8 closes the planning gate only. Live credentials, live checkout, live webhook processing, live payment, and refund execution remain blocked until explicit operator approval.
+- Current code still rejects `sk_live_` keys in the sandbox Stripe adapter, so live execution cannot happen accidentally through the current adapter path.
 
 ## Phase 4 Exit Criteria
 
@@ -231,5 +235,5 @@ Live test sequence:
 - [x] App #2 onboarding can follow a documented checklist.
 - [x] Live-mode readiness checklist exists and is reviewed.
 - [x] Monitoring/alerting baseline exists.
-- [ ] Multi-provider-account isolation tests pass.
-- [ ] Live payment/refund test gate is either completed or explicitly deferred.
+- [x] Multi-provider-account isolation tests pass.
+- [x] Live payment/refund test gate is defined; execution explicitly deferred.

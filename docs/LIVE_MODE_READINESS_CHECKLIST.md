@@ -118,7 +118,7 @@ Live testing waits for Phase 4 Track 7 provider isolation tests:
 
 ## Gate 8 - First Live Payment Approval
 
-The first live payment requires explicit operator approval after Gates 1-7 are complete.
+The first live payment requires explicit operator approval after Gates 1-7 are complete. Use `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md` as the approval, execution, refund, evidence, and stop-condition runbook.
 
 Approval record should include:
 
@@ -166,7 +166,7 @@ Stop the live test immediately if any of these occur:
 
 ## Current Decision
 
-Live Stripe payments and refunds are not authorized yet.
+Live Stripe payments and refunds are not authorized yet. The Track 8 planning gate is defined, but execution remains deferred until the operator records explicit approval outside source control.
 
 Next dependencies before live testing:
 
