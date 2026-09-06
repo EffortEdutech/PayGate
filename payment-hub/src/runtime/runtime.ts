@@ -54,9 +54,14 @@ function createAuthenticator(config: HubConfig): AppAuthenticator {
 }
 
 function createProvider(config: HubConfig): PaymentProviderAdapter {
-  return config.stripeAccounts.length > 0
-    ? new ProviderAccountRouter("stripe", new Map(config.stripeAccounts.map((account) => [account.account, new StripeSandboxAdapter({ environment: "test", secretKey: account.secretKey, webhookSecret: account.webhookSecret, apiVersion: config.stripeApiVersion })])))
-    : new StripeAdapterSkeleton();
+  const adapters = new Map<string, PaymentProviderAdapter>();
+  for (const account of config.stripeAccounts) {
+    adapters.set(`${account.account}:test`, new StripeSandboxAdapter({ environment: "test", secretKey: account.secretKey, webhookSecret: account.webhookSecret, apiVersion: config.stripeApiVersion }));
+  }
+  for (const account of config.stripeLiveAccounts) {
+    adapters.set(`${account.account}:live`, new StripeLiveWebhookAdapter({ environment: "live", secretKey: account.secretKey, webhookSecret: account.webhookSecret, apiVersion: config.stripeApiVersion }));
+  }
+  return adapters.size > 0 ? new ProviderAccountRouter("stripe", adapters) : new StripeAdapterSkeleton();
 }
 
 async function loadRegistry(appsDir: string): Promise<Registry> {

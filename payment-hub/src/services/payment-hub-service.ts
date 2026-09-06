@@ -100,6 +100,7 @@ export class PaymentHubService {
           status: plan.status,
           entitlements: plan.entitlements,
           provider_lookup_configured: Object.keys(plan.providerLookupKeys).length > 0,
+          live_provider_lookup_configured: Boolean(plan.providerLiveLookupKeys?.[app.providerId] ?? plan.providerLookupKeys[app.providerId]),
         })),
       }));
     const snapshot = await this.repository.adminDashboardSnapshot(input);

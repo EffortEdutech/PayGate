@@ -120,11 +120,21 @@ Goal: give the operator enough safe visibility before Phase 6.
 
 Checklist:
 
-- [ ] Show live/test environment clearly in admin summary.
-- [ ] Show provider account alias and app mapping without secrets.
-- [ ] Show live readiness diagnostics without credential values.
-- [ ] Show webhook/reconciliation state by environment.
-- [ ] Add evidence checklist link in docs/admin flow.
+- [x] Show live/test environment clearly in admin summary.
+- [x] Show provider account alias and app mapping without secrets.
+- [x] Show live readiness diagnostics without credential values.
+- [x] Show webhook/reconciliation state by environment.
+- [x] Add evidence checklist link in docs/admin flow.
+
+
+Implementation notes:
+
+- Added `docs/LIVE_OPERATOR_DIAGNOSTICS_AND_ADMIN_EVIDENCE.md`.
+- Added protected diagnostics check `LIVE_OPERATOR_READINESS` with aliases only and no secret values.
+- Diagnostics explicitly report that live checkout, portal, and reconciliation are disabled while Phase 6 approval is still required.
+- Admin summary now shows per-plan `live_provider_lookup_configured` and retains provider account/live-test origin evidence.
+- Admin UI now renders live lookup readiness and provider customer environment so operators can review state without raw provider secrets.
+- Corrected runtime provider construction so configured live accounts are wired as live webhook-only adapters while live business operations remain disabled.
 
 ## Track 7 - Phase 6 Entry Gate
 

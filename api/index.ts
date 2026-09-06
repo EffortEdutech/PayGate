@@ -179,6 +179,7 @@ function runtimeDiagnostics(requestId: string): unknown {
     checkStripeAccounts(accounts),
     checkStripeLiveAccounts(liveAccounts),
     checkDatabaseUrl(process.env.DATABASE_URL),
+    liveReadinessSummary(accounts, liveAccounts),
     ...accounts.flatMap((account) => [
       checkSecret(envNameForProviderAccount(account, "SECRET_KEY"), process.env[envNameForProviderAccount(account, "SECRET_KEY")], "sk_test_"),
       checkSecret(envNameForProviderAccount(account, "WEBHOOK_SECRET"), process.env[envNameForProviderAccount(account, "WEBHOOK_SECRET")], "whsec_"),
@@ -216,7 +217,7 @@ async function readinessDiagnostics(requestId: string): Promise<unknown> {
   try {
     const runtimeModule = await import("../payment-hub/src/runtime/runtime.js");
     const runtime = await runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd());
-    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
+    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, live_webhook_boundary: runtime.config.stripeLiveAccounts.length > 0 ? "live_webhook_only" : "not_configured", live_checkout_enabled: false, live_portal_enabled: false, live_reconciliation_enabled: false, phase6_approval_required: true, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
   } catch (error) {
     checks.push(safeErrorCheck("RUNTIME_CREATE", error));
   }
@@ -288,6 +289,28 @@ function checkDatabaseUrl(value: string | undefined): unknown {
   }
 }
 
+function liveReadinessSummary(accounts: string[], liveAccounts: string[]): unknown {
+  const sandboxSet = new Set(accounts);
+  const liveSet = new Set(liveAccounts.filter((account) => account !== "primary"));
+  const sharedAccounts = [...liveSet].filter((account) => sandboxSet.has(account));
+  const liveWebhookReady = [...liveSet].filter((account) => {
+    const secretKey = process.env[liveEnvNameForProviderAccount(account, "SECRET_KEY")];
+    const webhookSecret = process.env[liveEnvNameForProviderAccount(account, "WEBHOOK_SECRET")];
+    return Boolean(secretKey?.startsWith("sk_live_") && webhookSecret?.startsWith("whsec_"));
+  });
+  return {
+    name: "LIVE_OPERATOR_READINESS",
+    ok: liveAccounts.length === 0 || liveWebhookReady.length === liveSet.size,
+    sandbox_accounts: accounts,
+    live_accounts: [...liveSet],
+    shared_provider_accounts: sharedAccounts,
+    live_webhook_ready_accounts: liveWebhookReady,
+    live_checkout_enabled: false,
+    live_portal_enabled: false,
+    live_reconciliation_enabled: false,
+    phase6_approval_required: true,
+  };
+}
 function checkStripeAccounts(accounts: string[]): unknown {
   return {
     name: "STRIPE_ACCOUNTS",
@@ -457,8 +480,8 @@ function renderMonitoring(monitoring) {
   $("raw").textContent = JSON.stringify(body, null, 2);
   if (!response.ok) { $("status").textContent = response.status + ': ' + (body.error && body.error.code ? body.error.code : 'error'); return; }
   $("status").textContent = 'Loaded ' + body.generated_at;
-  renderList("apps", body.apps || [], "No apps.", function (app) { return card(app.app_id, ['Provider: <code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>', 'Plans: ' + ((app.plans || []).map(function (p) { return esc(p.plan_key + ' / ' + p.status); }).join(', '))]); });
-  renderList("customers", body.customers || [], "No customers.", function (c) { return card(c.app_id + ' / ' + c.user_ref, ['Subscription: <code>' + esc(c.subscription && c.subscription.state) + ' ' + esc(c.subscription && c.subscription.plan_key || '') + '</code>', 'Provider customers: ' + (((c.provider_customers || []).map(function (pc) { return esc(pc.provider_account + ':' + pc.provider_customer_ref); }).join(', ')) || 'none'), 'Entitlements: ' + (((c.entitlements || []).map(function (e) { return esc(e.key + '=' + e.state); }).join(', ')) || 'none')]); });
+  renderList("apps", body.apps || [], "No apps.", function (app) { return card(app.app_id, ['Provider: <code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>', 'Plans: ' + ((app.plans || []).map(function (p) { return esc(p.plan_key + ' / ' + p.status + ' / live_lookup=' + Boolean(p.live_provider_lookup_configured)); }).join(', '))]); });
+  renderList("customers", body.customers || [], "No customers.", function (c) { return card(c.app_id + ' / ' + c.user_ref, ['Subscription: <code>' + esc(c.subscription && c.subscription.state) + ' ' + esc(c.subscription && c.subscription.plan_key || '') + '</code>', 'Provider customers: ' + (((c.provider_customers || []).map(function (pc) { return esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref); }).join(', ')) || 'none'), 'Entitlements: ' + (((c.entitlements || []).map(function (e) { return esc(e.key + '=' + e.state); }).join(', ')) || 'none')]); });
   renderList("checkouts", body.checkout_sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref, [esc(s.app_id) + ' / ' + esc(s.user_ref), 'Plan: <code>' + esc(s.plan_key) + '</code>', 'Status: ' + esc(s.status), 'Created: ' + esc(s.created_at)]); });
   renderList("webhooks", body.webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id, [esc(w.provider_account) + ' / ' + esc(w.environment), 'Type: <code>' + esc(w.event_type) + '</code>', 'Status: ' + esc(w.status) + ' attempts=' + esc(w.attempt_count), 'App/User: ' + esc(w.app_id) + ' / ' + esc(w.user_ref)]); });
   renderList("reconciliation", body.reconciliation_runs || [], "No reconciliation runs.", function (r) { return card(r.id, [esc(r.app_id) + ' / ' + esc(r.user_ref), 'Status: <code>' + esc(r.status) + '</code>', 'Classification: ' + esc(r.classification || 'none'), 'Completed: ' + esc(r.completed_at)]); });

@@ -12,7 +12,7 @@ const app = {
   providerAccount: "primary",
   origins: { test: new URL("https://test.example.com"), live: new URL("https://example.com") },
   returnContexts: { billing: { successPath: "/success", cancelPath: "/cancel", portalPath: "/billing" } },
-  plans: new Map([["growth_monthly", { planKey: "growth_monthly", name: "Growth", mode: "subscription" as const, amountMinor: 4900, currency: "USD" as const, interval: "month" as const, providerLookupKeys: { stripe: "app_test_growth_monthly" }, entitlements: ["analytics.export"], status: "active" as const }]]),
+  plans: new Map([["growth_monthly", { planKey: "growth_monthly", name: "Growth", mode: "subscription" as const, amountMinor: 4900, currency: "USD" as const, interval: "month" as const, providerLookupKeys: { stripe: "app_test_growth_monthly" }, providerLiveLookupKeys: { stripe: "app_test_growth_monthly_live" }, entitlements: ["analytics.export"], status: "active" as const }]]),
 };
 
 class FakeProvider implements PaymentProviderAdapter {
@@ -35,7 +35,7 @@ test("admin dashboard snapshot exposes safe operator state", async () => {
   await service.reconcile({ requestId: "req_reconcile", appId: "app_test", userRef: "user_1", environment: "test" });
 
   const snapshot = await service.adminDashboard({ appId: "app_test", environment: "test" }) as {
-    apps: Array<{ app_id: string; plans: Array<{ provider_lookup_configured: boolean }> }>;
+    apps: Array<{ app_id: string; provider_account: string; origins: { test: string; live: string }; plans: Array<{ provider_lookup_configured: boolean; live_provider_lookup_configured: boolean }> }>;
     customers: Array<{ provider_customers: unknown[]; subscription: { state: string }; entitlements: unknown[] }>;
     checkout_sessions: unknown[];
     webhooks: Array<{ status: string }>;
@@ -43,7 +43,10 @@ test("admin dashboard snapshot exposes safe operator state", async () => {
   };
 
   assert.equal(snapshot.apps[0]?.app_id, "app_test");
+  assert.equal(snapshot.apps[0]?.provider_account, "primary");
+  assert.equal(snapshot.apps[0]?.origins.live, "https://example.com/");
   assert.equal(snapshot.apps[0]?.plans[0]?.provider_lookup_configured, true);
+  assert.equal(snapshot.apps[0]?.plans[0]?.live_provider_lookup_configured, true);
   assert.equal(snapshot.customers[0]?.subscription.state, "active");
   assert.equal(snapshot.customers[0]?.provider_customers.length, 1);
   assert.equal(snapshot.customers[0]?.entitlements.length, 1);

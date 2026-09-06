@@ -76,7 +76,7 @@ Status: planned, not started.
 - [x] Live registry strategy implemented.
 - [x] Live webhook boundary implemented.
 - [x] Refund policy/event mapping implemented.
-- [ ] Live operator diagnostics implemented.
+- [x] Live operator diagnostics implemented.
 - [ ] Phase 6 entry gate prepared.
 - [ ] Phase 5 freeze note created.
 
