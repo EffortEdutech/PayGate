@@ -1,6 +1,6 @@
 # Phase 4 - Production Hardening Sprint Plan
 
-**Status:** started - Tracks 1, 2, and 3 completed  
+**Status:** started - Tracks 1, 2, 3, and 4 completed  
 **Starts after:** Phase 3 AIntern deployed sandbox proof freeze  
 **Live payments:** not authorized in this phase until the live-mode readiness gate is explicitly passed by the operator.
 
@@ -100,15 +100,22 @@ Goal: prepare for app #2 after AIntern without weakening the architecture.
 
 Checklist:
 
-- [ ] Create a repeatable app onboarding runbook.
-- [ ] Define required registry fields for each new app.
-- [ ] Define required Stripe/Product/Price setup steps.
-- [ ] Define required Supabase/JWT/auth setup steps for app-owned users.
-- [ ] Define allowed return contexts and app URLs.
-- [ ] Define entitlement naming conventions.
-- [ ] Define provider account assignment checklist.
-- [ ] Require `npm run validate:registry` for every registry change.
-- [ ] Add a dry-run checklist before any new app can create checkout sessions.
+- [x] Create a repeatable app onboarding runbook.
+- [x] Define required registry fields for each new app.
+- [x] Define required Stripe/Product/Price setup steps.
+- [x] Define required Supabase/JWT/auth setup steps for app-owned users.
+- [x] Define allowed return contexts and app URLs.
+- [x] Define entitlement naming conventions.
+- [x] Define provider account assignment checklist.
+- [x] Require `npm run validate:registry` for every registry change.
+- [x] Add a dry-run checklist before any new app can create checkout sessions.
+
+Implementation notes:
+
+- The repeatable onboarding runbook is recorded in `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
+- App #2 must pass operator intake, registry validation, provider account assignment, Stripe sandbox price lookup setup, app authentication setup, thin client guardrails, deployed sandbox proof, and pre-live hold gates.
+- New apps must remain provider-neutral: no Stripe SDK in the app, no provider price IDs from the app, no arbitrary return URLs, no browser-visible PayGate static token, and no entitlement grants from redirects.
+
 
 ### Track 5 - Live-Mode Readiness Checklist
 
@@ -196,7 +203,7 @@ Live test sequence:
 - [x] Diagnostics are protected.
 - [x] Reconciliation gives useful mismatch diagnostics.
 - [x] Operator can inspect payment state safely.
-- [ ] App #2 onboarding can follow a documented checklist.
+- [x] App #2 onboarding can follow a documented checklist.
 - [ ] Live-mode readiness checklist exists and is reviewed.
 - [ ] Monitoring/alerting baseline exists.
 - [ ] Multi-provider-account isolation tests pass.
