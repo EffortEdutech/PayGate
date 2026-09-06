@@ -24,6 +24,7 @@ export interface HubConfig {
   readonly stripeWebhookSecret: string | undefined;
   readonly stripeApiVersion: string;
   readonly stripeAccounts: readonly StripeProviderAccountConfig[];
+  readonly stripeLiveAccounts: readonly StripeProviderAccountConfig[];
 }
 
 export const defaultLocalPort = 3017;
@@ -65,6 +66,7 @@ export function loadHubConfig(env: NodeJS.ProcessEnv): HubConfig {
     stripeWebhookSecret,
     stripeApiVersion: env.STRIPE_API_VERSION?.trim() || "2026-02-25.clover",
     stripeAccounts: parseStripeAccounts(env, stripeSecretKey, stripeWebhookSecret),
+    stripeLiveAccounts: parseStripeLiveAccounts(env),
   };
 }
 
@@ -93,16 +95,15 @@ function parseSupabaseJwtAuth(env: NodeJS.ProcessEnv): SupabaseJwtAuthConfig | u
 }
 
 export function envNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
-  return `STRIPE_ACCOUNT_${account.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_${suffix}`;
+  return `STRIPE_ACCOUNT_${normalizeProviderAccountEnvSegment(account)}_${suffix}`;
+}
+
+export function liveEnvNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
+  return `STRIPE_LIVE_ACCOUNT_${normalizeProviderAccountEnvSegment(account)}_${suffix}`;
 }
 
 function parseStripeAccounts(env: NodeJS.ProcessEnv, legacySecretKey?: string, legacyWebhookSecret?: string): StripeProviderAccountConfig[] {
-  const accountNames = new Set<string>();
-  const rawAccounts = env.STRIPE_ACCOUNTS ?? env.STRIPE_PROVIDER_ACCOUNTS ?? "";
-  for (const account of rawAccounts.split(",")) {
-    const trimmed = account.trim();
-    if (trimmed) accountNames.add(trimmed);
-  }
+  const accountNames = new Set(splitAccountList(env.STRIPE_ACCOUNTS ?? env.STRIPE_PROVIDER_ACCOUNTS));
   if (legacySecretKey && legacyWebhookSecret) {
     accountNames.add("primary");
     accountNames.add("nhl_global_solution");
@@ -114,4 +115,23 @@ function parseStripeAccounts(env: NodeJS.ProcessEnv, legacySecretKey?: string, l
     if (secretKey && webhookSecret) accounts.push({ account, secretKey, webhookSecret });
   }
   return accounts;
+}
+
+function parseStripeLiveAccounts(env: NodeJS.ProcessEnv): StripeProviderAccountConfig[] {
+  const accounts: StripeProviderAccountConfig[] = [];
+  for (const account of splitAccountList(env.STRIPE_LIVE_ACCOUNTS)) {
+    if (account === "primary") continue;
+    const secretKey = optional(env, liveEnvNameForProviderAccount(account, "SECRET_KEY"));
+    const webhookSecret = optional(env, liveEnvNameForProviderAccount(account, "WEBHOOK_SECRET"));
+    if (secretKey && webhookSecret) accounts.push({ account, secretKey, webhookSecret });
+  }
+  return accounts;
+}
+
+function splitAccountList(raw: string | undefined): string[] {
+  return [...new Set((raw ?? "").split(",").map((account) => account.trim()).filter(Boolean))].sort();
+}
+
+function normalizeProviderAccountEnvSegment(account: string): string {
+  return account.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
 }

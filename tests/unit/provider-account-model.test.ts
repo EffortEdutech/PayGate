@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { CheckoutResult, PaymentProviderAdapter, PortalResult, ProviderCapabilities, ProviderSubscriptionSnapshot, ResolvedCheckoutCommand, ResolvedPortalCommand, ResolvedReconciliationCommand, VerifiedProviderEvent } from "@payment-hub/contracts";
-import { envNameForProviderAccount, loadHubConfig } from "../../payment-hub/src/config.js";
+import { envNameForProviderAccount, liveEnvNameForProviderAccount, loadHubConfig } from "../../payment-hub/src/config.js";
 import { InMemoryPaymentRepository, PaymentHubService, Registry } from "../../payment-hub/src/index.js";
 import { ProviderAccountNotConfiguredError, ProviderAccountRouter } from "../../payment-hub/src/providers/provider-account-router.js";
 import { StripeAdapterSkeleton, StripeLiveAdapterNotImplemented, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
@@ -58,6 +58,7 @@ class RecordingAccountAdapter implements PaymentProviderAdapter {
 test("provider account env names are deterministic and company scoped", () => {
   assert.equal(envNameForProviderAccount("nhl_global_solution", "SECRET_KEY"), "STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY");
   assert.equal(envNameForProviderAccount("bina-jaya", "WEBHOOK_SECRET"), "STRIPE_ACCOUNT_BINA_JAYA_WEBHOOK_SECRET");
+  assert.equal(liveEnvNameForProviderAccount("nhl_global_solution", "SECRET_KEY"), "STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY");
 });
 
 test("legacy stripe credentials create primary and nhl_global_solution sandbox aliases", () => {
@@ -146,4 +147,23 @@ test("live Stripe boundary accepts only live keys but exposes no runtime operati
     () => adapter.createCheckout({} as never),
     /Stripe runtime operations are not configured/,
   );
+});
+test("live stripe account credentials are parsed from live-only env names", () => {
+  const config = loadHubConfig({
+    NODE_ENV: "production",
+    VERCEL: "1",
+    DATABASE_URL: "postgresql://example",
+    APP_AUTH_ISSUER: "https://pay-gate-beta.vercel.app",
+    APP_AUTH_AUDIENCE: "payment-hub",
+    STRIPE_ACCOUNTS: "nhl_global_solution",
+    STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY: "sk_test_nhl",
+    STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET: "whsec_test_nhl",
+    STRIPE_LIVE_ACCOUNTS: "nhl_global_solution,bina_jaya,primary",
+    STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY: "sk_live_nhl",
+    STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET: "whsec_live_nhl",
+    STRIPE_LIVE_ACCOUNT_BINA_JAYA_SECRET_KEY: "sk_live_bina",
+  });
+  assert.deepEqual(config.stripeAccounts.map((account) => account.account), ["nhl_global_solution"]);
+  assert.deepEqual(config.stripeLiveAccounts.map((account) => account.account), ["nhl_global_solution"]);
+  assert.equal(config.stripeLiveAccounts[0]?.secretKey, "sk_live_nhl");
 });

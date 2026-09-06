@@ -37,12 +37,20 @@ Goal: make live account aliases explicit and auditable.
 
 Checklist:
 
-- [ ] Define live environment variable naming convention.
-- [ ] Require provider account alias to be named company scope, not `primary`.
-- [ ] Require separate live webhook secret per provider account.
-- [ ] Require live account config to be complete before enabling live routes.
-- [ ] Add diagnostics that show presence only, never values.
+- [x] Define live environment variable naming convention.
+- [x] Require provider account alias to be named company scope, not `primary`.
+- [x] Require separate live webhook secret per provider account.
+- [x] Require live account config to be complete before enabling live routes.
+- [x] Add diagnostics that show presence only, never values.
 
+
+Implementation notes:
+
+- Added separate live account list `STRIPE_LIVE_ACCOUNTS`.
+- Added live secret names `STRIPE_LIVE_ACCOUNT_<ALIAS>_SECRET_KEY` and `STRIPE_LIVE_ACCOUNT_<ALIAS>_WEBHOOK_SECRET`.
+- Live aliases named `primary` are rejected/ignored for runtime config and flagged by diagnostics.
+- Live accounts are configured only when both live secret key and live webhook secret are present.
+- Protected diagnostics expose live account aliases and presence/prefix checks only; secret values remain redacted.
 ## Track 3 - Live Registry Strategy
 
 Goal: represent live Product/Price lookup safely without exposing provider authority to apps.

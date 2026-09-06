@@ -167,6 +167,7 @@ function constantTimeEqual(a: string, b: string): boolean {
 }
 function runtimeDiagnostics(requestId: string): unknown {
   const accounts = splitCsv(process.env.STRIPE_ACCOUNTS);
+  const liveAccounts = splitCsv(process.env.STRIPE_LIVE_ACCOUNTS);
   const checks = [
     checkPlainUrl("APP_AUTH_ISSUER", process.env.APP_AUTH_ISSUER, true),
     checkPlainUrl("PAYMENT_HUB_CORS_ALLOW_ORIGIN", process.env.PAYMENT_HUB_CORS_ALLOW_ORIGIN, false),
@@ -176,10 +177,16 @@ function runtimeDiagnostics(requestId: string): unknown {
     checkRequired("SUPABASE_JWT_APP_ID", process.env.SUPABASE_JWT_APP_ID),
     checkRequired("SUPABASE_JWT_AUDIENCE", process.env.SUPABASE_JWT_AUDIENCE),
     checkStripeAccounts(accounts),
+    checkStripeLiveAccounts(liveAccounts),
     checkDatabaseUrl(process.env.DATABASE_URL),
     ...accounts.flatMap((account) => [
       checkSecret(envNameForProviderAccount(account, "SECRET_KEY"), process.env[envNameForProviderAccount(account, "SECRET_KEY")], "sk_test_"),
       checkSecret(envNameForProviderAccount(account, "WEBHOOK_SECRET"), process.env[envNameForProviderAccount(account, "WEBHOOK_SECRET")], "whsec_"),
+    ]),
+    ...liveAccounts.flatMap((account) => [
+      checkNamedLiveAccount(account),
+      checkSecret(liveEnvNameForProviderAccount(account, "SECRET_KEY"), process.env[liveEnvNameForProviderAccount(account, "SECRET_KEY")], "sk_live_"),
+      checkSecret(liveEnvNameForProviderAccount(account, "WEBHOOK_SECRET"), process.env[liveEnvNameForProviderAccount(account, "WEBHOOK_SECRET")], "whsec_"),
     ]),
   ];
   return {
@@ -209,7 +216,7 @@ async function readinessDiagnostics(requestId: string): Promise<unknown> {
   try {
     const runtimeModule = await import("../payment-hub/src/runtime/runtime.js");
     const runtime = await runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd());
-    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
+    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
   } catch (error) {
     checks.push(safeErrorCheck("RUNTIME_CREATE", error));
   }
@@ -291,6 +298,25 @@ function checkStripeAccounts(accounts: string[]): unknown {
   };
 }
 
+
+function checkStripeLiveAccounts(accounts: string[]): unknown {
+  return {
+    name: "STRIPE_LIVE_ACCOUNTS",
+    ok: accounts.every((account) => account !== "primary"),
+    present: accounts.length > 0,
+    accounts,
+    ...(accounts.includes("primary") ? { issue: "Live provider account aliases must be company-scoped; do not use primary." } : {}),
+  };
+}
+
+function checkNamedLiveAccount(account: string): unknown {
+  return {
+    name: `STRIPE_LIVE_ACCOUNT_ALIAS:${account}`,
+    ok: account !== "primary",
+    account,
+    ...(account === "primary" ? { issue: "Live provider account alias must be company-scoped; do not use primary." } : {}),
+  };
+}
 function checkSecret(name: string, value: string | undefined, expectedPrefix: string): unknown {
   const present = Boolean(value?.trim());
   return {
@@ -312,7 +338,15 @@ function hasMarkdown(value: string | undefined): boolean {
 }
 
 function envNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
-  return `STRIPE_ACCOUNT_${account.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_${suffix}`;
+  return `STRIPE_ACCOUNT_${normalizeProviderAccountEnvSegment(account)}_${suffix}`;
+}
+
+function liveEnvNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
+  return `STRIPE_LIVE_ACCOUNT_${normalizeProviderAccountEnvSegment(account)}_${suffix}`;
+}
+
+function normalizeProviderAccountEnvSegment(account: string): string {
+  return account.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
 }
 
 

@@ -94,6 +94,9 @@ test("Vercel runtime diagnostics allow valid operator token without returning se
     STRIPE_ACCOUNTS: "nhl_global_solution",
     STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY: "sk_test_secretvalue",
     STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET: "whsec_secretvalue",
+    STRIPE_LIVE_ACCOUNTS: "nhl_global_solution,primary",
+    STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY: "sk_live_secretvalue",
+    STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET: "whsec_live_secretvalue",
   }, async () => {
     const response = await invoke("/diagnostics/runtime", {
       authorization: "Bearer operator-secret",
@@ -102,9 +105,13 @@ test("Vercel runtime diagnostics allow valid operator token without returning se
 
     assert.equal(response.status, 200);
     const serialized = JSON.stringify(response.body);
-    assert.match(serialized, /config_shape_ok/);
+    assert.match(serialized, /config_shape_failed/);
+    assert.match(serialized, /STRIPE_LIVE_ACCOUNTS/);
+    assert.match(serialized, /nhl_global_solution/);
     assert.doesNotMatch(serialized, /sk_test_secretvalue/);
     assert.doesNotMatch(serialized, /whsec_secretvalue/);
+    assert.doesNotMatch(serialized, /sk_live_secretvalue/);
+    assert.doesNotMatch(serialized, /whsec_live_secretvalue/);
     assert.doesNotMatch(serialized, /secret%23value/);
   });
 });
