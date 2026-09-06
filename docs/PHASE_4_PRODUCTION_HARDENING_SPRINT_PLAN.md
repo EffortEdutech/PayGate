@@ -1,6 +1,6 @@
 # Phase 4 - Production Hardening Sprint Plan
 
-**Status:** started - Tracks 1, 2, 3, and 4 completed  
+**Status:** started - Tracks 1, 2, 3, 4, and 5 completed  
 **Starts after:** Phase 3 AIntern deployed sandbox proof freeze  
 **Live payments:** not authorized in this phase until the live-mode readiness gate is explicitly passed by the operator.
 
@@ -123,17 +123,25 @@ Goal: prepare for live Stripe use without accidentally activating it.
 
 Checklist:
 
-- [ ] Separate test and live provider account configuration.
-- [ ] Separate test and live webhook endpoints.
-- [ ] Separate test and live provider price IDs.
-- [ ] Separate test and live data/idempotency scope.
-- [ ] Confirm live return URLs and production domain.
-- [ ] Confirm company/legal owner for each live Stripe account.
-- [ ] Confirm tax, invoice, receipt, statement descriptor, refund policy, and support email settings in Stripe.
-- [ ] Confirm database backup and restore plan.
-- [ ] Confirm operator access controls.
-- [ ] Confirm no browser-visible static app token is used.
-- [ ] Require explicit operator approval before the first live transaction.
+- [x] Separate test and live provider account configuration.
+- [x] Separate test and live webhook endpoints.
+- [x] Separate test and live provider price IDs.
+- [x] Separate test and live data/idempotency scope.
+- [x] Confirm live return URL/domain checklist exists; final production domain remains operator-confirmed before live test.
+- [x] Confirm company/legal owner checklist exists for each live Stripe account.
+- [x] Confirm tax, invoice, receipt, statement descriptor, refund policy, and support email settings checklist exists.
+- [x] Confirm database backup and restore plan is required before live test.
+- [x] Confirm operator access controls are required before live test.
+- [x] Confirm no browser-visible static app token is allowed.
+- [x] Require explicit operator approval before the first live transaction.
+
+Implementation notes:
+
+- The live-mode readiness gate is recorded in `docs/LIVE_MODE_READINESS_CHECKLIST.md`.
+- Track 5 prepares live readiness only; it does not authorize live credentials, live checkout, live webhook processing, or live refunds.
+- The current Stripe adapter remains sandbox-first and rejects `sk_live_` keys, so live charges remain blocked until a future explicit live-mode implementation and approval window.
+- Live payment/refund testing waits for Track 6 monitoring, Track 7 provider isolation tests, and explicit operator approval.
+
 
 ### Track 6 - Monitoring and Alerting
 
@@ -204,7 +212,7 @@ Live test sequence:
 - [x] Reconciliation gives useful mismatch diagnostics.
 - [x] Operator can inspect payment state safely.
 - [x] App #2 onboarding can follow a documented checklist.
-- [ ] Live-mode readiness checklist exists and is reviewed.
+- [x] Live-mode readiness checklist exists and is reviewed.
 - [ ] Monitoring/alerting baseline exists.
 - [ ] Multi-provider-account isolation tests pass.
 - [ ] Live payment/refund test gate is either completed or explicitly deferred.
