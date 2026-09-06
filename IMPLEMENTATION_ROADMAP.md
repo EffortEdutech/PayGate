@@ -1,37 +1,30 @@
 # Implementation Roadmap
 
-## Phase 0 — Frozen
+This roadmap is controlled by `docs/PRODUCT_PLAN.md`. Do not create new phases outside that product plan.
 
-- Architecture and authority boundaries.
-- Security and trust boundaries.
-- Versioned API and provider contracts.
-- Registry schemas and executable validation.
-- Database and event-processing specification.
+## Product Objective
 
-## Phase 1 — Foundation (frozen)
+PayGate is a provider-neutral payment gateway for multiple apps and multiple company-owned payment provider accounts. Apps consume stable Hub APIs; the Hub owns commercial authority, provider account routing, provider secrets, verified webhook processing, entitlement projection, reconciliation, monitoring, and operator audit controls.
 
-- TypeScript workspace and shared contracts.
-- Registry loader with structural and semantic validation.
-- Provider-neutral adapter interfaces and capability model.
-- Hub configuration, health, readiness, authentication, and idempotency foundations.
-- PostgreSQL migration baseline.
-- Stripe adapter skeleton without live operations.
+## Phase Status
 
-## Phase 2 — Stripe sandbox vertical slice (frozen)
+| Phase | Name | Status | Evidence |
+|---|---|---|---|
+| 0 | Contract and authority freeze | Frozen | `PHASE_0_FREEZE.md` |
+| 1 | Executable foundation | Frozen | Foundation source, registry validation, migration baseline |
+| 2 | Stripe sandbox vertical slice | Frozen | `PHASE_2_COMPLETION.md`, `PHASE_2_FREEZE.md` |
+| 3 | First app integration - AIntern | Frozen | `docs/PHASE_3_AINTERN_INTEGRATION_PLAN.md`, deployed AIntern sandbox proof |
+| 4 | Production hardening | Current closeout | `docs/PHASE_4_PRODUCTION_HARDENING_SPRINT_PLAN.md` |
+| 5 | Live-mode implementation readiness | Planned, not started | Must be documented before implementation |
+| 6 | Controlled live pilot | Future approval required | Requires explicit operator approval |
+| 7 | Multi-app scale-out | Future | Uses `docs/MULTI_APP_ONBOARDING_RUNBOOK.md` |
 
-- Authenticated catalog and checkout endpoints.
-- Stripe Checkout Session creation by lookup key.
-- Raw-body webhook verification and durable inbox processing.
-- Customer, subscription, and entitlement projections.
-- Customer Portal sessions and reconciliation jobs.
-- Real Stripe sandbox proof completed and recorded in `PHASE_2_COMPLETION.md` and `PHASE_2_FREEZE.md`.
+## Current Rule
 
-## Phase 3 — First application integration (current: AIntern)
+We are not free-form creating phases. The next implementation phase may start only after:
 
-- First app: AIntern at `C:\Users\user\Documents\00 aWL_platform\AIntern`.
-- Generate or hand-write only a thin application adapter from the frozen Hub contract.
-- Register AIntern plans, entitlements, and company/provider-account mapping in the Hub registry.
-- Add AIntern checkout, portal, and entitlement consumption without direct Stripe ownership.
-- Introduce named provider accounts so each app can bill through the correct company Stripe account.
-- Sandbox checkout, renewal, failure, cancellation, replay, and reconciliation tests.
-- Operational runbooks and observability gates.
+1. Phase 4 is frozen with evidence.
+2. A Phase 5 sprint plan and checklist are documented.
+3. The operator approves Phase 5 implementation.
+
+Until then, live credentials, live payments, live refunds, and app #2 implementation remain blocked.

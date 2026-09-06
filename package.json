@@ -21,7 +21,8 @@
     "check": "npm run validate:registry && npm run typecheck && npm test",
     "dev": "tsx payment-hub/src/dev-server.ts",
     "dev:local": "node --env-file=.env.local node_modules/tsx/dist/cli.mjs payment-hub/src/dev-server.ts",
-    "phase2:check": "npm run check"
+    "phase2:check": "npm run check",
+    "graphify": "tsx scripts/graphify-product-plan.ts"
   },
   "dependencies": {
     "@types/pg": "^8.23.1",
