@@ -319,8 +319,10 @@ export class PostgresPaymentRepository implements PaymentRepository {
     const paymentCustomerId = await this.ensurePaymentCustomerWithClient(client, payload.appId, payload.userRef);
     if (payload.providerCustomerRef) await this.upsertProviderCustomer(client, paymentCustomerId, event.providerId, event.providerAccount, event.environment, payload.providerCustomerRef);
     const subscriptionState = payload.subscriptionState ?? subscriptionStateForEvent(event.eventType);
-    await this.upsertSubscriptionProjection(client, paymentCustomerId, subscriptionState, payload.planKey, payload.currentPeriodEnd, event.providerId, event.providerAccount, event.environment, payload.providerSubscriptionRef ?? event.providerEventId);
-    if (payload.planKey) await this.insertEntitlementGrant(client, paymentCustomerId, payload.planKey, grantStatus(subscriptionState), "provider_event", event.providerEventId, event.providerCreatedAt, payload.currentPeriodEnd);
+    if (subscriptionState) {
+      await this.upsertSubscriptionProjection(client, paymentCustomerId, subscriptionState, payload.planKey, payload.currentPeriodEnd, event.providerId, event.providerAccount, event.environment, payload.providerSubscriptionRef ?? event.providerEventId);
+      if (payload.planKey) await this.insertEntitlementGrant(client, paymentCustomerId, payload.planKey, grantStatus(subscriptionState), "provider_event", event.providerEventId, event.providerCreatedAt, payload.currentPeriodEnd);
+    }
     await client.query(
       `UPDATE webhook_inbox SET status = 'processed', processed_at = now()
        WHERE provider_id = $1 AND provider_account = $2 AND environment = $3 AND provider_event_id = $4`,
@@ -459,12 +461,13 @@ function requireRow<R extends QueryResultRow>(result: QueryResult<R>, table: str
   return row;
 }
 
-function subscriptionStateForEvent(eventType: string): SubscriptionState {
-  if (eventType === "subscription.cancelled") return "cancelled";
+function subscriptionStateForEvent(eventType: string): SubscriptionState | undefined {
+  if (eventType === "subscription.cancelled" || eventType === "refund.full" || eventType === "dispute.opened") return "cancelled";
   if (eventType === "subscription.past_due" || eventType === "invoice.payment_failed") return "past_due";
   if (eventType === "subscription.paused") return "paused";
   if (eventType === "subscription.trial") return "trial";
-  return "active";
+  if (eventType === "checkout.completed" || eventType === "subscription.active" || eventType === "invoice.payment_succeeded") return "active";
+  return undefined;
 }
 
 function grantStatus(state: SubscriptionState | "none"): EntitlementState {

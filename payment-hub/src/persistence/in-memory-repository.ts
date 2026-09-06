@@ -31,9 +31,11 @@ export class InMemoryPaymentRepository implements PaymentRepository {
     const payload = event.payload;
     if (!payload.appId || !payload.userRef) return;
     if (payload.providerCustomerRef) await this.saveProviderCustomer({ appId: payload.appId, userRef: payload.userRef, providerId: event.providerId, providerAccount: event.providerAccount, environment: event.environment, providerCustomerRef: payload.providerCustomerRef });
-    const state = payload.subscriptionState ?? "active";
-    this.#subscriptions.set(`${payload.appId}:${payload.userRef}`, { appId: payload.appId, userRef: payload.userRef, state, ...(payload.planKey ? { planKey: payload.planKey } : {}), ...(payload.currentPeriodEnd ? { currentPeriodEnd: payload.currentPeriodEnd } : {}) });
-    if (payload.planKey) this.projectPlanEntitlement(payload.appId, payload.userRef, payload.planKey, state === "active" || state === "trial" ? "active" : "revoked", payload.currentPeriodEnd);
+    const state = payload.subscriptionState ?? subscriptionStateForEvent(event.eventType);
+    if (state) {
+      this.#subscriptions.set(`${payload.appId}:${payload.userRef}`, { appId: payload.appId, userRef: payload.userRef, state, ...(payload.planKey ? { planKey: payload.planKey } : {}), ...(payload.currentPeriodEnd ? { currentPeriodEnd: payload.currentPeriodEnd } : {}) });
+      if (payload.planKey) this.projectPlanEntitlement(payload.appId, payload.userRef, payload.planKey, state === "active" || state === "trial" ? "active" : "revoked", payload.currentPeriodEnd);
+    }
     const webhookKey = `${event.providerId}:${event.providerAccount}:${event.environment}:${event.providerEventId}`;
     const existing = this.#webhooks.get(webhookKey);
     if (existing) this.#webhooks.set(webhookKey, { ...existing, status: "processed", processedAt: new Date() });
@@ -132,4 +134,12 @@ function customerKey(input: { readonly appId: string; readonly userRef: string; 
 
 function reconciliationClassification(evidence: unknown): string | undefined {
   return evidence && typeof evidence === "object" && "classification" in evidence && typeof evidence.classification === "string" ? evidence.classification : undefined;
+}
+function subscriptionStateForEvent(eventType: string): "trial" | "active" | "past_due" | "paused" | "cancel_pending" | "cancelled" | "expired" | undefined {
+  if (eventType === "subscription.cancelled" || eventType === "refund.full" || eventType === "dispute.opened") return "cancelled";
+  if (eventType === "subscription.past_due" || eventType === "invoice.payment_failed") return "past_due";
+  if (eventType === "subscription.paused") return "paused";
+  if (eventType === "subscription.trial") return "trial";
+  if (eventType === "checkout.completed" || eventType === "subscription.active" || eventType === "invoice.payment_succeeded") return "active";
+  return undefined;
 }

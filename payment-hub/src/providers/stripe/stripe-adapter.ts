@@ -351,10 +351,12 @@ function mapStripeSubscriptionState(status: Stripe.Subscription.Status): Subscri
   return "active";
 }
 
-function subscriptionStateFromEvent(rawType: string, object: { status?: unknown }): SubscriptionState | undefined {
+function subscriptionStateFromEvent(rawType: string, object: { status?: unknown; refunded?: boolean; amount_refunded?: number; amount?: number }): SubscriptionState | undefined {
   if (rawType === "checkout.session.completed" || rawType === "invoice.payment_succeeded") return "active";
   if (rawType === "invoice.payment_failed") return "past_due";
   if (rawType === "customer.subscription.deleted") return "cancelled";
+  if (rawType === "charge.refunded" && isFullRefund(object)) return "cancelled";
+  if (rawType.startsWith("charge.dispute.")) return "cancelled";
   if (typeof object.status === "string") return mapStripeSubscriptionState(object.status as Stripe.Subscription.Status);
   return undefined;
 }
@@ -363,7 +365,9 @@ function hubEventType(rawType: string, state: SubscriptionState | undefined): Hu
   if (rawType === "checkout.session.completed") return "checkout.completed";
   if (rawType === "invoice.payment_succeeded") return "invoice.payment_succeeded";
   if (rawType === "invoice.payment_failed") return "invoice.payment_failed";
-  if (rawType.startsWith("refund.")) return "refund.updated";
+  if (rawType === "charge.refunded") return state === "cancelled" ? "refund.full" : "refund.partial";
+  if (rawType.startsWith("charge.dispute.")) return "dispute.opened";
+  if (rawType.startsWith("refund.")) return "refund.partial";
   if (rawType.startsWith("customer.subscription.")) {
     if (state === "trial") return "subscription.trial";
     if (state === "active") return "subscription.active";
@@ -385,6 +389,11 @@ function objectId(value: unknown): string | undefined {
   return undefined;
 }
 
+function isFullRefund(object: { refunded?: boolean; amount_refunded?: number; amount?: number }): boolean {
+  if (object.refunded === true) return true;
+  if (typeof object.amount_refunded === "number" && typeof object.amount === "number") return object.amount > 0 && object.amount_refunded >= object.amount;
+  return false;
+}
 function stringOrUndefined(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }

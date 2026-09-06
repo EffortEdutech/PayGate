@@ -1,4 +1,4 @@
-﻿import type { AppUserIdentity, CheckoutMode, EntitlementState, Environment, Money, SubscriptionState } from "@payment-hub/types";
+import type { AppUserIdentity, CheckoutMode, EntitlementState, Environment, Money, SubscriptionState } from "@payment-hub/types";
 
 export interface CapabilitySupport {
   readonly supported: boolean;
@@ -80,7 +80,9 @@ export type HubProviderEventType =
   | "subscription.cancelled"
   | "invoice.payment_succeeded"
   | "invoice.payment_failed"
-  | "refund.updated"
+  | "refund.full"
+  | "refund.partial"
+  | "dispute.opened"
   | "provider.event_ignored";
 
 export interface NormalizedProviderEventPayload {

@@ -97,11 +97,22 @@ Goal: define what PayGate does when Stripe reports a refund.
 
 Checklist:
 
-- [ ] Define full refund entitlement policy.
-- [ ] Define partial refund entitlement policy.
-- [ ] Define disputed/chargeback policy if applicable.
-- [ ] Map Stripe refund/charge/dispute events into Hub events without exposing raw provider objects.
-- [ ] Add tests for refund event normalization and entitlement outcome.
+- [x] Define full refund entitlement policy.
+- [x] Define partial refund entitlement policy.
+- [x] Define disputed/chargeback policy if applicable.
+- [x] Map Stripe refund/charge/dispute events into Hub events without exposing raw provider objects.
+- [x] Add tests for refund event normalization and entitlement outcome.
+
+
+Implementation notes:
+
+- Added `docs/REFUND_AND_CHARGEBACK_POLICY.md`.
+- Added Hub event types `refund.full`, `refund.partial`, and `dispute.opened`.
+- Mapped Stripe full `charge.refunded` events to entitlement revocation.
+- Mapped Stripe partial refund events to processed/no automatic entitlement change.
+- Mapped Stripe dispute/chargeback events to entitlement revocation.
+- Updated repository projection logic so unknown/partial refund events cannot accidentally mark entitlement active.
+- Added tests for Stripe refund/dispute normalization and entitlement projection outcomes.
 
 ## Track 6 - Live Operator Diagnostics and Admin Evidence
 

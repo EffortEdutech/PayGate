@@ -193,3 +193,46 @@ test("verified payment failure revokes projected plan entitlement", async () => 
   await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_failed", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "invoice.payment_failed", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", providerSubscriptionRef: "sub_test_123", subscriptionState: "past_due", rawType: "invoice.payment_failed", evidence: { id: "in_test_123" } } });
   assert.deepEqual(await repository.currentEntitlements("app_test", "user_1"), { appId: "app_test", userRef: "user_1", entitlements: [{ key: "plan:growth_monthly", state: "revoked" }] });
 });
+
+test("Stripe refund and dispute events normalize to safe Hub outcomes", () => {
+  const fullRefund = normalizeStripeEvent({
+    id: "evt_refund_full",
+    created: 1787745600,
+    type: "charge.refunded",
+    data: { object: { id: "ch_full", amount: 3900, amount_refunded: 3900, refunded: true, customer: "cus_test_123", metadata: { cph_app_id: "app_test", cph_user_ref: "user_1", cph_plan_key: "growth_monthly" } } },
+  } as never, { providerAccount: "primary", environment: "test" });
+  assert.equal(fullRefund.eventType, "refund.full");
+  assert.equal(fullRefund.payload.subscriptionState, "cancelled");
+
+  const partialRefund = normalizeStripeEvent({
+    id: "evt_refund_partial",
+    created: 1787745600,
+    type: "charge.refunded",
+    data: { object: { id: "ch_partial", amount: 3900, amount_refunded: 1000, refunded: false, customer: "cus_test_123", metadata: { cph_app_id: "app_test", cph_user_ref: "user_1", cph_plan_key: "growth_monthly" } } },
+  } as never, { providerAccount: "primary", environment: "test" });
+  assert.equal(partialRefund.eventType, "refund.partial");
+  assert.equal(partialRefund.payload.subscriptionState, undefined);
+
+  const dispute = normalizeStripeEvent({
+    id: "evt_dispute",
+    created: 1787745600,
+    type: "charge.dispute.created",
+    data: { object: { id: "dp_test", charge: "ch_full", metadata: { cph_app_id: "app_test", cph_user_ref: "user_1", cph_plan_key: "growth_monthly" } } },
+  } as never, { providerAccount: "primary", environment: "test" });
+  assert.equal(dispute.eventType, "dispute.opened");
+  assert.equal(dispute.payload.subscriptionState, "cancelled");
+});
+
+test("verified partial refund records event without revoking entitlement", async () => {
+  const repository = new InMemoryPaymentRepository();
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_paid", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "checkout.completed", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", providerSubscriptionRef: "sub_test_123", subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: "cs_test_123" } } });
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_partial_refund", providerCreatedAt: new Date("2026-08-27T12:00:00.000Z"), eventType: "refund.partial", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", rawType: "charge.refunded", evidence: { id: "ch_test_123", amount_refunded: 1000, amount: 3900 } } });
+  assert.deepEqual(await repository.currentEntitlements("app_test", "user_1"), { appId: "app_test", userRef: "user_1", entitlements: [{ key: "plan:growth_monthly", state: "active" }] });
+});
+
+test("verified full refund revokes projected plan entitlement", async () => {
+  const repository = new InMemoryPaymentRepository();
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_paid", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "checkout.completed", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", providerSubscriptionRef: "sub_test_123", subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: "cs_test_123" } } });
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_full_refund", providerCreatedAt: new Date("2026-08-27T12:00:00.000Z"), eventType: "refund.full", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", subscriptionState: "cancelled", rawType: "charge.refunded", evidence: { id: "ch_test_123", amount_refunded: 3900, amount: 3900 } } });
+  assert.deepEqual(await repository.currentEntitlements("app_test", "user_1"), { appId: "app_test", userRef: "user_1", entitlements: [{ key: "plan:growth_monthly", state: "revoked" }] });
+});
