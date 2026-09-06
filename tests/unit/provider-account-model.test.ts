@@ -4,7 +4,7 @@ import type { CheckoutResult, PaymentProviderAdapter, PortalResult, ProviderCapa
 import { envNameForProviderAccount, loadHubConfig } from "../../payment-hub/src/config.js";
 import { InMemoryPaymentRepository, PaymentHubService, Registry } from "../../payment-hub/src/index.js";
 import { ProviderAccountNotConfiguredError, ProviderAccountRouter } from "../../payment-hub/src/providers/provider-account-router.js";
-import { StripeAdapterSkeleton, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
+import { StripeAdapterSkeleton, StripeLiveAdapterNotImplemented, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
 
 
 const accountAApp = {
@@ -131,7 +131,19 @@ test("provider customer mappings are isolated by provider account and environmen
 });
 test("current Stripe adapter blocks live credentials until an explicit live-mode implementation exists", () => {
   assert.throws(
-    () => new StripeSandboxAdapter({ secretKey: "sk_live_not_allowed", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" }),
+    () => new StripeSandboxAdapter({ environment: "test", secretKey: "sk_live_not_allowed", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" }),
     /sandbox secret key/,
+  );
+});
+test("live Stripe boundary accepts only live keys but exposes no runtime operations yet", async () => {
+  const adapter = new StripeLiveAdapterNotImplemented({ environment: "live", secretKey: "sk_live_boundary_only", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" });
+  assert.equal(adapter.providerId, "stripe");
+  assert.throws(
+    () => new StripeLiveAdapterNotImplemented({ environment: "live", secretKey: "sk_test_not_live", webhookSecret: "whsec_test_placeholder", apiVersion: "2026-07-29.dahlia" }),
+    /live secret key/,
+  );
+  await assert.rejects(
+    () => adapter.createCheckout({} as never),
+    /Stripe runtime operations are not configured/,
   );
 });

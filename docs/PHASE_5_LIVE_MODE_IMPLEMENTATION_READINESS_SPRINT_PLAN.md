@@ -17,12 +17,20 @@ Goal: separate sandbox and live adapter construction intentionally.
 
 Checklist:
 
-- [ ] Define separate test and live Stripe adapter configuration types.
-- [ ] Prevent `sk_live_` from being used by sandbox adapter.
-- [ ] Prevent `sk_test_` from being used by live adapter.
-- [ ] Keep provider-neutral contracts unchanged.
-- [ ] Add tests for key/mode mismatch rejection.
+- [x] Define separate test and live Stripe adapter configuration types.
+- [x] Prevent `sk_live_` from being used by sandbox adapter.
+- [x] Prevent `sk_test_` from being used by live adapter.
+- [x] Keep provider-neutral contracts unchanged.
+- [x] Add tests for key/mode mismatch rejection.
 
+
+Implementation notes:
+
+- Added explicit `StripeTestAdapterConfig` and `StripeLiveAdapterConfig` types.
+- Runtime construction remains sandbox-only and passes `environment: "test"` explicitly.
+- Added `StripeLiveAdapterNotImplemented` as a live boundary placeholder that validates live key shape but inherits non-operational skeleton behavior.
+- Provider-neutral contracts were not changed.
+- Tests now prove sandbox rejects `sk_live_`, live boundary rejects `sk_test_`, and live runtime operations remain unavailable until an explicit live adapter is implemented.
 ## Track 2 - Live Provider Account Configuration Model
 
 Goal: make live account aliases explicit and auditable.

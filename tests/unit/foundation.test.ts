@@ -114,7 +114,7 @@ test("webhook route accepts raw body only after provider verification", async ()
 });
 
 test("Stripe sandbox adapter rejects live secret keys in Phase 2", () => {
-  assert.throws(() => new StripeSandboxAdapter({ secretKey: "sk_live_123", webhookSecret: "whsec_123", apiVersion: "2026-02-25.clover" }));
+  assert.throws(() => new StripeSandboxAdapter({ environment: "test", secretKey: "sk_live_123", webhookSecret: "whsec_123", apiVersion: "2026-02-25.clover" }));
 });
 
 test("project localhost port family is locked to 301#", () => {

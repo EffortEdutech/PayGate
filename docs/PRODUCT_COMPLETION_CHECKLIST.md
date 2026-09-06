@@ -63,15 +63,15 @@ Parent product plan: `docs/PRODUCT_PLAN.md`.
 - [x] Provider account isolation tests.
 - [x] Controlled live payment/refund planning gate.
 - [x] Phase 4 freeze note created.
-- [ ] Operator accepts Phase 4 freeze.
+- [x] Operator accepts Phase 4 freeze.
 
 ## Phase 5 - Live-Mode Implementation Readiness
 
 Status: planned, not started.
 
 - [x] Phase 5 sprint plan documented.
-- [ ] Operator approves Phase 5 start.
-- [ ] Live adapter boundary implemented.
+- [x] Operator approves Phase 5 start.
+- [x] Live adapter boundary implemented.
 - [ ] Live provider account config model implemented.
 - [ ] Live registry strategy implemented.
 - [ ] Live webhook boundary implemented.

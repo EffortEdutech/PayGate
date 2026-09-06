@@ -55,7 +55,7 @@ function createAuthenticator(config: HubConfig): AppAuthenticator {
 
 function createProvider(config: HubConfig): PaymentProviderAdapter {
   return config.stripeAccounts.length > 0
-    ? new ProviderAccountRouter("stripe", new Map(config.stripeAccounts.map((account) => [account.account, new StripeSandboxAdapter({ secretKey: account.secretKey, webhookSecret: account.webhookSecret, apiVersion: config.stripeApiVersion })])))
+    ? new ProviderAccountRouter("stripe", new Map(config.stripeAccounts.map((account) => [account.account, new StripeSandboxAdapter({ environment: "test", secretKey: account.secretKey, webhookSecret: account.webhookSecret, apiVersion: config.stripeApiVersion })])))
     : new StripeAdapterSkeleton();
 }
 

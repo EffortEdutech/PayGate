@@ -45,10 +45,27 @@ export class StripeAdapterSkeleton implements PaymentProviderAdapter {
   async reconcileCustomer(_command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> { throw new StripeAdapterNotConfiguredError(); }
 }
 
-export interface StripeAdapterConfig {
+export interface StripeAdapterBaseConfig {
   readonly secretKey: string;
   readonly webhookSecret: string;
   readonly apiVersion: string;
+}
+
+export interface StripeTestAdapterConfig extends StripeAdapterBaseConfig {
+  readonly environment: "test";
+}
+
+export interface StripeLiveAdapterConfig extends StripeAdapterBaseConfig {
+  readonly environment: "live";
+}
+
+export type StripeAdapterConfig = StripeTestAdapterConfig;
+
+export class StripeLiveAdapterNotImplemented extends StripeAdapterSkeleton {
+  constructor(config: StripeLiveAdapterConfig) {
+    super();
+    assertStripeKeyMode(config.secretKey, "live", "Live Stripe adapter");
+  }
 }
 
 export class StripeSandboxAdapter implements PaymentProviderAdapter {
@@ -123,6 +140,11 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
   }
 }
 
+
+function assertStripeKeyMode(secretKey: string, expected: "test" | "live", label: string): void {
+  const prefix = expected === "test" ? "sk_test_" : "sk_live_";
+  if (!secretKey.startsWith(prefix)) throw new Error(`${label} requires an ${expected === "test" ? "sandbox" : "live"} secret key`);
+}
 type StripeReconciliationMismatch =
   | "in_sync_candidate"
   | "no_provider_subscription"
