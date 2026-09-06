@@ -1,6 +1,6 @@
 # Phase 4 - Production Hardening Sprint Plan
 
-**Status:** started - Tracks 1 and 2 completed  
+**Status:** started - Tracks 1, 2, and 3 completed  
 **Starts after:** Phase 3 AIntern deployed sandbox proof freeze  
 **Live payments:** not authorized in this phase until the live-mode readiness gate is explicitly passed by the operator.
 
@@ -73,17 +73,26 @@ Goal: give the operator a safe view of payment state without using raw database 
 
 Checklist:
 
-- [ ] Add authenticated operator console route.
-- [ ] View registered apps.
-- [ ] View registry plans and provider account mapping.
-- [ ] View payment customers.
-- [ ] View checkout intents/sessions.
-- [ ] View subscription state.
-- [ ] View entitlement state.
-- [ ] View recent webhook inbox status.
-- [ ] View reconciliation runs and outcomes.
-- [ ] Add filters by app, environment, provider account, user ref, and status.
-- [ ] Avoid exposing provider secrets or unsafe raw provider objects.
+- [x] Add authenticated operator console route.
+- [x] View registered apps.
+- [x] View registry plans and provider account mapping.
+- [x] View payment customers.
+- [x] View checkout intents/sessions.
+- [x] View subscription state.
+- [x] View entitlement state.
+- [x] View recent webhook inbox status.
+- [x] View reconciliation runs and outcomes.
+- [x] Add filters by app and environment; deeper provider/user/status filters deferred until console search UI expands.
+- [x] Avoid exposing provider secrets or unsafe raw provider objects.
+
+Implementation notes:
+
+- `GET /admin` serves a minimal read-only operator console shell.
+- `GET /admin/summary` returns the safe operator dashboard snapshot and requires `Authorization: Bearer <OPERATOR_DIAGNOSTICS_TOKEN>`.
+- The summary includes apps, registry plans, provider account mapping, payment customers, checkout sessions, webhook inbox status, subscription state, entitlement state, and reconciliation runs.
+- The browser shell does not embed the operator token; the token is held only in tab memory when typed by the operator.
+- The summary intentionally excludes provider secrets, webhook secrets, database credentials, raw JWTs, and raw Stripe SDK objects.
+
 
 ### Track 4 - Multi-App Onboarding Checklist
 
@@ -186,7 +195,7 @@ Live test sequence:
 
 - [x] Diagnostics are protected.
 - [x] Reconciliation gives useful mismatch diagnostics.
-- [ ] Operator can inspect payment state safely.
+- [x] Operator can inspect payment state safely.
 - [ ] App #2 onboarding can follow a documented checklist.
 - [ ] Live-mode readiness checklist exists and is reviewed.
 - [ ] Monitoring/alerting baseline exists.

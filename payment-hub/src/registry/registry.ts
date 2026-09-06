@@ -9,6 +9,10 @@ export class Registry {
     if (this.#apps.size !== applications.length) throw new Error("Duplicate app_id in registry");
   }
 
+  applications(): readonly RegisteredApplication[] {
+    return [...this.#apps.values()];
+  }
+
   application(appId: string): RegisteredApplication {
     const app = this.#apps.get(appId);
     if (!app) throw new RegistryError("APP_NOT_FOUND", `Application ${appId} is not registered`);

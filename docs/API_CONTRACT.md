@@ -21,7 +21,10 @@ These endpoints are not part of the ordinary application API. They require `Auth
 ```text
 GET  /diagnostics/runtime
 GET  /diagnostics/ready
+GET  /admin/summary
 ```
+
+`GET /admin` serves a minimal read-only operator console shell. The shell stores the operator token only in browser tab memory and calls `/admin/summary` with a bearer token.
 
 Provider ingress is unauthenticated at the app layer but signature authenticated:
 

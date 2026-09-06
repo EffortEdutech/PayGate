@@ -29,8 +29,14 @@ async function invoke(path: string, headers: Record<string, string> = {}): Promi
   return {
     status,
     headers: responseHeaders,
-    body: rawBody ? JSON.parse(rawBody) : undefined,
+    body: parseBody(rawBody),
   };
+}
+
+function parseBody(rawBody: string): unknown {
+  if (!rawBody) return undefined;
+  try { return JSON.parse(rawBody); }
+  catch { return rawBody; }
 }
 
 function withEnv<T>(env: Record<string, string | undefined>, action: () => Promise<T>): Promise<T> {
@@ -100,5 +106,25 @@ test("Vercel runtime diagnostics allow valid operator token without returning se
     assert.doesNotMatch(serialized, /sk_test_secretvalue/);
     assert.doesNotMatch(serialized, /whsec_secretvalue/);
     assert.doesNotMatch(serialized, /secret%23value/);
+  });
+});
+test("Vercel admin summary requires operator bearer token before runtime access", async () => {
+  await withEnv({ OPERATOR_DIAGNOSTICS_TOKEN: "operator-secret" }, async () => {
+    const missing = await invoke("/admin/summary", { "x-request-id": "req_admin_missing" });
+    assert.equal(missing.status, 401);
+    assert.equal((missing.body as { error: { code: string } }).error.code, "UNAUTHORIZED");
+
+    const wrong = await invoke("/admin/summary", { authorization: "Bearer wrong-token", "x-request-id": "req_admin_wrong" });
+    assert.equal(wrong.status, 401);
+    assert.equal((wrong.body as { error: { code: string } }).error.code, "UNAUTHORIZED");
+  });
+});
+
+test("Vercel admin console shell does not embed operator token", async () => {
+  await withEnv({ OPERATOR_DIAGNOSTICS_TOKEN: "operator-secret" }, async () => {
+    const response = await invoke("/admin", { "x-request-id": "req_admin_shell" });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers["content-type"], "text/html; charset=utf-8");
+    assert.doesNotMatch(String(response.body), /operator-secret/);
   });
 });

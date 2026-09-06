@@ -1,17 +1,27 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 
+type RuntimeModule = typeof import("../payment-hub/src/runtime/runtime.js");
+type ServerModule = typeof import("../payment-hub/src/server/http-server.js");
+type PaymentHubRuntime = Awaited<ReturnType<RuntimeModule["createPostgresPaymentHubRuntime"]>>;
+
+let runtimePromise: Promise<PaymentHubRuntime> | undefined;
 let handlerPromise: Promise<(req: IncomingMessage, res: ServerResponse) => Promise<void>> | undefined;
+
+async function getRuntime(): Promise<PaymentHubRuntime> {
+  runtimePromise ??= import("../payment-hub/src/runtime/runtime.js").then((runtimeModule) => runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd()));
+  return runtimePromise;
+}
 
 async function getHandler() {
   handlerPromise ??= Promise.all([
-    import("../payment-hub/src/runtime/runtime.js"),
-    import("../payment-hub/src/server/http-server.js"),
-  ]).then(([runtimeModule, serverModule]) => runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd()).then((runtime) => serverModule.createPaymentHubHttpHandler({
+    getRuntime(),
+    import("../payment-hub/src/server/http-server.js") as Promise<ServerModule>,
+  ]).then(([runtime, serverModule]) => serverModule.createPaymentHubHttpHandler({
     service: runtime.service,
     authenticator: runtime.authenticator,
     idempotencyLedger: runtime.idempotencyLedger,
-  })));
+  }));
   return handlerPromise;
 }
 
@@ -28,6 +38,28 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       runtime: "vercel",
       request_id: requestId,
     });
+  }
+
+  if (req.method === "GET" && (url.pathname === "/admin" || url.pathname === "/admin/")) {
+    return writeHtml(res, 200, ADMIN_HTML);
+  }
+
+  if (req.method === "GET" && url.pathname === "/admin/summary") {
+    const authError = requireOperatorDiagnosticsAuth(req, requestId);
+    if (authError) return writeJson(res, authError.status, authError.body);
+    try {
+      const runtime = await getRuntime();
+      return writeJson(res, 200, await runtime.service.adminDashboard({ appId: optionalQuery(url, "app_id"), environment: optionalEnvironment(url), limit: optionalLimit(url) }));
+    } catch (error) {
+      console.error("PayGate admin summary failed", { requestId, error });
+      return writeJson(res, 503, {
+        error: {
+          code: "ADMIN_RUNTIME_NOT_READY",
+          message: "PayGate admin summary is not ready. Check protected diagnostics and deployment configuration.",
+          requestId,
+        },
+      });
+    }
   }
 
   if (req.method === "GET" && url.pathname === "/diagnostics/runtime") {
@@ -266,6 +298,33 @@ function envNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBH
   return `STRIPE_ACCOUNT_${account.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_${suffix}`;
 }
 
+
+function optionalQuery(url: URL, name: string): string | undefined {
+  return url.searchParams.get(name) || undefined;
+}
+
+function optionalEnvironment(url: URL): "test" | "live" | undefined {
+  const value = url.searchParams.get("environment");
+  if (!value) return undefined;
+  if (value === "test" || value === "live") return value;
+  return undefined;
+}
+
+function optionalLimit(url: URL): number | undefined {
+  const value = url.searchParams.get("limit");
+  if (!value) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return undefined;
+  return Math.min(Math.max(parsed, 1), 100);
+}
+
+function writeHtml(res: ServerResponse, status: number, body: string): void {
+  res.writeHead(status, {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store",
+  });
+  res.end(body);
+}
 function writeJson(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
     "content-type": "application/json",
@@ -277,3 +336,65 @@ function writeJson(res: ServerResponse, status: number, body: unknown): void {
   });
   res.end(body === undefined ? undefined : JSON.stringify(body));
 }
+const ADMIN_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PayGate Admin Console</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; color: #111827; background: #f8fafc; }
+    input, button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
+    button { cursor: pointer; background: #111827; color: white; }
+    section { background: white; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; margin: 16px 0; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff; }
+    .muted { color: #64748b; }
+    code { background: #eef2ff; padding: 2px 6px; border-radius: 6px; }
+    pre { white-space: pre-wrap; background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 12px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>PayGate Admin Console</h1>
+  <p class="muted">Read-only operator view. Token is kept only in this browser tab memory.</p>
+  <section>
+    <div class="row">
+      <input id="token" type="password" placeholder="Operator diagnostics token" size="36" />
+      <input id="appId" placeholder="app_id filter, optional" value="aintern" />
+      <select id="environment"><option value="test">test</option><option value="live">live</option><option value="">all</option></select>
+      <button id="refresh">Refresh</button>
+    </div>
+    <p id="status" class="muted">Not loaded.</p>
+  </section>
+  <section><h2>Apps and Plans</h2><div id="apps" class="grid"></div></section>
+  <section><h2>Customers</h2><div id="customers" class="grid"></div></section>
+  <section><h2>Checkout Sessions</h2><div id="checkouts" class="grid"></div></section>
+  <section><h2>Recent Webhooks</h2><div id="webhooks" class="grid"></div></section>
+  <section><h2>Reconciliation Runs</h2><div id="reconciliation" class="grid"></div></section>
+  <section><h2>Last Raw Summary</h2><pre id="raw">{}</pre></section>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
+function card(title, lines) { return '<div class="card"><h3>' + esc(title) + '</h3>' + lines.map(function (line) { return '<p>' + line + '</p>'; }).join('') + '</div>'; }
+function renderList(id, items, empty, render) { $(id).innerHTML = items.length ? items.map(render).join('') : '<p class="muted">' + empty + '</p>'; }
+async function refresh() {
+  var token = $("token").value;
+  var params = new URLSearchParams();
+  if ($("appId").value.trim()) params.set("app_id", $("appId").value.trim());
+  if ($("environment").value) params.set("environment", $("environment").value);
+  var response = await fetch('/admin/summary?' + params.toString(), { headers: { authorization: 'Bearer ' + token } });
+  var body = await response.json();
+  $("raw").textContent = JSON.stringify(body, null, 2);
+  if (!response.ok) { $("status").textContent = response.status + ': ' + (body.error && body.error.code ? body.error.code : 'error'); return; }
+  $("status").textContent = 'Loaded ' + body.generated_at;
+  renderList("apps", body.apps || [], "No apps.", function (app) { return card(app.app_id, ['Provider: <code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>', 'Plans: ' + ((app.plans || []).map(function (p) { return esc(p.plan_key + ' / ' + p.status); }).join(', '))]); });
+  renderList("customers", body.customers || [], "No customers.", function (c) { return card(c.app_id + ' / ' + c.user_ref, ['Subscription: <code>' + esc(c.subscription && c.subscription.state) + ' ' + esc(c.subscription && c.subscription.plan_key || '') + '</code>', 'Provider customers: ' + (((c.provider_customers || []).map(function (pc) { return esc(pc.provider_account + ':' + pc.provider_customer_ref); }).join(', ')) || 'none'), 'Entitlements: ' + (((c.entitlements || []).map(function (e) { return esc(e.key + '=' + e.state); }).join(', ')) || 'none')]); });
+  renderList("checkouts", body.checkout_sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref, [esc(s.app_id) + ' / ' + esc(s.user_ref), 'Plan: <code>' + esc(s.plan_key) + '</code>', 'Status: ' + esc(s.status), 'Created: ' + esc(s.created_at)]); });
+  renderList("webhooks", body.webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id, [esc(w.provider_account) + ' / ' + esc(w.environment), 'Type: <code>' + esc(w.event_type) + '</code>', 'Status: ' + esc(w.status) + ' attempts=' + esc(w.attempt_count), 'App/User: ' + esc(w.app_id) + ' / ' + esc(w.user_ref)]); });
+  renderList("reconciliation", body.reconciliation_runs || [], "No reconciliation runs.", function (r) { return card(r.id, [esc(r.app_id) + ' / ' + esc(r.user_ref), 'Status: <code>' + esc(r.status) + '</code>', 'Classification: ' + esc(r.classification || 'none'), 'Completed: ' + esc(r.completed_at)]); });
+}
+$("refresh").addEventListener("click", function () { refresh().catch(function (error) { $("status").textContent = error.message; }); });
+</script>
+</body>
+</html>`;

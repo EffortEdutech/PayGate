@@ -1,7 +1,7 @@
-﻿import type { QueryResult, QueryResultRow } from "pg";
+import type { QueryResult, QueryResultRow } from "pg";
 import type { EntitlementState, Environment, SubscriptionState } from "@payment-hub/types";
 import type { EntitlementProjection, ProviderSubscriptionSnapshot, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
-import type { CheckoutSessionRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
+import type { AdminDashboardSnapshot, CheckoutSessionRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
 
 export interface PgQueryClient {
   query<R extends QueryResultRow = QueryResultRow>(text: string, values?: readonly unknown[]): Promise<QueryResult<R>>;
@@ -111,6 +111,125 @@ export class PostgresPaymentRepository implements PaymentRepository {
     return { appId, userRef, entitlements: result.rows.map((row) => ({ key: row.entitlement_key, state: row.status, ...(row.effective_until ? { effectiveUntil: row.effective_until } : {}) })) };
   }
 
+
+  async adminDashboardSnapshot(input: { readonly appId?: string; readonly environment?: Environment; readonly limit?: number } = {}): Promise<AdminDashboardSnapshot> {
+    const limit = input.limit ?? 50;
+    const filters = adminFilters(input);
+    const customerResult = await this.db.query<{
+      app_id: string;
+      app_user_ref: string;
+      created_at: Date;
+      provider_id: string | null;
+      provider_account: string | null;
+      environment: Environment | null;
+      provider_customer_ref: string | null;
+      provider_customer_created_at: Date | null;
+      subscription_state: SubscriptionState | "none" | null;
+      subscription_plan_key: string | null;
+      current_period_end: Date | null;
+      entitlements: unknown;
+    }>(
+      `SELECT a.app_id, c.app_user_ref, c.created_at,
+              pc.provider_id, pc.provider_account, pc.environment, pc.provider_customer_ref, pc.created_at AS provider_customer_created_at,
+              sp.state AS subscription_state, sp.plan_key AS subscription_plan_key, sp.current_period_end,
+              COALESCE(jsonb_agg(DISTINCT jsonb_build_object('key', eg.entitlement_key, 'state', eg.status, 'effectiveUntil', eg.effective_until)) FILTER (WHERE eg.id IS NOT NULL), '[]'::jsonb) AS entitlements
+       FROM payment_customers c
+       JOIN payment_applications a ON a.id = c.application_id
+       LEFT JOIN provider_customers pc ON pc.payment_customer_id = c.id
+       LEFT JOIN subscription_projection sp ON sp.payment_customer_id = c.id
+       LEFT JOIN entitlement_grants eg ON eg.payment_customer_id = c.id
+       WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR pc.environment = $2 OR sp.source_environment = $2)
+       GROUP BY a.app_id, c.app_user_ref, c.created_at, pc.provider_id, pc.provider_account, pc.environment, pc.provider_customer_ref, pc.created_at, sp.state, sp.plan_key, sp.current_period_end
+       ORDER BY c.created_at DESC
+       LIMIT $3`,
+      [...filters, limit],
+    );
+
+    const checkoutResult = await this.db.query<{
+      app_id: string;
+      app_user_ref: string;
+      plan_key: string;
+      provider_id: string;
+      provider_account: string;
+      environment: Environment;
+      provider_checkout_session_ref: string;
+      status: string;
+      expires_at: Date;
+      created_at: Date;
+    }>(
+      `SELECT a.app_id, c.app_user_ref, cs.plan_key, cs.provider_id, cs.provider_account, cs.environment, cs.provider_checkout_session_ref, cs.status, cs.expires_at, cs.created_at
+       FROM checkout_sessions cs
+       JOIN payment_applications a ON a.id = cs.application_id
+       JOIN payment_customers c ON c.id = cs.payment_customer_id
+       WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR cs.environment = $2)
+       ORDER BY cs.created_at DESC
+       LIMIT $3`,
+      [...filters, limit],
+    );
+
+    const webhookResult = await this.db.query<{
+      provider_id: string;
+      provider_account: string;
+      environment: Environment;
+      provider_event_id: string;
+      event_type: string | null;
+      app_id: string | null;
+      user_ref: string | null;
+      status: string;
+      attempt_count: number;
+      received_at: Date;
+      processed_at: Date | null;
+      last_error_code: string | null;
+    }>(
+      `SELECT provider_id, provider_account, environment, provider_event_id,
+              payload->>'rawType' AS event_type,
+              payload->>'appId' AS app_id,
+              payload->>'userRef' AS user_ref,
+              status, attempt_count, received_at, processed_at, last_error_code
+       FROM webhook_inbox
+       WHERE ($1::text IS NULL OR payload->>'appId' = $1) AND ($2::payment_environment IS NULL OR environment = $2)
+       ORDER BY received_at DESC
+       LIMIT $3`,
+      [...filters, limit],
+    );
+
+    const reconciliationResult = await this.db.query<{
+      id: string;
+      app_id: string;
+      app_user_ref: string | null;
+      provider_id: string;
+      provider_account: string;
+      environment: Environment;
+      status: ReconciliationRunInput["status"];
+      classification: string | null;
+      request_id: string;
+      completed_at: Date;
+    }>(
+      `SELECT rr.id::text, a.app_id, c.app_user_ref, rr.provider_id, rr.provider_account, rr.environment, rr.status, rr.evidence->>'classification' AS classification, rr.request_id, rr.completed_at
+       FROM reconciliation_runs rr
+       JOIN payment_applications a ON a.id = rr.application_id
+       LEFT JOIN payment_customers c ON c.id = rr.payment_customer_id
+       WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR rr.environment = $2)
+       ORDER BY rr.completed_at DESC
+       LIMIT $3`,
+      [...filters, limit],
+    );
+
+    return {
+      generatedAt: new Date(),
+      customers: customerResult.rows.map((row) => ({
+        appId: row.app_id,
+        userRef: row.app_user_ref,
+        createdAt: row.created_at,
+        providerCustomers: row.provider_customer_ref && row.provider_id && row.provider_account && row.environment ? [{ providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerCustomerRef: row.provider_customer_ref, createdAt: row.provider_customer_created_at ?? row.created_at }] : [],
+        ...(row.subscription_state ? { subscription: { appId: row.app_id, userRef: row.app_user_ref, state: row.subscription_state, ...(row.subscription_plan_key ? { planKey: row.subscription_plan_key } : {}), ...(row.current_period_end ? { currentPeriodEnd: row.current_period_end } : {}) } } : {}),
+        entitlements: normalizeEntitlements(row.entitlements),
+      })),
+      checkoutSessions: checkoutResult.rows.map((row) => ({ appId: row.app_id, userRef: row.app_user_ref, planKey: row.plan_key, providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerCheckoutSessionRef: row.provider_checkout_session_ref, status: row.status, expiresAt: row.expires_at, createdAt: row.created_at })),
+      webhooks: webhookResult.rows.map((row) => ({ providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerEventId: row.provider_event_id, ...(row.event_type ? { eventType: row.event_type } : {}), ...(row.app_id ? { appId: row.app_id } : {}), ...(row.user_ref ? { userRef: row.user_ref } : {}), status: row.status, attemptCount: row.attempt_count, receivedAt: row.received_at, ...(row.processed_at ? { processedAt: row.processed_at } : {}), ...(row.last_error_code ? { lastErrorCode: row.last_error_code } : {}) })),
+      reconciliationRuns: reconciliationResult.rows.map((row) => ({ id: row.id, appId: row.app_id, ...(row.app_user_ref ? { userRef: row.app_user_ref } : {}), providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, status: row.status, ...(row.classification ? { classification: row.classification } : {}), requestId: row.request_id, completedAt: row.completed_at })),
+    };
+  }
   private async applyVerifiedEventWithClient(client: PgQueryClient, event: VerifiedProviderEvent): Promise<void> {
     const payload = event.payload;
     if (!payload.appId || !payload.userRef) return;
@@ -220,6 +339,20 @@ export class PostgresPaymentRepository implements PaymentRepository {
   }
 }
 
+
+function adminFilters(input: { readonly appId?: string; readonly environment?: Environment }): [string | null, Environment | null] {
+  return [input.appId ?? null, input.environment ?? null];
+}
+
+function normalizeEntitlements(value: unknown): AdminDashboardSnapshot["customers"][number]["entitlements"] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const record = entry as { key?: unknown; state?: unknown; effectiveUntil?: unknown };
+    if (typeof record.key !== "string" || typeof record.state !== "string") return [];
+    return [{ key: record.key, state: record.state as never, ...(record.effectiveUntil ? { effectiveUntil: new Date(String(record.effectiveUntil)) } : {}) }];
+  });
+}
 function requireRow<R extends QueryResultRow>(result: QueryResult<R>, table: string): R {
   const row = result.rows[0];
   if (!row) throw new Error(`${table} did not return a row`);

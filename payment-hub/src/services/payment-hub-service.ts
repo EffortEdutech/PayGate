@@ -1,4 +1,4 @@
-﻿import { createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { CheckoutResult, EntitlementProjection, PaymentProviderAdapter, PortalResult, ReconciliationResult, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
 import type { Environment } from "@payment-hub/types";
 import { Registry } from "../registry/registry.js";
@@ -80,6 +80,86 @@ export class PaymentHubService {
     return { runId, appId: input.appId, userRef: input.userRef, status, subscription };
   }
 
+
+  async adminDashboard(input: { readonly appId?: string; readonly environment?: Environment; readonly limit?: number } = {}): Promise<unknown> {
+    const apps = this.registry.applications()
+      .filter((app) => !input.appId || app.appId === input.appId)
+      .map((app) => ({
+        app_id: app.appId,
+        name: app.name,
+        provider_id: app.providerId,
+        provider_account: app.providerAccount,
+        origins: Object.fromEntries(Object.entries(app.origins).map(([environment, origin]) => [environment, origin.href])),
+        plans: [...app.plans.values()].map((plan) => ({
+          plan_key: plan.planKey,
+          name: plan.name,
+          mode: plan.mode,
+          amount_minor: plan.amountMinor,
+          currency: plan.currency,
+          interval: plan.interval,
+          status: plan.status,
+          entitlements: plan.entitlements,
+          provider_lookup_configured: Object.keys(plan.providerLookupKeys).length > 0,
+        })),
+      }));
+    const snapshot = await this.repository.adminDashboardSnapshot(input);
+    return {
+      generated_at: snapshot.generatedAt.toISOString(),
+      apps,
+      customers: snapshot.customers.map((customer) => ({
+        app_id: customer.appId,
+        user_ref: customer.userRef,
+        created_at: customer.createdAt.toISOString(),
+        provider_customers: customer.providerCustomers.map((providerCustomer) => ({
+          provider_id: providerCustomer.providerId,
+          provider_account: providerCustomer.providerAccount,
+          environment: providerCustomer.environment,
+          provider_customer_ref: providerCustomer.providerCustomerRef,
+          created_at: providerCustomer.createdAt.toISOString(),
+        })),
+        subscription: customer.subscription ? serializeSubscription(customer.subscription) : { app_id: customer.appId, user_ref: customer.userRef, state: "none" },
+        entitlements: customer.entitlements.map((entitlement) => ({ key: entitlement.key, state: entitlement.state, ...(entitlement.effectiveUntil ? { effective_until: entitlement.effectiveUntil.toISOString() } : {}) })),
+      })),
+      checkout_sessions: snapshot.checkoutSessions.map((session) => ({
+        app_id: session.appId,
+        user_ref: session.userRef,
+        plan_key: session.planKey,
+        provider_id: session.providerId,
+        provider_account: session.providerAccount,
+        environment: session.environment,
+        provider_checkout_session_ref: session.providerCheckoutSessionRef,
+        status: session.status,
+        expires_at: session.expiresAt.toISOString(),
+        created_at: session.createdAt.toISOString(),
+      })),
+      webhooks: snapshot.webhooks.map((webhook) => ({
+        provider_id: webhook.providerId,
+        provider_account: webhook.providerAccount,
+        environment: webhook.environment,
+        provider_event_id: webhook.providerEventId,
+        event_type: webhook.eventType,
+        app_id: webhook.appId,
+        user_ref: webhook.userRef,
+        status: webhook.status,
+        attempt_count: webhook.attemptCount,
+        received_at: webhook.receivedAt.toISOString(),
+        processed_at: webhook.processedAt?.toISOString(),
+        last_error_code: webhook.lastErrorCode,
+      })),
+      reconciliation_runs: snapshot.reconciliationRuns.map((run) => ({
+        id: run.id,
+        app_id: run.appId,
+        user_ref: run.userRef,
+        provider_id: run.providerId,
+        provider_account: run.providerAccount,
+        environment: run.environment,
+        status: run.status,
+        classification: run.classification,
+        request_id: run.requestId,
+        completed_at: run.completedAt.toISOString(),
+      })),
+    };
+  }
   currentSubscription(appId: string, userRef: string): Promise<SubscriptionProjection> {
     return this.repository.currentSubscription(appId, userRef);
   }
@@ -100,4 +180,14 @@ function sameSubscription(current: SubscriptionProjection, snapshot: { readonly 
   return current.state === snapshot.state
     && current.planKey === snapshot.planKey
     && current.currentPeriodEnd?.getTime() === snapshot.currentPeriodEnd?.getTime();
+}
+
+function serializeSubscription(subscription: SubscriptionProjection): Record<string, unknown> {
+  return {
+    app_id: subscription.appId,
+    user_ref: subscription.userRef,
+    state: subscription.state,
+    ...(subscription.planKey ? { plan_key: subscription.planKey } : {}),
+    ...(subscription.currentPeriodEnd ? { current_period_end: subscription.currentPeriodEnd.toISOString() } : {}),
+  };
 }
