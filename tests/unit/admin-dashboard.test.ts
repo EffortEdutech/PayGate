@@ -65,3 +65,22 @@ test("local admin summary route stays behind ordinary app authentication", async
     server.close();
   }
 });
+test("monitoring summary reports reconciliation warnings without exposing secrets", async () => {
+  const repository = new InMemoryPaymentRepository();
+  const service = new PaymentHubService(new Registry([app]), repository, new FakeProvider());
+  await service.createCheckout({ requestId: "req_checkout", appId: "app_test", userRef: "user_1", planKey: "growth_monthly", returnContext: "billing", environment: "test" });
+  await service.acceptWebhook({ rawBody: Buffer.from("{}"), signature: "valid", providerAccount: "primary", environment: "test" });
+  await service.reconcile({ requestId: "req_reconcile", appId: "app_test", userRef: "user_1", environment: "test" });
+
+  const monitoring = await service.monitoringSummary({ appId: "app_test", environment: "test" }) as {
+    status: string;
+    checks: { webhook_inbox: { pending: number; unprocessed: number }; reconciliation: { noProviderSubscription: number } };
+    alerts: Array<{ code: string; severity: string }>;
+  };
+
+  assert.equal(monitoring.status, "ok");
+  assert.equal(monitoring.checks.webhook_inbox.pending, 0);
+  assert.equal(monitoring.checks.webhook_inbox.unprocessed, 0);
+  assert.equal(monitoring.checks.reconciliation.noProviderSubscription, 0);
+  assert.doesNotMatch(JSON.stringify(monitoring), /secret|whsec|sk_test/i);
+});

@@ -128,3 +128,14 @@ test("Vercel admin console shell does not embed operator token", async () => {
     assert.doesNotMatch(String(response.body), /operator-secret/);
   });
 });
+test("Vercel monitoring summary requires operator bearer token before runtime access", async () => {
+  await withEnv({ OPERATOR_DIAGNOSTICS_TOKEN: "operator-secret" }, async () => {
+    const missing = await invoke("/admin/monitoring", { "x-request-id": "req_monitoring_missing" });
+    assert.equal(missing.status, 401);
+    assert.equal((missing.body as { error: { code: string } }).error.code, "UNAUTHORIZED");
+
+    const wrong = await invoke("/admin/monitoring", { authorization: "Bearer wrong-token", "x-request-id": "req_monitoring_wrong" });
+    assert.equal(wrong.status, 401);
+    assert.equal((wrong.body as { error: { code: string } }).error.code, "UNAUTHORIZED");
+  });
+});

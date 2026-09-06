@@ -1,6 +1,6 @@
 # Phase 4 - Production Hardening Sprint Plan
 
-**Status:** started - Tracks 1, 2, 3, 4, and 5 completed  
+**Status:** started - Tracks 1, 2, 3, 4, 5, and 6 completed  
 **Starts after:** Phase 3 AIntern deployed sandbox proof freeze  
 **Live payments:** not authorized in this phase until the live-mode readiness gate is explicitly passed by the operator.
 
@@ -149,14 +149,22 @@ Goal: surface failures before users report them.
 
 Checklist:
 
-- [ ] Log failed webhook verification attempts safely.
-- [ ] Track unprocessed or failed webhook inbox events.
-- [ ] Track failed reconciliation runs.
-- [ ] Track database connection failures.
-- [ ] Track Stripe API failures and rate-limit responses.
-- [ ] Add operator-visible failure summary.
-- [ ] Decide alert channel: email, dashboard, or future messaging integration.
-- [ ] Document retry and escalation steps.
+- [x] Log failed webhook/runtime verification failures safely through existing server logs; aggregate persisted webhook failure states in monitoring summary.
+- [x] Track unprocessed or failed webhook inbox events.
+- [x] Track failed reconciliation runs.
+- [x] Track database connection failures through protected diagnostics and monitoring runtime readiness.
+- [x] Track Stripe API failures and rate-limit responses through provider error translation and operator-visible failed reconciliation/webhook outcomes.
+- [x] Add operator-visible failure summary at `/admin/monitoring` and in the `/admin` console.
+- [x] Decide alert channel baseline: protected admin dashboard now; external email/messaging alert channel deferred until operator chooses provider.
+- [x] Document retry and escalation steps.
+
+Implementation notes:
+
+- The monitoring runbook is recorded in `docs/MONITORING_AND_ALERTING_RUNBOOK.md`.
+- `GET /admin/monitoring` returns safe aggregate checks and alerts behind `OPERATOR_DIAGNOSTICS_TOKEN`.
+- `/admin` now includes a Monitoring panel that calls `/admin/monitoring` using the token typed by the operator.
+- Current alert channel is operator dashboard/manual review. External push alerts remain a future choice before live payments.
+
 
 ### Track 7 - Provider Account Isolation Tests
 
@@ -213,6 +221,6 @@ Live test sequence:
 - [x] Operator can inspect payment state safely.
 - [x] App #2 onboarding can follow a documented checklist.
 - [x] Live-mode readiness checklist exists and is reviewed.
-- [ ] Monitoring/alerting baseline exists.
+- [x] Monitoring/alerting baseline exists.
 - [ ] Multi-provider-account isolation tests pass.
 - [ ] Live payment/refund test gate is either completed or explicitly deferred.

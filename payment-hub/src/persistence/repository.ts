@@ -76,6 +76,24 @@ export interface AdminDashboardSnapshot {
     readonly completedAt: Date;
   }[];
 }
+export interface MonitoringSnapshot {
+  readonly generatedAt: Date;
+  readonly webhookInbox: {
+    readonly failed: number;
+    readonly pending: number;
+    readonly retryable: number;
+    readonly deadLetter: number;
+    readonly unprocessed: number;
+  };
+  readonly reconciliation: {
+    readonly failed: number;
+    readonly noProviderCustomer: number;
+    readonly noProviderSubscription: number;
+  };
+  readonly database: {
+    readonly reachable: boolean;
+  };
+}
 export interface PaymentRepository {
   ensureApplication(input: { readonly appId: string; readonly registryVersion: string; readonly status: string }): Promise<string>;
   findProviderCustomer(input: { readonly appId: string; readonly userRef: string; readonly providerId: string; readonly providerAccount: string; readonly environment: Environment }): Promise<string | undefined>;
@@ -88,4 +106,5 @@ export interface PaymentRepository {
   currentSubscription(appId: string, userRef: string): Promise<SubscriptionProjection>;
   currentEntitlements(appId: string, userRef: string): Promise<EntitlementProjection>;
   adminDashboardSnapshot(input?: { readonly appId?: string; readonly environment?: Environment; readonly limit?: number }): Promise<AdminDashboardSnapshot>;
+  monitoringSnapshot(input?: { readonly appId?: string; readonly environment?: Environment }): Promise<MonitoringSnapshot>;
 }

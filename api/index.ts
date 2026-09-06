@@ -44,6 +44,23 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return writeHtml(res, 200, ADMIN_HTML);
   }
 
+  if (req.method === "GET" && url.pathname === "/admin/monitoring") {
+    const authError = requireOperatorDiagnosticsAuth(req, requestId);
+    if (authError) return writeJson(res, authError.status, authError.body);
+    try {
+      const runtime = await getRuntime();
+      return writeJson(res, 200, await runtime.service.monitoringSummary({ appId: optionalQuery(url, "app_id"), environment: optionalEnvironment(url) }));
+    } catch (error) {
+      console.error("PayGate monitoring summary failed", { requestId, error });
+      return writeJson(res, 503, {
+        error: {
+          code: "MONITORING_RUNTIME_NOT_READY",
+          message: "PayGate monitoring summary is not ready. Check protected diagnostics and deployment configuration.",
+          requestId,
+        },
+      });
+    }
+  }
   if (req.method === "GET" && url.pathname === "/admin/summary") {
     const authError = requireOperatorDiagnosticsAuth(req, requestId);
     if (authError) return writeJson(res, authError.status, authError.body);
@@ -367,6 +384,7 @@ const ADMIN_HTML = `<!doctype html>
     </div>
     <p id="status" class="muted">Not loaded.</p>
   </section>
+  <section><h2>Monitoring</h2><div id="monitoring" class="grid"></div></section>
   <section><h2>Apps and Plans</h2><div id="apps" class="grid"></div></section>
   <section><h2>Customers</h2><div id="customers" class="grid"></div></section>
   <section><h2>Checkout Sessions</h2><div id="checkouts" class="grid"></div></section>
@@ -378,11 +396,24 @@ var $ = function (id) { return document.getElementById(id); };
 function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
 function card(title, lines) { return '<div class="card"><h3>' + esc(title) + '</h3>' + lines.map(function (line) { return '<p>' + line + '</p>'; }).join('') + '</div>'; }
 function renderList(id, items, empty, render) { $(id).innerHTML = items.length ? items.map(render).join('') : '<p class="muted">' + empty + '</p>'; }
-async function refresh() {
+function renderMonitoring(monitoring) {
+  var alerts = monitoring.alerts || [];
+  renderList("monitoring", [monitoring], "No monitoring data.", function (m) {
+    return card('Status: ' + m.status, [
+      'Database reachable: <code>' + esc(m.checks && m.checks.database && m.checks.database.reachable) + '</code>',
+      'Webhook pending/retry/dead: <code>' + esc((m.checks.webhook_inbox.pending || 0) + '/' + (m.checks.webhook_inbox.retryable || 0) + '/' + (m.checks.webhook_inbox.deadLetter || 0)) + '</code>',
+      'Reconciliation failed/no customer/no subscription: <code>' + esc((m.checks.reconciliation.failed || 0) + '/' + (m.checks.reconciliation.noProviderCustomer || 0) + '/' + (m.checks.reconciliation.noProviderSubscription || 0)) + '</code>',
+      'Alerts: ' + (alerts.length ? alerts.map(function (a) { return esc(a.severity + ':' + a.code); }).join(', ') : 'none')
+    ]);
+  });
+}async function refresh() {
   var token = $("token").value;
   var params = new URLSearchParams();
   if ($("appId").value.trim()) params.set("app_id", $("appId").value.trim());
   if ($("environment").value) params.set("environment", $("environment").value);
+  var monitoringResponse = await fetch('/admin/monitoring?' + params.toString(), { headers: { authorization: 'Bearer ' + token } });
+  var monitoring = await monitoringResponse.json();
+  if (monitoringResponse.ok) renderMonitoring(monitoring);
   var response = await fetch('/admin/summary?' + params.toString(), { headers: { authorization: 'Bearer ' + token } });
   var body = await response.json();
   $("raw").textContent = JSON.stringify(body, null, 2);

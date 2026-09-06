@@ -1,7 +1,7 @@
 import type { QueryResult, QueryResultRow } from "pg";
 import type { EntitlementState, Environment, SubscriptionState } from "@payment-hub/types";
 import type { EntitlementProjection, ProviderSubscriptionSnapshot, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
-import type { AdminDashboardSnapshot, CheckoutSessionRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
+import type { AdminDashboardSnapshot, MonitoringSnapshot, CheckoutSessionRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
 
 export interface PgQueryClient {
   query<R extends QueryResultRow = QueryResultRow>(text: string, values?: readonly unknown[]): Promise<QueryResult<R>>;
@@ -230,6 +230,59 @@ export class PostgresPaymentRepository implements PaymentRepository {
       reconciliationRuns: reconciliationResult.rows.map((row) => ({ id: row.id, appId: row.app_id, ...(row.app_user_ref ? { userRef: row.app_user_ref } : {}), providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, status: row.status, ...(row.classification ? { classification: row.classification } : {}), requestId: row.request_id, completedAt: row.completed_at })),
     };
   }
+
+  async monitoringSnapshot(input: { readonly appId?: string; readonly environment?: Environment } = {}): Promise<MonitoringSnapshot> {
+    const filters = adminFilters(input);
+    const webhookResult = await this.db.query<{
+      failed: string;
+      pending: string;
+      retryable: string;
+      dead_letter: string;
+      unprocessed: string;
+    }>(
+      `SELECT
+         count(*) FILTER (WHERE status = 'failed')::text AS failed,
+         count(*) FILTER (WHERE status = 'pending')::text AS pending,
+         count(*) FILTER (WHERE status = 'retryable')::text AS retryable,
+         count(*) FILTER (WHERE status = 'dead_letter')::text AS dead_letter,
+         count(*) FILTER (WHERE status <> 'processed')::text AS unprocessed
+       FROM webhook_inbox
+       WHERE ($1::text IS NULL OR payload->>'appId' = $1) AND ($2::payment_environment IS NULL OR environment = $2)`,
+      filters,
+    );
+    const reconciliationResult = await this.db.query<{
+      failed: string;
+      no_provider_customer: string;
+      no_provider_subscription: string;
+    }>(
+      `SELECT
+         count(*) FILTER (WHERE status = 'failed')::text AS failed,
+         count(*) FILTER (WHERE status = 'no_provider_customer')::text AS no_provider_customer,
+         count(*) FILTER (WHERE status = 'no_provider_subscription')::text AS no_provider_subscription
+       FROM reconciliation_runs rr
+       JOIN payment_applications a ON a.id = rr.application_id
+       WHERE ($1::text IS NULL OR a.app_id = $1) AND ($2::payment_environment IS NULL OR rr.environment = $2)`,
+      filters,
+    );
+    const webhook = webhookResult.rows[0] ?? { failed: "0", pending: "0", retryable: "0", dead_letter: "0", unprocessed: "0" };
+    const reconciliation = reconciliationResult.rows[0] ?? { failed: "0", no_provider_customer: "0", no_provider_subscription: "0" };
+    return {
+      generatedAt: new Date(),
+      webhookInbox: {
+        failed: numberFromPgCount(webhook.failed),
+        pending: numberFromPgCount(webhook.pending),
+        retryable: numberFromPgCount(webhook.retryable),
+        deadLetter: numberFromPgCount(webhook.dead_letter),
+        unprocessed: numberFromPgCount(webhook.unprocessed),
+      },
+      reconciliation: {
+        failed: numberFromPgCount(reconciliation.failed),
+        noProviderCustomer: numberFromPgCount(reconciliation.no_provider_customer),
+        noProviderSubscription: numberFromPgCount(reconciliation.no_provider_subscription),
+      },
+      database: { reachable: true },
+    };
+  }
   private async applyVerifiedEventWithClient(client: PgQueryClient, event: VerifiedProviderEvent): Promise<void> {
     const payload = event.payload;
     if (!payload.appId || !payload.userRef) return;
@@ -340,6 +393,10 @@ export class PostgresPaymentRepository implements PaymentRepository {
 }
 
 
+
+function numberFromPgCount(value: string | number | null | undefined): number {
+  return Number(value ?? 0);
+}
 function adminFilters(input: { readonly appId?: string; readonly environment?: Environment }): [string | null, Environment | null] {
   return [input.appId ?? null, input.environment ?? null];
 }

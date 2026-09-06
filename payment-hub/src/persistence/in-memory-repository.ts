@@ -1,5 +1,5 @@
 import type { EntitlementProjection, ProviderSubscriptionSnapshot, ReconciliationResult, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
-import type { AdminDashboardSnapshot, PaymentRepository, CheckoutSessionRecord, ReconciliationRunInput } from "./repository.js";
+import type { AdminDashboardSnapshot, MonitoringSnapshot, PaymentRepository, CheckoutSessionRecord, ReconciliationRunInput } from "./repository.js";
 
 export class InMemoryPaymentRepository implements PaymentRepository {
   readonly #applications = new Map<string, string>();
@@ -94,6 +94,31 @@ export class InMemoryPaymentRepository implements PaymentRepository {
         .filter(([, run]) => !input.environment || run.environment === input.environment)
         .slice(0, limit)
         .map(([id, run]) => ({ id, appId: run.appId, userRef: run.userRef, providerId: run.providerId, providerAccount: run.providerAccount, environment: run.environment, status: run.status, ...(reconciliationClassification(run.evidence) ? { classification: reconciliationClassification(run.evidence)! } : {}), requestId: run.requestId, completedAt: new Date() })),
+    };
+  }
+
+  async monitoringSnapshot(input: { readonly appId?: string; readonly environment?: "test" | "live" } = {}): Promise<MonitoringSnapshot> {
+    const webhooks = [...this.#webhooks.values()]
+      .filter(({ event }) => !input.appId || event.payload.appId === input.appId)
+      .filter(({ event }) => !input.environment || event.environment === input.environment);
+    const runs = [...this.#reconciliationRuns.values()]
+      .filter((run) => !input.appId || run.appId === input.appId)
+      .filter((run) => !input.environment || run.environment === input.environment);
+    return {
+      generatedAt: new Date(),
+      webhookInbox: {
+        failed: webhooks.filter((webhook) => webhook.status === "failed").length,
+        pending: webhooks.filter((webhook) => webhook.status === "pending").length,
+        retryable: webhooks.filter((webhook) => webhook.status === "retryable").length,
+        deadLetter: webhooks.filter((webhook) => webhook.status === "dead_letter").length,
+        unprocessed: webhooks.filter((webhook) => webhook.status !== "processed").length,
+      },
+      reconciliation: {
+        failed: runs.filter((run) => run.status === "failed").length,
+        noProviderCustomer: runs.filter((run) => run.status === "no_provider_customer").length,
+        noProviderSubscription: runs.filter((run) => run.status === "no_provider_subscription").length,
+      },
+      database: { reachable: true },
     };
   }
   private projectPlanEntitlement(appId: string, userRef: string, planKey: string, state: "active" | "revoked", effectiveUntil?: Date): void {

@@ -160,6 +160,25 @@ export class PaymentHubService {
       })),
     };
   }
+
+  async monitoringSummary(input: { readonly appId?: string; readonly environment?: Environment } = {}): Promise<unknown> {
+    const snapshot = await this.repository.monitoringSnapshot(input);
+    const alerts = monitoringAlerts(snapshot);
+    return {
+      generated_at: snapshot.generatedAt.toISOString(),
+      status: alerts.length === 0 ? "ok" : "attention_required",
+      filters: {
+        app_id: input.appId,
+        environment: input.environment,
+      },
+      checks: {
+        database: snapshot.database,
+        webhook_inbox: snapshot.webhookInbox,
+        reconciliation: snapshot.reconciliation,
+      },
+      alerts,
+    };
+  }
   currentSubscription(appId: string, userRef: string): Promise<SubscriptionProjection> {
     return this.repository.currentSubscription(appId, userRef);
   }
@@ -190,4 +209,15 @@ function serializeSubscription(subscription: SubscriptionProjection): Record<str
     ...(subscription.planKey ? { plan_key: subscription.planKey } : {}),
     ...(subscription.currentPeriodEnd ? { current_period_end: subscription.currentPeriodEnd.toISOString() } : {}),
   };
+}
+function monitoringAlerts(snapshot: Awaited<ReturnType<PaymentHubService["repository"]["monitoringSnapshot"]>>): Array<{ readonly code: string; readonly severity: "warning" | "critical"; readonly message: string }> {
+  const alerts: Array<{ readonly code: string; readonly severity: "warning" | "critical"; readonly message: string }> = [];
+  if (!snapshot.database.reachable) alerts.push({ code: "DATABASE_UNREACHABLE", severity: "critical", message: "Database connectivity failed." });
+  if (snapshot.webhookInbox.deadLetter > 0) alerts.push({ code: "WEBHOOK_DEAD_LETTER", severity: "critical", message: "Webhook events are in dead-letter state." });
+  if (snapshot.webhookInbox.retryable > 0) alerts.push({ code: "WEBHOOK_RETRYABLE", severity: "warning", message: "Webhook events are waiting for retry." });
+  if (snapshot.webhookInbox.pending > 0) alerts.push({ code: "WEBHOOK_PENDING", severity: "warning", message: "Webhook events are still pending processing." });
+  if (snapshot.reconciliation.failed > 0) alerts.push({ code: "RECONCILIATION_FAILED", severity: "critical", message: "Reconciliation runs failed and need operator review." });
+  if (snapshot.reconciliation.noProviderCustomer > 0) alerts.push({ code: "RECONCILIATION_NO_PROVIDER_CUSTOMER", severity: "warning", message: "Some reconciliation runs did not find a provider customer mapping." });
+  if (snapshot.reconciliation.noProviderSubscription > 0) alerts.push({ code: "RECONCILIATION_NO_PROVIDER_SUBSCRIPTION", severity: "warning", message: "Some reconciliation runs did not find a provider subscription." });
+  return alerts;
 }
