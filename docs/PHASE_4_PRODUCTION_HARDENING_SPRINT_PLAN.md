@@ -172,15 +172,24 @@ Goal: prove multiple Stripe/company accounts cannot bleed into each other.
 
 Checklist:
 
-- [ ] Add fixture for at least two named Stripe provider accounts.
-- [ ] Prove an app can only use the provider account declared in its registry package.
-- [ ] Prove webhook endpoint account scope is enforced.
-- [ ] Prove reconciliation account scope is enforced.
-- [ ] Prove portal session account scope is enforced.
-- [ ] Prove idempotency keys are environment/app/account scoped.
-- [ ] Prove unknown provider accounts fail closed.
-- [ ] Run registry validation and full test suite.
+- [x] Add fixture for at least two named Stripe provider accounts.
+- [x] Prove an app can only use the provider account declared in its registry package.
+- [x] Prove webhook endpoint account scope is enforced.
+- [x] Prove reconciliation account scope is enforced.
+- [x] Prove portal session account scope is enforced.
+- [x] Prove provider customer/idempotent provider records are environment/app/account scoped.
+- [x] Prove unknown provider accounts fail closed.
+- [x] Run registry validation and full test suite.
 
+
+Implementation notes:
+
+- Added two-account test fixtures for `stripe:nhl_global_solution` and `stripe:bina_jaya` without using real Stripe credentials.
+- Verified checkout, webhook verification, portal session, and reconciliation calls route only to the account declared by the app registry.
+- Verified provider customer mappings are isolated by app, user, provider, provider account, and environment.
+- Verified named Stripe account configuration does not borrow secrets from another named account; incomplete named accounts are not configured.
+- Verified unknown provider accounts fail closed through `ProviderAccountNotConfiguredError`.
+- Verification command: `npm run check` passed with registry validation, TypeScript, and 47 tests.
 ### Track 8 - Controlled Live Stripe Payment and Refund Test
 
 Goal: define when and how live payments/refunds will be tested.
@@ -192,7 +201,7 @@ Minimum gate before first live payment:
 - [ ] Operator diagnostics protected.
 - [ ] Live-mode readiness checklist completed.
 - [ ] Monitoring/alerting baseline in place.
-- [ ] Provider account isolation tests passed.
+- [x] Provider account isolation tests passed.
 - [ ] Live Stripe account settings reviewed.
 - [ ] Live Product/Price created intentionally, not copied blindly from sandbox.
 - [ ] Live webhook endpoint configured and verified.

@@ -108,13 +108,13 @@ Live testing waits for Phase 4 Track 6 monitoring/alerting baseline:
 
 Live testing waits for Phase 4 Track 7 provider isolation tests:
 
-- [ ] At least two named provider accounts represented in test fixtures.
-- [ ] App cannot use another app/company provider account.
-- [ ] Webhook endpoint account scope is enforced.
-- [ ] Portal session account scope is enforced.
-- [ ] Reconciliation account scope is enforced.
-- [ ] Unknown provider accounts fail closed.
-- [ ] Full test suite passes.
+- [x] At least two named provider accounts represented in test fixtures.
+- [x] App cannot use another app/company provider account.
+- [x] Webhook endpoint account scope is enforced.
+- [x] Portal session account scope is enforced.
+- [x] Reconciliation account scope is enforced.
+- [x] Unknown provider accounts fail closed.
+- [x] Full test suite passes.
 
 ## Gate 8 - First Live Payment Approval
 
@@ -171,5 +171,5 @@ Live Stripe payments and refunds are not authorized yet.
 Next dependencies before live testing:
 
 1. Phase 4 Track 6 - Monitoring and Alerting.
-2. Phase 4 Track 7 - Provider Account Isolation Tests.
+2. Phase 4 Track 7 - Provider Account Isolation Tests. Completed in code tests; live account approval still requires operator sign-off.
 3. Explicit operator approval for a controlled live payment/refund window.
