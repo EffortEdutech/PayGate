@@ -74,7 +74,7 @@ Status: planned, not started.
 - [x] Live adapter boundary implemented.
 - [x] Live provider account config model implemented.
 - [x] Live registry strategy implemented.
-- [ ] Live webhook boundary implemented.
+- [x] Live webhook boundary implemented.
 - [ ] Refund policy/event mapping implemented.
 - [ ] Live operator diagnostics implemented.
 - [ ] Phase 6 entry gate prepared.

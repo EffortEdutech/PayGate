@@ -28,29 +28,29 @@ const accountBApp = {
 
 class RecordingAccountAdapter implements PaymentProviderAdapter {
   readonly providerId = "stripe";
-  readonly calls: Array<{ readonly operation: string; readonly account: string; readonly appId?: string; readonly userRef?: string }> = [];
+  readonly calls: Array<{ readonly operation: string; readonly account: string; readonly environment?: "test" | "live"; readonly appId?: string; readonly userRef?: string }> = [];
 
   constructor(private readonly account: string) {}
 
   capabilities(): ProviderCapabilities { return new StripeAdapterSkeleton().capabilities(); }
 
   async createCheckout(command: ResolvedCheckoutCommand): Promise<CheckoutResult> {
-    this.calls.push({ operation: "checkout", account: this.account, appId: command.appId, userRef: command.userRef });
+    this.calls.push({ operation: "checkout", account: this.account, environment: command.environment, appId: command.appId, userRef: command.userRef });
     return { checkoutSessionId: `cs_${this.account}`, redirectUrl: new URL(`https://checkout.example.test/${this.account}`), status: "open", expiresAt: new Date("2026-09-06T12:00:00.000Z"), providerCustomerRef: `cus_${this.account}` };
   }
 
   async createPortalSession(command: ResolvedPortalCommand): Promise<PortalResult> {
-    this.calls.push({ operation: "portal", account: this.account, appId: command.appId, userRef: command.userRef });
+    this.calls.push({ operation: "portal", account: this.account, environment: command.environment, appId: command.appId, userRef: command.userRef });
     return { portalSessionId: `bps_${this.account}`, redirectUrl: new URL(`https://billing.example.test/${this.account}`) };
   }
 
   async verifyWebhook(input: { readonly rawBody: Uint8Array; readonly signature: string; readonly account: string; readonly environment: "test" | "live" }): Promise<VerifiedProviderEvent> {
-    this.calls.push({ operation: "webhook", account: this.account });
+    this.calls.push({ operation: "webhook", account: this.account, environment: input.environment });
     return { providerId: "stripe", providerAccount: input.account, environment: input.environment, providerEventId: `evt_${this.account}`, providerCreatedAt: new Date("2026-09-06T12:00:00.000Z"), eventType: "checkout.completed", payload: { appId: this.account === "nhl_global_solution" ? "account_a_app" : "account_b_app", userRef: "user_1", planKey: "pass", providerCustomerRef: `cus_${this.account}`, subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: `cs_${this.account}` } } };
   }
 
   async reconcileCustomer(command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> {
-    this.calls.push({ operation: "reconciliation", account: this.account, appId: command.appId, userRef: command.userRef });
+    this.calls.push({ operation: "reconciliation", account: this.account, environment: command.environment, appId: command.appId, userRef: command.userRef });
     return { providerId: "stripe", providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: `sub_${this.account}`, observedAt: new Date("2026-09-06T12:00:00.000Z"), state: "active", planKey: "pass", evidence: { account: this.account } };
   }
 }
@@ -119,6 +119,31 @@ test("provider account router routes checkout, webhook, portal, and reconciliati
   assert.ok(bina.calls.every((call) => call.account === "bina_jaya"));
 });
 
+
+test("provider account router requires live webhook adapter for live webhook routes", async () => {
+  const router = new ProviderAccountRouter("stripe", new Map([["nhl_global_solution:test", new RecordingAccountAdapter("nhl_global_solution")]]));
+  assert.throws(() => router.verifyWebhook({ rawBody: Buffer.from("{}"), signature: "valid", account: "nhl_global_solution", environment: "live" }), ProviderAccountNotConfiguredError);
+});
+
+test("provider account router separates webhook adapters by account and environment", async () => {
+  const testNhl = new RecordingAccountAdapter("nhl_test_adapter");
+  const liveNhl = new RecordingAccountAdapter("nhl_live_adapter");
+  const liveBina = new RecordingAccountAdapter("bina_live_adapter");
+  const router = new ProviderAccountRouter("stripe", new Map([
+    ["nhl_global_solution:test", testNhl],
+    ["nhl_global_solution:live", liveNhl],
+    ["bina_jaya:live", liveBina],
+  ]));
+
+  await router.verifyWebhook({ rawBody: Buffer.from("{}"), signature: "valid", account: "nhl_global_solution", environment: "test" });
+  await router.verifyWebhook({ rawBody: Buffer.from("{}"), signature: "valid", account: "nhl_global_solution", environment: "live" });
+  await router.verifyWebhook({ rawBody: Buffer.from("{}"), signature: "valid", account: "bina_jaya", environment: "live" });
+
+  assert.deepEqual(testNhl.calls.map((call) => `${call.operation}:${call.environment}`), ["webhook:test"]);
+  assert.deepEqual(liveNhl.calls.map((call) => `${call.operation}:${call.environment}`), ["webhook:live"]);
+  assert.deepEqual(liveBina.calls.map((call) => `${call.operation}:${call.environment}`), ["webhook:live"]);
+  assert.throws(() => router.verifyWebhook({ rawBody: Buffer.from("{}"), signature: "valid", account: "bina_jaya", environment: "test" }), ProviderAccountNotConfiguredError);
+});
 test("provider customer mappings are isolated by provider account and environment", async () => {
   const repository = new InMemoryPaymentRepository();
   await repository.saveProviderCustomer({ appId: "account_a_app", userRef: "user_1", providerId: "stripe", providerAccount: "nhl_global_solution", environment: "test", providerCustomerRef: "cus_nhl_test" });

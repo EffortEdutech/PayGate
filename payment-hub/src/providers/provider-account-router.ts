@@ -35,23 +35,24 @@ export class ProviderAccountRouter implements PaymentProviderAdapter {
   }
 
   createCheckout(command: ResolvedCheckoutCommand): Promise<CheckoutResult> {
-    return this.adapter(command.providerAccount).createCheckout(command);
+    return this.adapter(command.providerAccount, command.environment).createCheckout(command);
   }
 
   createPortalSession(command: ResolvedPortalCommand): Promise<PortalResult> {
-    return this.adapter(command.providerAccount).createPortalSession(command);
+    return this.adapter(command.providerAccount, command.environment).createPortalSession(command);
   }
 
   verifyWebhook(input: { readonly rawBody: Uint8Array; readonly signature: string; readonly account: string; readonly environment: Environment }): Promise<VerifiedProviderEvent> {
-    return this.adapter(input.account).verifyWebhook(input);
+    return this.adapter(input.account, input.environment).verifyWebhook(input);
   }
 
   reconcileCustomer(command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> {
-    return this.adapter(command.providerAccount).reconcileCustomer(command);
+    return this.adapter(command.providerAccount, command.environment).reconcileCustomer(command);
   }
 
-  private adapter(account: string): PaymentProviderAdapter {
-    const adapter = this.#adapters.get(account);
+  private adapter(account: string, environment?: Environment): PaymentProviderAdapter {
+    const environmentScopedAdapter = environment ? this.#adapters.get(`${account}:${environment}`) : undefined;
+    const adapter = environmentScopedAdapter ?? this.#adapters.get(account);
     if (!adapter) throw new ProviderAccountNotConfiguredError(this.providerId, account);
     return adapter;
   }

@@ -141,6 +141,28 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
 }
 
 
+export class StripeLiveWebhookAdapter implements PaymentProviderAdapter {
+  readonly providerId = "stripe";
+  readonly #stripe: Stripe;
+  readonly #webhookSecret: string;
+
+  constructor(config: StripeLiveAdapterConfig) {
+    assertStripeKeyMode(config.secretKey, "live", "Live Stripe webhook adapter");
+    this.#webhookSecret = config.webhookSecret;
+    this.#stripe = new Stripe(config.secretKey, { apiVersion: config.apiVersion as Stripe.LatestApiVersion, typescript: true });
+  }
+
+  capabilities(): ProviderCapabilities { return new StripeAdapterSkeleton().capabilities(); }
+  async createCheckout(_command: ResolvedCheckoutCommand): Promise<CheckoutResult> { throw new StripeAdapterNotConfiguredError(); }
+  async createPortalSession(_command: ResolvedPortalCommand): Promise<PortalResult> { throw new StripeAdapterNotConfiguredError(); }
+  async reconcileCustomer(_command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> { throw new StripeAdapterNotConfiguredError(); }
+
+  async verifyWebhook(input: { readonly rawBody: Uint8Array; readonly signature: string; readonly account: string; readonly environment: Environment }): Promise<VerifiedProviderEvent> {
+    if (input.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe webhook adapter accepts only live webhook events");
+    const event = this.#stripe.webhooks.constructEvent(Buffer.from(input.rawBody), input.signature, this.#webhookSecret);
+    return normalizeStripeEvent(event, { providerAccount: input.account, environment: input.environment });
+  }
+}
 function assertStripeKeyMode(secretKey: string, expected: "test" | "live", label: string): void {
   const prefix = expected === "test" ? "sk_test_" : "sk_live_";
   if (!secretKey.startsWith(prefix)) throw new Error(`${label} requires an ${expected === "test" ? "sandbox" : "live"} secret key`);
@@ -277,7 +299,7 @@ function allowedMetadata(metadata: Stripe.Metadata | null | undefined): Record<s
   return safe;
 }
 export class StripeAdapterRuntimeError extends Error {
-  constructor(readonly code: "PROVIDER_PRICE_NOT_FOUND" | "PROVIDER_SESSION_URL_MISSING" | "PROVIDER_AUTHENTICATION_FAILED" | "PROVIDER_RATE_LIMITED" | "PROVIDER_REQUEST_FAILED", message: string) {
+  constructor(readonly code: "PROVIDER_PRICE_NOT_FOUND" | "PROVIDER_SESSION_URL_MISSING" | "PROVIDER_AUTHENTICATION_FAILED" | "PROVIDER_RATE_LIMITED" | "PROVIDER_REQUEST_FAILED" | "PROVIDER_ENVIRONMENT_MISMATCH", message: string) {
     super(message);
     this.name = "StripeAdapterRuntimeError";
   }

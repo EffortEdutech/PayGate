@@ -77,10 +77,19 @@ Goal: ensure live webhooks are signed, account-scoped, and environment-scoped.
 
 Checklist:
 
-- [ ] Confirm `/v1/webhooks/stripe/{provider_account}/live` path is supported only when live config exists.
-- [ ] Verify live endpoint uses the live account webhook secret only.
-- [ ] Add tests for wrong-account and wrong-environment webhook rejection.
-- [ ] Confirm webhook inbox uniqueness includes provider account and environment.
+- [x] Confirm `/v1/webhooks/stripe/{provider_account}/live` path is supported only when live config exists.
+- [x] Verify live endpoint uses the live account webhook secret only.
+- [x] Add tests for wrong-account and wrong-environment webhook rejection.
+- [x] Confirm webhook inbox uniqueness includes provider account and environment.
+
+
+Implementation notes:
+
+- Added environment-scoped provider account routing using `{provider_account}:{environment}` adapter keys.
+- Runtime now wires sandbox Stripe accounts to `:test` adapters and live Stripe accounts to `:live` webhook-only adapters.
+- Added a live webhook-only Stripe adapter that verifies signed live webhook payloads using live keys while keeping checkout, portal, and reconciliation live operations unavailable.
+- Added tests proving live webhook routes fail closed without live config and wrong account/environment combinations do not fall back across boundaries.
+- Confirmed webhook inbox uniqueness already includes `provider_id`, `provider_account`, `environment`, and `provider_event_id`.
 
 ## Track 5 - Refund Handling Policy and Event Mapping
 

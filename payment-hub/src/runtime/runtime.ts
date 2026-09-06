@@ -14,7 +14,7 @@ import type { IdempotencyLedger } from "../security/idempotency.js";
 import { PaymentHubService } from "../services/payment-hub-service.js";
 import type { PaymentProviderAdapter } from "@payment-hub/contracts";
 import { ProviderAccountRouter } from "../providers/provider-account-router.js";
-import { StripeAdapterSkeleton, StripeSandboxAdapter } from "../providers/stripe/stripe-adapter.js";
+import { StripeAdapterSkeleton, StripeLiveWebhookAdapter, StripeSandboxAdapter } from "../providers/stripe/stripe-adapter.js";
 
 export interface PaymentHubRuntime {
   readonly config: HubConfig;
