@@ -406,6 +406,10 @@ function renderMonitoring(monitoring) {
       'Alerts: ' + (alerts.length ? alerts.map(function (a) { return esc(a.severity + ':' + a.code); }).join(', ') : 'none')
     ]);
   });
+}function renderMonitoringError(status, body) {
+  renderList("monitoring", [{ status: status, code: body && body.error && body.error.code, message: body && body.error && body.error.message }], "No monitoring data.", function (error) {
+    return card('Monitoring error', ['HTTP: <code>' + esc(error.status) + '</code>', 'Code: <code>' + esc(error.code || 'unknown') + '</code>', 'Message: ' + esc(error.message || 'Unable to load monitoring summary')]);
+  });
 }async function refresh() {
   var token = $("token").value;
   var params = new URLSearchParams();
@@ -413,7 +417,7 @@ function renderMonitoring(monitoring) {
   if ($("environment").value) params.set("environment", $("environment").value);
   var monitoringResponse = await fetch('/admin/monitoring?' + params.toString(), { headers: { authorization: 'Bearer ' + token } });
   var monitoring = await monitoringResponse.json();
-  if (monitoringResponse.ok) renderMonitoring(monitoring);
+  if (monitoringResponse.ok) renderMonitoring(monitoring); else renderMonitoringError(monitoringResponse.status, monitoring);
   var response = await fetch('/admin/summary?' + params.toString(), { headers: { authorization: 'Bearer ' + token } });
   var body = await response.json();
   $("raw").textContent = JSON.stringify(body, null, 2);

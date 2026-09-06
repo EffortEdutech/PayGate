@@ -241,11 +241,11 @@ export class PostgresPaymentRepository implements PaymentRepository {
       unprocessed: string;
     }>(
       `SELECT
-         count(*) FILTER (WHERE status = 'failed')::text AS failed,
-         count(*) FILTER (WHERE status = 'pending')::text AS pending,
-         count(*) FILTER (WHERE status = 'retryable')::text AS retryable,
-         count(*) FILTER (WHERE status = 'dead_letter')::text AS dead_letter,
-         count(*) FILTER (WHERE status <> 'processed')::text AS unprocessed
+         count(*) FILTER (WHERE status::text = 'failed')::text AS failed,
+         count(*) FILTER (WHERE status::text = 'pending')::text AS pending,
+         count(*) FILTER (WHERE status::text = 'retryable')::text AS retryable,
+         count(*) FILTER (WHERE status::text = 'dead_letter')::text AS dead_letter,
+         count(*) FILTER (WHERE status::text <> 'processed')::text AS unprocessed
        FROM webhook_inbox
        WHERE ($1::text IS NULL OR payload->>'appId' = $1) AND ($2::payment_environment IS NULL OR environment = $2)`,
       filters,
@@ -256,7 +256,7 @@ export class PostgresPaymentRepository implements PaymentRepository {
       no_provider_subscription: string;
     }>(
       `SELECT
-         count(*) FILTER (WHERE status = 'failed')::text AS failed,
+         count(*) FILTER (WHERE status::text = 'failed')::text AS failed,
          count(*) FILTER (WHERE status = 'no_provider_customer')::text AS no_provider_customer,
          count(*) FILTER (WHERE status = 'no_provider_subscription')::text AS no_provider_subscription
        FROM reconciliation_runs rr
