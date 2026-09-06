@@ -80,8 +80,9 @@ async function loadApplication(appDir: string): Promise<RegisteredApplication> {
   const plans = new Map<string, RegisteredPlan>();
   for (const rawPlan of plansDoc.plans) {
     const pricing = rawPlan.pricing as { unit_amount_minor: number; currency: string; interval?: "day" | "week" | "month" | "year" };
-    const providers = rawPlan.provider as Record<string, { lookup_key: string }>;
+    const providers = rawPlan.provider as Record<string, { lookup_key: string; live_lookup_key?: string }>;
     const planKey = String(rawPlan.plan_key);
+    const providerLiveLookupKeys = Object.fromEntries(Object.entries(providers).filter(([, value]) => value.live_lookup_key).map(([key, value]) => [key, value.live_lookup_key!]));
     plans.set(planKey, {
       planKey,
       name: String(rawPlan.name),
@@ -90,6 +91,7 @@ async function loadApplication(appDir: string): Promise<RegisteredApplication> {
       currency: pricing.currency.toUpperCase() as Currency,
       ...(pricing.interval ? { interval: pricing.interval } : {}),
       providerLookupKeys: Object.fromEntries(Object.entries(providers).map(([key, value]) => [key, value.lookup_key])),
+      ...(Object.keys(providerLiveLookupKeys).length > 0 ? { providerLiveLookupKeys } : {}),
       entitlements: rawPlan.entitlement_bundle as string[],
       status: rawPlan.status as "draft" | "active" | "archived",
     });

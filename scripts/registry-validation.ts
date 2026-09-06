@@ -114,13 +114,18 @@ export async function validateRegistry(rootDir: string): Promise<ValidationResul
       for (const key of bundle) {
         if (!entitlementKeys.has(key)) errors.push(`${appId}/plans.yaml: unknown entitlement ${key}`);
       }
-      const providers = (plan.provider as Record<string, { lookup_key?: string }> | undefined) ?? {};
+      const providers = (plan.provider as Record<string, { lookup_key?: string; live_lookup_key?: string }> | undefined) ?? {};
       for (const [provider, mapping] of Object.entries(providers)) {
         if (!mapping.lookup_key) continue;
-        const identity = `${provider}:${mapping.lookup_key}`;
-        const previous = globalLookupKeys.get(identity);
-        if (previous) errors.push(`${appId}/plans.yaml: lookup key ${identity} already used by ${previous}`);
-        else globalLookupKeys.set(identity, `${appId}/${planKey ?? "unknown"}`);
+        const testIdentity = `${provider}:test:${mapping.lookup_key}`;
+        const previousTest = globalLookupKeys.get(testIdentity);
+        if (previousTest) errors.push(`${appId}/plans.yaml: lookup key ${testIdentity} already used by ${previousTest}`);
+        else globalLookupKeys.set(testIdentity, `${appId}/${planKey ?? "unknown"}`);
+        const liveLookupKey = mapping.live_lookup_key ?? mapping.lookup_key;
+        const liveIdentity = `${provider}:live:${liveLookupKey}`;
+        const previousLive = globalLookupKeys.get(liveIdentity);
+        if (previousLive) errors.push(`${appId}/plans.yaml: lookup key ${liveIdentity} already used by ${previousLive}`);
+        else globalLookupKeys.set(liveIdentity, `${appId}/${planKey ?? "unknown"}`);
       }
       const pricing = (plan.pricing as { interval?: string } | undefined) ?? {};
       if (plan.type === "subscription" && !pricing.interval) errors.push(`${appId}/plans.yaml: subscription ${planKey} requires interval`);

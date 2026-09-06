@@ -12,7 +12,7 @@ const app = {
   providerAccount: "primary",
   origins: { test: new URL("https://test.example.com"), live: new URL("https://example.com") },
   returnContexts: { billing: { successPath: "/processing", cancelPath: "/pricing", portalPath: "/billing" } },
-  plans: new Map([["growth_monthly", { planKey: "growth_monthly", name: "Growth", mode: "subscription" as const, amountMinor: 4900, currency: "USD" as const, interval: "month" as const, providerLookupKeys: { stripe: "app_test_growth_monthly" }, entitlements: ["analytics.export"], status: "active" as const }]]),
+  plans: new Map([["growth_monthly", { planKey: "growth_monthly", name: "Growth", mode: "subscription" as const, amountMinor: 4900, currency: "USD" as const, interval: "month" as const, providerLookupKeys: { stripe: "app_test_growth_monthly" }, providerLiveLookupKeys: { stripe: "app_test_growth_monthly_live" }, entitlements: ["analytics.export"], status: "active" as const }]]),
 };
 
 class FakeProvider implements PaymentProviderAdapter {
@@ -71,7 +71,7 @@ test("checkout endpoint authenticates app and resolves registry-owned checkout f
     const response = await fetch(`http://127.0.0.1:${port}/v1/checkout/sessions`, {
       method: "POST",
       headers: { authorization: "Bearer secret", "content-type": "application/json", "idempotency-key": "idem_1" },
-      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", plan_key: "growth_monthly", return_context: "billing" }),
+      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", plan_key: "growth_monthly", return_context: "billing", provider_price_id: "price_attacker", provider_account: "attacker", amount_minor: 1, currency: "XXX" }),
     });
     assert.equal(response.status, 200);
     assert.equal(provider.lastCheckout?.providerLookupKey, "app_test_growth_monthly");
@@ -81,6 +81,15 @@ test("checkout endpoint authenticates app and resolves registry-owned checkout f
   }
 });
 
+
+test("live checkout resolution uses registry live lookup key only", async () => {
+  const provider = new FakeProvider();
+  const service = new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), provider);
+  await service.createCheckout({ requestId: "req_live_lookup", appId: "app_test", userRef: "user_1", planKey: "growth_monthly", returnContext: "billing", environment: "live" });
+  assert.equal(provider.lastCheckout?.providerLookupKey, "app_test_growth_monthly_live");
+  assert.equal(provider.lastCheckout?.providerAccount, "primary");
+  assert.deepEqual(provider.lastCheckout?.money, { amountMinor: 4900, currency: "USD" });
+});
 test("mutation endpoints require idempotency keys", async () => {
   const server = createPaymentHubHttpServer({ service: new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), new FakeProvider()), authenticator: new StaticTokenAppAuthenticator({ app_test: "secret" }) });
   server.listen(0);

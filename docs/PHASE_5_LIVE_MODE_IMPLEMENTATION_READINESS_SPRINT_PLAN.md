@@ -57,10 +57,19 @@ Goal: represent live Product/Price lookup safely without exposing provider autho
 
 Checklist:
 
-- [ ] Decide whether test and live lookup keys are identical or explicitly separated.
-- [ ] Validate live plan amount, currency, mode, and lookup key presence.
-- [ ] Ensure app requests still cannot submit price IDs or amounts.
-- [ ] Add registry validation for live readiness fields.
+- [x] Decide whether test and live lookup keys are identical or explicitly separated.
+- [x] Validate live plan amount, currency, mode, and lookup key presence.
+- [x] Ensure app requests still cannot submit price IDs or amounts.
+- [x] Add registry validation for live readiness fields.
+
+
+Implementation notes:
+
+- Added `docs/LIVE_REGISTRY_STRATEGY.md` as the operator rulebook for live Product/Price lookup keys.
+- Added optional `live_lookup_key` per provider plan mapping.
+- Live checkout resolution uses `live_lookup_key` when present and falls back to the existing `lookup_key` when live/test catalogs intentionally share lookup names.
+- Registry validation now checks test and effective-live lookup uniqueness separately.
+- Checkout tests prove caller-supplied provider price/account/amount fields do not override registry authority.
 
 ## Track 4 - Live Webhook Boundary
 

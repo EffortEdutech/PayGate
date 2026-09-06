@@ -33,7 +33,7 @@ export class PaymentHubService {
     const app = this.registry.application(input.appId);
     const plan = this.registry.activePlan(input.appId, input.planKey);
     const urls = this.registry.returnUrls(input.appId, input.environment, input.returnContext);
-    const providerLookupKey = plan.providerLookupKeys[`${app.providerId}:${input.environment}`] ?? plan.providerLookupKeys[app.providerId];
+    const providerLookupKey = providerLookupKeyFor(plan, app.providerId, input.environment);
     if (!providerLookupKey) throw new PaymentHubServiceError("PROVIDER_LOOKUP_KEY_NOT_CONFIGURED", "Plan has no provider lookup key for this environment");
     const result = await this.provider.createCheckout({
       ...input,
@@ -189,6 +189,10 @@ export class PaymentHubService {
   }
 }
 
+function providerLookupKeyFor(plan: { readonly providerLookupKeys: Readonly<Record<string, string>>; readonly providerLiveLookupKeys?: Readonly<Record<string, string>> }, providerId: string, environment: Environment): string | undefined {
+  if (environment === "live") return plan.providerLiveLookupKeys?.[providerId] ?? plan.providerLookupKeys[providerId];
+  return plan.providerLookupKeys[providerId];
+}
 export class PaymentHubServiceError extends Error {
   constructor(readonly code: "PROVIDER_LOOKUP_KEY_NOT_CONFIGURED" | "PROVIDER_CUSTOMER_NOT_FOUND", message: string) {
     super(message);

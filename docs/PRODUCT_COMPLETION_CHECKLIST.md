@@ -73,7 +73,7 @@ Status: planned, not started.
 - [x] Operator approves Phase 5 start.
 - [x] Live adapter boundary implemented.
 - [x] Live provider account config model implemented.
-- [ ] Live registry strategy implemented.
+- [x] Live registry strategy implemented.
 - [ ] Live webhook boundary implemented.
 - [ ] Refund policy/event mapping implemented.
 - [ ] Live operator diagnostics implemented.

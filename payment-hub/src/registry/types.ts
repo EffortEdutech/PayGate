@@ -8,6 +8,7 @@ export interface RegisteredPlan {
   readonly currency: Currency;
   readonly interval?: "day" | "week" | "month" | "year";
   readonly providerLookupKeys: Readonly<Record<string, string>>;
+  readonly providerLiveLookupKeys?: Readonly<Record<string, string>>;
   readonly entitlements: readonly string[];
   readonly status: "draft" | "active" | "archived";
 }
