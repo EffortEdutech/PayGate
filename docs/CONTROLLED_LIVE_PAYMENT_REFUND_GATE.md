@@ -1,8 +1,10 @@
 # Controlled Live Stripe Payment and Refund Gate
 
-Status: planning gate defined; live execution is not authorized yet.
+Status: documentation prepared; live execution is not authorized yet.
 
 This runbook defines the one-time controlled live Stripe payment and refund test that will be used when the operator explicitly approves live-mode testing. It does not authorize live credentials, live checkout creation, live webhook processing, or live refunds by itself.
+
+Use `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md` for the approval record and `docs/PHASE_6_LIVE_PILOT_EVIDENCE_LOG_TEMPLATE.md` for evidence capture. Completed approval and evidence records must remain outside source control.
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # Phase 5 Freeze Note - Live-Mode Implementation Readiness
 
-Status: prepared for operator acceptance on 2026-09-06.
+Status: accepted by operator on 2026-09-07.
 
 ## Scope
 
@@ -42,4 +42,6 @@ Phase 6 is not approved by this freeze note. Phase 6 requires a separate, explic
 
 ## Operator Acceptance
 
-Pending operator acceptance.
+Accepted by operator on 2026-09-07.
+
+Acceptance note: "I accept phase 5 freeze. Lets prepare Phase 6 live pilot documentation first."

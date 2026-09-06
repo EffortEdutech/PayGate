@@ -67,7 +67,7 @@ Parent product plan: `docs/PRODUCT_PLAN.md`.
 
 ## Phase 5 - Live-Mode Implementation Readiness
 
-Status: implementation readiness complete; freeze pending operator acceptance.
+Status: frozen and accepted by operator on 2026-09-07.
 
 - [x] Phase 5 sprint plan documented.
 - [x] Operator approves Phase 5 start.
@@ -82,7 +82,7 @@ Status: implementation readiness complete; freeze pending operator acceptance.
 
 ## Phase 6 - Controlled Live Pilot
 
-Status: planned, not authorized.
+Status: documentation preparation in progress; live execution not authorized.
 
 - [x] Phase 6 sprint plan documented.
 - [x] Controlled live payment/refund gate documented.
