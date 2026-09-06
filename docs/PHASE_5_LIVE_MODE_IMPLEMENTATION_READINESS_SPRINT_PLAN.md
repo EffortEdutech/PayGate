@@ -142,11 +142,19 @@ Goal: prepare a go/no-go decision for the controlled live pilot.
 
 Checklist:
 
-- [ ] `npm run check` passes.
-- [ ] Phase 5 implementation evidence is recorded.
-- [ ] Live-mode readiness checklist is updated.
-- [ ] Controlled live payment/refund gate is reviewed.
-- [ ] Operator approval is still required before Phase 6 execution.
+- [x] `npm run check` passes.
+- [x] Phase 5 implementation evidence is recorded.
+- [x] Live-mode readiness checklist is updated.
+- [x] Controlled live payment/refund gate is reviewed.
+- [x] Operator approval is still required before Phase 6 execution.
+
+
+Implementation notes:
+
+- Added `docs/PHASE_6_ENTRY_GATE_PACKET.md` as the go/no-go evidence packet for the controlled live pilot.
+- Added `PHASE_5_FREEZE.md` with operator acceptance pending.
+- Confirmed `npm run check` passes before marking the entry gate prepared.
+- Confirmed Phase 6 still requires explicit operator approval outside source control before any live execution.
 
 ## Stop Conditions
 
@@ -171,8 +179,8 @@ Stop and update the product plan before proceeding if Phase 5 requires any of th
 
 Phase 5 is complete only when:
 
-- [ ] live-mode config and adapter boundaries are implemented and tested;
-- [ ] refund policy is documented and tested at event/projection level;
-- [ ] admin/diagnostics show safe live readiness state;
-- [ ] full test suite passes;
-- [ ] Phase 6 controlled live pilot remains separately approval-gated.
+- [x] live-mode config and adapter boundaries are implemented and tested;
+- [x] refund policy is documented and tested at event/projection level;
+- [x] admin/diagnostics show safe live readiness state;
+- [x] full test suite passes;
+- [x] Phase 6 controlled live pilot remains separately approval-gated.
