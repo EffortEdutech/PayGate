@@ -61,6 +61,8 @@ Goal: create and complete exactly one approved live checkout.
 
 Checklist:
 
+- [x] Enable live checkout adapter path for approved Phase 6 pilot.
+- [ ] Deploy live checkout adapter path to PayGate.
 - [ ] Create checkout from the production app for the approved user.
 - [ ] Confirm Stripe checkout shows the approved company/account branding.
 - [ ] Confirm amount and currency match approval exactly.

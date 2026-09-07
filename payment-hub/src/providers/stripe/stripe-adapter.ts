@@ -141,28 +141,55 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
 }
 
 
-export class StripeLiveWebhookAdapter implements PaymentProviderAdapter {
+export class StripeLiveCheckoutAdapter implements PaymentProviderAdapter {
   readonly providerId = "stripe";
   readonly #stripe: Stripe;
   readonly #webhookSecret: string;
 
   constructor(config: StripeLiveAdapterConfig) {
-    assertStripeKeyMode(config.secretKey, "live", "Live Stripe webhook adapter");
+    assertStripeKeyMode(config.secretKey, "live", "Live Stripe checkout adapter");
     this.#webhookSecret = config.webhookSecret;
     this.#stripe = new Stripe(config.secretKey, { apiVersion: config.apiVersion as Stripe.LatestApiVersion, typescript: true });
   }
 
   capabilities(): ProviderCapabilities { return new StripeAdapterSkeleton().capabilities(); }
-  async createCheckout(_command: ResolvedCheckoutCommand): Promise<CheckoutResult> { throw new StripeAdapterNotConfiguredError(); }
+
+  async createCheckout(command: ResolvedCheckoutCommand): Promise<CheckoutResult> {
+    if (command.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe checkout adapter accepts only live checkout commands");
+    try {
+      const prices = await this.#stripe.prices.list({ lookup_keys: [command.providerLookupKey], active: true, limit: 1 });
+      const price = prices.data[0];
+      if (!price) throw new StripeAdapterRuntimeError("PROVIDER_PRICE_NOT_FOUND", "Stripe Price lookup key was not found");
+      const customer = await this.#stripe.customers.create({ metadata: customerMetadata(command) }, { idempotencyKey: `cph_customer:v2:${command.environment}:${command.providerAccount}:${command.appId}:${command.userRef}` });
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
+        mode: command.mode,
+        customer: customer.id,
+        line_items: [{ price: price.id, quantity: 1 }],
+        success_url: command.successUrl.href,
+        cancel_url: command.cancelUrl.href,
+        client_reference_id: `${command.appId}:${command.userRef}`,
+        metadata: minimalMetadata(command),
+      };
+      if (command.mode === "subscription") sessionParams.subscription_data = { metadata: minimalMetadata(command) };
+      const session = await this.#stripe.checkout.sessions.create(sessionParams, { idempotencyKey: `cph_checkout:${command.requestId}` });
+      if (!session.url) throw new StripeAdapterRuntimeError("PROVIDER_SESSION_URL_MISSING", "Stripe did not return a checkout URL");
+      return { checkoutSessionId: session.id, redirectUrl: new URL(session.url), status: "open", expiresAt: new Date((session.expires_at ?? Math.floor(Date.now() / 1000) + 1800) * 1000), providerCustomerRef: customer.id };
+    } catch (error) {
+      throw translateStripeError(error);
+    }
+  }
+
   async createPortalSession(_command: ResolvedPortalCommand): Promise<PortalResult> { throw new StripeAdapterNotConfiguredError(); }
   async reconcileCustomer(_command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> { throw new StripeAdapterNotConfiguredError(); }
 
   async verifyWebhook(input: { readonly rawBody: Uint8Array; readonly signature: string; readonly account: string; readonly environment: Environment }): Promise<VerifiedProviderEvent> {
-    if (input.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe webhook adapter accepts only live webhook events");
+    if (input.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe checkout adapter accepts only live webhook events");
     const event = this.#stripe.webhooks.constructEvent(Buffer.from(input.rawBody), input.signature, this.#webhookSecret);
     return normalizeStripeEvent(event, { providerAccount: input.account, environment: input.environment });
   }
 }
+
+export class StripeLiveWebhookAdapter extends StripeLiveCheckoutAdapter {}
 function assertStripeKeyMode(secretKey: string, expected: "test" | "live", label: string): void {
   const prefix = expected === "test" ? "sk_test_" : "sk_live_";
   if (!secretKey.startsWith(prefix)) throw new Error(`${label} requires an ${expected === "test" ? "sandbox" : "live"} secret key`);

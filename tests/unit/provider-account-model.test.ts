@@ -4,7 +4,7 @@ import type { CheckoutResult, PaymentProviderAdapter, PortalResult, ProviderCapa
 import { envNameForProviderAccount, liveEnvNameForProviderAccount, loadHubConfig } from "../../payment-hub/src/config.js";
 import { InMemoryPaymentRepository, PaymentHubService, Registry } from "../../payment-hub/src/index.js";
 import { ProviderAccountNotConfiguredError, ProviderAccountRouter } from "../../payment-hub/src/providers/provider-account-router.js";
-import { StripeAdapterSkeleton, StripeLiveAdapterNotImplemented, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
+import { StripeAdapterSkeleton, StripeLiveCheckoutAdapter, StripeSandboxAdapter } from "../../payment-hub/src/providers/stripe/stripe-adapter.js";
 
 
 const accountAApp = {
@@ -161,15 +161,19 @@ test("current Stripe adapter blocks live credentials until an explicit live-mode
     /sandbox secret key/,
   );
 });
-test("live Stripe boundary accepts only live keys but exposes no runtime operations yet", async () => {
-  const adapter = new StripeLiveAdapterNotImplemented({ environment: "live", secretKey: "sk_live_boundary_only", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" });
+test("live Stripe boundary accepts only live keys and enables checkout only", async () => {
+  const adapter = new StripeLiveCheckoutAdapter({ environment: "live", secretKey: "sk_live_boundary_only", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" });
   assert.equal(adapter.providerId, "stripe");
   assert.throws(
-    () => new StripeLiveAdapterNotImplemented({ environment: "live", secretKey: "sk_test_not_live", webhookSecret: "whsec_test_placeholder", apiVersion: "2026-07-29.dahlia" }),
+    () => new StripeLiveCheckoutAdapter({ environment: "live", secretKey: "sk_test_not_live", webhookSecret: "whsec_test_placeholder", apiVersion: "2026-07-29.dahlia" }),
     /live secret key/,
   );
   await assert.rejects(
-    () => adapter.createCheckout({} as never),
+    () => adapter.createPortalSession({} as never),
+    /Stripe runtime operations are not configured/,
+  );
+  await assert.rejects(
+    () => adapter.reconcileCustomer({} as never),
     /Stripe runtime operations are not configured/,
   );
 });

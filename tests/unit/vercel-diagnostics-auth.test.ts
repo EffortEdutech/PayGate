@@ -111,7 +111,9 @@ test("Vercel runtime diagnostics allow valid operator token without returning se
     assert.match(serialized, /live_webhook_ready_accounts/);
     assert.match(serialized, /phase6_approval_required/);
     assert.match(serialized, /nhl_global_solution/);
-    assert.match(serialized, /"live_checkout_enabled":false/);
+    assert.match(serialized, /"live_checkout_enabled":true/);
+    assert.match(serialized, /"live_portal_enabled":false/);
+    assert.match(serialized, /"live_reconciliation_enabled":false/);
     assert.doesNotMatch(serialized, /sk_test_secretvalue/);
     assert.doesNotMatch(serialized, /whsec_secretvalue/);
     assert.doesNotMatch(serialized, /sk_live_secretvalue/);
