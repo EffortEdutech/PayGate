@@ -6,6 +6,7 @@ Related gate: `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
 Related approval template: `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md`.
 Working approval draft: `docs/PHASE_6_LIVE_PILOT_APPROVAL_DRAFT.md`.
 Related evidence log: `docs/PHASE_6_LIVE_PILOT_EVIDENCE_LOG_TEMPLATE.md`.
+Preflight evidence: `docs/PHASE_6_PREFLIGHT_VERIFICATION.md`.
 
 ## Objective
 
