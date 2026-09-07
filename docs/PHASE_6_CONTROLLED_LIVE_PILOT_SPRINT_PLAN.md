@@ -4,6 +4,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related gate: `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
 Related approval template: `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md`.
+Working approval draft: `docs/PHASE_6_LIVE_PILOT_APPROVAL_DRAFT.md`.
 Related evidence log: `docs/PHASE_6_LIVE_PILOT_EVIDENCE_LOG_TEMPLATE.md`.
 
 ## Objective
@@ -26,6 +27,7 @@ Checklist:
 
 - [x] Create approval record template.
 - [x] Create evidence log template.
+- [x] Create pre-filled approval draft with known PayGate/AIntern values.
 - [ ] Complete the approval record outside source control before live execution.
 - [ ] Confirm app name and production URL.
 - [ ] Confirm company/legal Stripe account owner.
