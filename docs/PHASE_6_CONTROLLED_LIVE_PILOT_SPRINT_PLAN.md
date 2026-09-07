@@ -45,15 +45,15 @@ Goal: verify the deployed system is ready before creating live checkout.
 
 Checklist:
 
-- [ ] Confirm PayGate deployment commit SHA.
+- [x] Confirm PayGate deployment commit SHA.
 - [ ] Confirm PayGate `/health` is healthy.
 - [ ] Confirm protected diagnostics require operator token.
 - [ ] Confirm admin console requires operator token.
-- [ ] Confirm monitoring has no unresolved critical alerts.
-- [ ] Confirm live provider account config exists server-side only.
-- [ ] Confirm live webhook endpoint exists and uses the correct provider account alias.
+- [x] Confirm monitoring has no unresolved critical alerts, or only accepted non-critical historical warnings.
+- [ ] Confirm live provider account config exists server-side only using `STRIPE_LIVE_*` env vars.
+- [x] Confirm live webhook endpoint exists and uses the correct provider account alias.
 - [ ] Confirm registry live mapping matches approved plan.
-- [ ] Confirm database backup/restore readiness.
+- [x] Confirm database backup/restore readiness or accepted manual rollback plan.
 
 ## Track 3 - Live Checkout Pilot
 

@@ -1,7 +1,7 @@
 # Phase 6 Track 2 - Preflight Verification
 
-Status: partially verified; blocked from live execution until remaining operator-side checks are completed.
-Date: 2026-09-07.
+Status: operator evidence received; blocked from live execution until live-only Stripe Vercel environment variables are configured and deployment is revalidated.
+Date: 2026-09-07; updated with operator evidence on 2026-09-08.
 
 This document records the Phase 6 preflight evidence before any live checkout, real payment, live refund, or live reconciliation is attempted.
 
@@ -41,23 +41,37 @@ This document records the Phase 6 preflight evidence before any live checkout, r
 | Admin anonymous protection | Pass | `https://pay-gate-beta.vercel.app/admin/summary` returned HTTP 401 without token. |
 | Monitoring anonymous protection | Pass | `https://pay-gate-beta.vercel.app/admin/monitoring?app_id=aintern` returned HTTP 401 without token. |
 
+
+## Operator Evidence Received on 2026-09-08
+
+| Check | Result | Evidence / note |
+| --- | --- | --- |
+| Vercel production deployment commit | Pass | Production deployments showed `7339a33` and `166ff94`; both are at or newer than the approved baseline `166ff94`. |
+| Protected diagnostics with valid token | Pass | `/diagnostics/ready` returned `ready_diagnostics_ok`. |
+| Admin summary with valid token | Pass | Admin summary showed `aintern` mapped to provider account `nhl_global_solution`. |
+| Monitoring with valid token | Conditional pass | Monitoring returned `attention_required` with warning alerts for historical reconciliation runs: `RECONCILIATION_NO_PROVIDER_CUSTOMER` and `RECONCILIATION_NO_PROVIDER_SUBSCRIPTION`. No critical alert was reported in the pasted evidence. |
+| Stripe live Product/Price | Pass by operator confirmation | Operator confirmed live `aintern_pass_3m` price at MYR 39.00. |
+| Stripe live webhook endpoint | Pass by operator confirmation | Operator confirmed the live webhook endpoint exists. |
+| Database backup/rollback | Conditional pass | Manual rollback plan accepted for this single-user low-value pilot. |
+| Evidence folder | Pass | `C:\Users\user\Documents\PayGate Phase 6 Evidence` created and `Test-Path` returned `True`. |
+| Vercel live Stripe environment variables | Fail / blocker | Operator pasted sandbox-style names (`STRIPE_ACCOUNTS`, `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`, `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`). Phase 6 live isolation requires `STRIPE_LIVE_ACCOUNTS`, `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`, and `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`. |
 ## Checks Still Required Before Live Execution
 
 These checks require operator access to Vercel, Stripe, or the operator token. They must be completed before any live checkout is created.
 
 | Check | Required action | Where to verify |
 | --- | --- | --- |
-| Deployed commit SHA matches approved commit | Confirm Vercel production deployment is running commit `166ff94` or redeploy this commit and record the resulting SHA. | Vercel PayGate project -> Deployments -> current Production deployment -> Source commit. |
-| Protected diagnostics with valid token | Call `/diagnostics/ready` using the operator token and confirm `status=ready`. | PowerShell with `Authorization: Bearer <OPERATOR_TOKEN>`, or browser/admin tool if supported. |
-| Admin summary with valid token | Open `/admin/summary` or admin console using operator token and confirm app/provider/live readiness without secrets. | PayGate admin console or API with operator token. |
-| Monitoring with valid token | Confirm no critical alerts before payment. Warnings must be understood and accepted. | `/admin/monitoring?app_id=aintern` with operator token. |
-| Live provider env vars exist | Confirm live-only Vercel env vars are configured; do not reveal values. | Vercel Project Settings -> Environment Variables. |
-| Live Stripe Product and Price exist | Confirm live Price lookup key `aintern_pass_3m` exists and amount is MYR 39.00. | Stripe Dashboard in live mode -> Product catalog -> AIntern 3-Month Pass -> Price. |
-| Live webhook endpoint exists | Confirm endpoint URL is `https://pay-gate-beta.vercel.app/v1/webhooks/stripe/nhl_global_solution/live`. | Stripe Dashboard in live mode -> Developers -> Webhooks. |
-| Live webhook secret stored server-side | Confirm the live `whsec_...` is stored only in Vercel env var `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`. | Vercel env vars; do not paste value into docs/chat. |
-| Live secret key stored server-side | Confirm live secret key is stored only in `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`. | Vercel env vars; do not paste value into docs/chat. |
-| Database backup/restore readiness | Confirm Supabase backup/restore point or manual rollback plan. | Supabase PayGate project -> Database backups/settings. |
-| Evidence folder exists | Create `C:\Users\user\Documents\PayGate Phase 6 Evidence`. | Local Windows Explorer or PowerShell. |
+| Deployed commit SHA matches approved commit | Complete. Current evidence shows production deployment at approved baseline or newer. | Vercel PayGate project -> Deployments -> current Production deployment -> Source commit. |
+| Protected diagnostics with valid token | Complete. Operator evidence returned `ready_diagnostics_ok`. | PowerShell with `Authorization: Bearer <OPERATOR_TOKEN>`, or browser/admin tool if supported. |
+| Admin summary with valid token | Complete. Operator evidence showed `aintern` and `nhl_global_solution`. | PayGate admin console or API with operator token. |
+| Monitoring with valid token | Conditional complete. No critical alert reported; historical reconciliation warnings must be accepted or cleared before live checkout. | `/admin/monitoring?app_id=aintern` with operator token. |
+| Live provider env vars exist | Blocked. Add the live-only env vars listed below and redeploy. | Vercel Project Settings -> Environment Variables. |
+| Live Stripe Product and Price exist | Complete by operator confirmation: `aintern_pass_3m`, MYR 39.00. | Stripe Dashboard in live mode -> Product catalog -> AIntern 3-Month Pass -> Price. |
+| Live webhook endpoint exists | Complete by operator confirmation. Must be rechecked after live webhook env var is added. | Stripe Dashboard in live mode -> Developers -> Webhooks. |
+| Live webhook secret stored server-side | Blocked until live-only Vercel env var is added. | Vercel env vars; do not paste value into docs/chat. |
+| Live secret key stored server-side | Blocked until live-only Vercel env var is added. | Vercel env vars; do not paste value into docs/chat. |
+| Database backup/restore readiness | Conditional complete. Manual rollback accepted for single-user pilot. | Supabase PayGate project -> Database backups/settings. |
+| Evidence folder exists | Complete. Folder created and verified. | Local Windows Explorer or PowerShell. |
 
 ## PowerShell Commands for Operator-Side Preflight
 
