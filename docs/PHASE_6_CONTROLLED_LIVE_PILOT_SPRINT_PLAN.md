@@ -1,6 +1,6 @@
 # Phase 6 - Controlled Live Pilot Sprint Plan
 
-Status: documentation preparation in progress; not authorized for live execution.
+Status: approved to enter Track 1 documentation/preflight; live execution not authorized until the completed approval record exists outside source control.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related gate: `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
 Related approval template: `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md`.
@@ -16,7 +16,7 @@ Phase 6 is the first phase where real money may be used, but only after explicit
 
 Phase 6 does not start automatically when Phase 5 is complete. It starts only after the operator approves a specific live test window with app, provider account, amount, user, payment method, refund policy, evidence location, and rollback/support owner.
 
-As of 2026-09-07, Phase 5 is accepted and frozen. The next permitted work is documentation and preflight planning only. Live execution remains locked until the approval packet is completed outside source control.
+As of 2026-09-07, Phase 5 is accepted and frozen. The operator has approved Phase 6 entry for documentation and controlled-pilot preparation. Live execution remains locked until the approval packet is completed outside source control with exact app, provider account, plan, amount, user, refund scope, support owner, evidence location, and time window.
 
 ## Track 1 - Live Pilot Approval Packet
 
@@ -26,7 +26,7 @@ Checklist:
 
 - [x] Create approval record template.
 - [x] Create evidence log template.
-- [ ] Complete the approval record outside source control.
+- [ ] Complete the approval record outside source control before live execution.
 - [ ] Confirm app name and production URL.
 - [ ] Confirm company/legal Stripe account owner.
 - [ ] Confirm provider account alias and Stripe account ID.

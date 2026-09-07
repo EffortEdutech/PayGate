@@ -82,7 +82,7 @@ Status: frozen and accepted by operator on 2026-09-07.
 
 ## Phase 6 - Controlled Live Pilot
 
-Status: documentation preparation in progress; live execution not authorized.
+Status: approved to enter Track 1 documentation/preflight; live execution not authorized until detailed approval record is complete.
 
 - [x] Phase 6 sprint plan documented.
 - [x] Controlled live payment/refund gate documented.
