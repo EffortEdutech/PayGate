@@ -14,7 +14,7 @@ This draft pre-fills the information PayGate already knows. Do not add secret ke
 | App ID | `aintern` | PayGate registry: `registry/apps/aintern/app.yaml`. |
 | App production URL | `https://aintern.effortedutech.com` | PayGate registry live URL. Confirm the domain is deployed and points to the real production app before testing. |
 | Company / Stripe account owner | `NHL Global Solution` / account login previously identified as `nhl.global.solution@gmail.com` | Stripe Dashboard account/profile/business settings. Confirm legal entity before live payment. |
-| Stripe account ID | `TODO: acct_...` | Stripe Dashboard URL or Account settings. For example dashboard URLs contain `acct_...`; confirm from the live account, not test-only assumptions. |
+| Stripe account ID | `acct_1U4N6cRgCMXjT1y6` | Provided by operator; confirm in Stripe live dashboard before payment. |
 | Provider account alias | `nhl_global_solution` | PayGate registry provider account alias and Vercel env var naming convention. |
 | Environment | `live` | Fixed for Phase 6 controlled live pilot. |
 | Plan key option 1 | `pass_3m` | PayGate registry: AIntern 3-Month Pass. |
@@ -25,22 +25,22 @@ This draft pre-fills the information PayGate already knows. Do not add secret ke
 | Plan key option 2 amount | `MYR 59.00` | PayGate registry: `5900` minor units. Confirm against live Stripe Price before approval. |
 | Plan key option 2 checkout mode | `payment` / one-time | PayGate registry plan type: `one_time`. |
 | Plan key option 2 Stripe lookup key | `aintern_pass_6m` | PayGate registry. Confirm a matching live Stripe Price lookup key exists. |
-| Expected user_ref | `TODO: Supabase user UUID` | AIntern Supabase Auth user ID for the operator-controlled live test user. |
-| Expected customer email | `TODO: test customer email` | Use the email of the operator-controlled AIntern account that will make the real payment. |
-| Approved payment method owner | `TODO: card/account owner name` | The person/company card owner approved for the live test. Do not write card numbers here. |
-| Refund test approved | `TODO: yes/no` | Operator decision. If yes, choose full or partial before payment. |
-| Refund type | `TODO: full / partial / none` | Operator decision. Use `none` if we only test payment. |
-| Refund amount if partial | `TODO or N/A` | If partial refund, set exact amount and currency before payment. |
-| Support / rollback owner | `TODO: name/contact` | Person responsible if live state needs manual correction or customer support. |
-| Evidence storage location | `TODO: outside source control` | Use a private folder/doc outside GitHub, e.g. secure Google Drive, internal Notion, or local private evidence folder. |
-| Live test time window | `TODO: date/time range` | Choose a narrow window, e.g. `2026-09-07 21:00-22:00 MYT`. |
+| Expected user_ref | `b292ecfa-46c2-4d6c-bfef-8c32cd8c7bf7` | Provided from AIntern Supabase Auth user record. |
+| Expected customer email | `effort.edutech@gmail.com` | Provided from AIntern Supabase Auth user record. |
+| Approved payment method owner | `NHL Global Solution operator / company card owner` | Provided by operator. Do not write card numbers here. |
+| Refund test approved | `yes` | Operator selected full refund for the controlled pilot. |
+| Refund type | `full` | Operator selected full refund for the controlled pilot. |
+| Refund amount if partial | `N/A` | Full refund selected. |
+| Support / rollback owner | `NHL Global Solution operator` | Provided by operator. |
+| Evidence storage location | `C:\Users\user\Documents\PayGate Phase 6 Evidence` | Provided by operator; store completed evidence outside Git/source control. |
+| Live test time window | `2026-09-07 21:00-22:00 MYT` | Provided by operator. |
 
 ## Exact Approval Sentence to Complete Outside Source Control
 
 Copy this to the external approval record and fill the TODOs before execution:
 
 ```text
-I approve PayGate Phase 6 to run one controlled live Stripe checkout for aintern, provider account nhl_global_solution, plan TODO: pass_3m/pass_6m, amount TODO: MYR 39.00/MYR 59.00, user TODO: Supabase user UUID, during TODO: live test time window. I understand this uses real money. Refund scope is TODO: NONE/FULL/PARTIAL AMOUNT.
+I approve PayGate Phase 6 to run one controlled live Stripe checkout for aintern, provider account nhl_global_solution, plan pass_3m, amount MYR 39.00, user b292ecfa-46c2-4d6c-bfef-8c32cd8c7bf7, during 2026-09-07 21:00-22:00 MYT. I understand this uses real money. Refund scope is FULL.
 ```
 
 ## Where to Find the Missing Details
