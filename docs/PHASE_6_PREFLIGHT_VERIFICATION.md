@@ -1,6 +1,6 @@
 # Phase 6 Track 2 - Preflight Verification
 
-Status: operator evidence received; blocked from live execution until live-only Stripe Vercel environment variables are configured and deployment is revalidated.
+Status: complete; preflight passed for the approved controlled live pilot.
 Date: 2026-09-07; updated with operator evidence on 2026-09-08.
 
 This document records the Phase 6 preflight evidence before any live checkout, real payment, live refund, or live reconciliation is attempted.
@@ -54,7 +54,7 @@ This document records the Phase 6 preflight evidence before any live checkout, r
 | Stripe live webhook endpoint | Pass by operator confirmation | Operator confirmed the live webhook endpoint exists. |
 | Database backup/rollback | Conditional pass | Manual rollback plan accepted for this single-user low-value pilot. |
 | Evidence folder | Pass | `C:\Users\user\Documents\PayGate Phase 6 Evidence` created and `Test-Path` returned `True`. |
-| Vercel live Stripe environment variables | Fail / blocker | Operator pasted sandbox-style names (`STRIPE_ACCOUNTS`, `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`, `STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`). Phase 6 live isolation requires `STRIPE_LIVE_ACCOUNTS`, `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`, and `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET`. |
+| Vercel live Stripe environment variables | Pass | `/diagnostics/runtime` showed `STRIPE_LIVE_ACCOUNTS`, `STRIPE_LIVE_ACCOUNT_ALIAS:nhl_global_solution`, `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY`, and `STRIPE_LIVE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET` as `ok=True` without exposing secret values. |
 ## Checks Still Required Before Live Execution
 
 These checks require operator access to Vercel, Stripe, or the operator token. They must be completed before any live checkout is created.
@@ -65,11 +65,11 @@ These checks require operator access to Vercel, Stripe, or the operator token. T
 | Protected diagnostics with valid token | Complete. Operator evidence returned `ready_diagnostics_ok`. | PowerShell with `Authorization: Bearer <OPERATOR_TOKEN>`, or browser/admin tool if supported. |
 | Admin summary with valid token | Complete. Operator evidence showed `aintern` and `nhl_global_solution`. | PayGate admin console or API with operator token. |
 | Monitoring with valid token | Conditional complete. No critical alert reported; historical reconciliation warnings must be accepted or cleared before live checkout. | `/admin/monitoring?app_id=aintern` with operator token. |
-| Live provider env vars exist | Blocked. Add the live-only env vars listed below and redeploy. | Vercel Project Settings -> Environment Variables. |
+| Live provider env vars exist | Complete. Live-only env vars are present and diagnostic checks pass. | Vercel Project Settings -> Environment Variables. |
 | Live Stripe Product and Price exist | Complete by operator confirmation: `aintern_pass_3m`, MYR 39.00. | Stripe Dashboard in live mode -> Product catalog -> AIntern 3-Month Pass -> Price. |
 | Live webhook endpoint exists | Complete by operator confirmation. Must be rechecked after live webhook env var is added. | Stripe Dashboard in live mode -> Developers -> Webhooks. |
-| Live webhook secret stored server-side | Blocked until live-only Vercel env var is added. | Vercel env vars; do not paste value into docs/chat. |
-| Live secret key stored server-side | Blocked until live-only Vercel env var is added. | Vercel env vars; do not paste value into docs/chat. |
+| Live webhook secret stored server-side | Complete. Diagnostic prefix check passed without exposing the value. | Vercel env vars; do not paste value into docs/chat. |
+| Live secret key stored server-side | Complete. Diagnostic prefix check passed without exposing the value. | Vercel env vars; do not paste value into docs/chat. |
 | Database backup/restore readiness | Conditional complete. Manual rollback accepted for single-user pilot. | Supabase PayGate project -> Database backups/settings. |
 | Evidence folder exists | Complete. Folder created and verified. | Local Windows Explorer or PowerShell. |
 
@@ -100,4 +100,4 @@ Reason: Codex verified public/protection/registry checks, but operator-side chec
 
 ## Stop Rule
 
-Do not proceed to Phase 6 Track 3 live checkout until every required operator-side preflight check above is marked complete.
+Proceed to Phase 6 Track 3 only within the approved scope: one live checkout for AIntern `pass_3m`, MYR 39.00, user `b292ecfa-46c2-4d6c-bfef-8c32cd8c7bf7`, full refund scope, during the approved window. Stop if any detail differs.
