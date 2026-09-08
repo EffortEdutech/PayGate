@@ -1,8 +1,9 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1 in progress.
+Status: started; Track 1F UX blueprint awaiting operator acceptance.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
+Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
 
 ## Objective
 
@@ -82,10 +83,28 @@ Track 1 checklist:
 - [x] Preserve provider account isolation visibility.
 - [x] Define no-secret display rule.
 - [x] Define refund/live-operation approval guardrail.
-- [ ] Build first console information architecture/wireframe.
-- [ ] Decide implementation path: extend current PayGate admin HTML or build richer frontend.
-- [ ] Add UI acceptance checklist before coding.
-- [ ] Create Track 1 closeout evidence.
+- [x] Build first console information architecture/wireframe.
+- [ ] Decide implementation path after Track 1F blueprint acceptance.
+- [x] Add UI acceptance checklist before coding.
+- [ ] Create Track 1 closeout evidence after blueprint acceptance.
+
+
+## Track 1F - Operator Console UX Blueprint
+
+Goal: separate Dashboard and Workspace into a proper operator app shell before further UI implementation.
+
+Checklist:
+
+- [x] Define sidebar navigation.
+- [x] Define login/logout placement.
+- [x] Define Dashboard as separate global health view.
+- [x] Define Apps Directory as app selection view.
+- [x] Define App Workspace as selected-app work area.
+- [x] Define Provider Accounts, Webhooks, Reconciliation, Settings, and Add App future views.
+- [x] Document screen responsibilities and non-authorized actions.
+- [x] Mark raw JSON as Support/Debug only.
+- [ ] Operator accepts blueprint.
+- [ ] Rebuild `/admin` according to accepted blueprint.
 
 ## Track 2 - App #2 Intake and Classification
 
