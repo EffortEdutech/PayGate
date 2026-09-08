@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { randomUUID, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 type RuntimeModule = typeof import("../payment-hub/src/runtime/runtime.js");
 type ServerModule = typeof import("../payment-hub/src/server/http-server.js");
@@ -42,6 +42,20 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   if (req.method === "GET" && (url.pathname === "/admin" || url.pathname === "/admin/")) {
     return writeHtml(res, 200, ADMIN_HTML);
+  }
+
+  if (req.method === "POST" && url.pathname === "/admin/session/login") {
+    return handleAdminSessionLogin(req, res, requestId);
+  }
+
+  if (req.method === "POST" && url.pathname === "/admin/session/logout") {
+    return handleAdminSessionLogout(res);
+  }
+
+  if (req.method === "GET" && url.pathname === "/admin/session") {
+    const authError = requireOperatorDiagnosticsAuth(req, requestId);
+    if (authError) return writeJson(res, authError.status, authError.body);
+    return writeJson(res, 200, { status: "authenticated", request_id: requestId });
   }
 
   if (req.method === "GET" && url.pathname === "/admin/monitoring") {
@@ -116,6 +130,104 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 }
 
+const ADMIN_SESSION_COOKIE = "paygate_admin_session";
+const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
+
+async function handleAdminSessionLogin(req: IncomingMessage, res: ServerResponse, requestId: string): Promise<void> {
+  const configuredToken = process.env.OPERATOR_DIAGNOSTICS_TOKEN?.trim();
+  if (!configuredToken) {
+    return writeJson(res, 503, {
+      error: {
+        code: "DIAGNOSTICS_AUTH_NOT_CONFIGURED",
+        message: "Operator login is protected, but OPERATOR_DIAGNOSTICS_TOKEN is not configured.",
+        requestId,
+      },
+    });
+  }
+
+  let body: { readonly token?: unknown } = {};
+  try {
+    body = JSON.parse(await readRequestBody(req)) as { readonly token?: unknown };
+  } catch {
+    return writeJson(res, 400, {
+      error: {
+        code: "INVALID_LOGIN_REQUEST",
+        message: "Operator login expects JSON with a token field.",
+        requestId,
+      },
+    });
+  }
+
+  const presentedToken = typeof body.token === "string" ? body.token.trim() : "";
+  if (!presentedToken || !constantTimeEqual(presentedToken, configuredToken)) {
+    return writeJson(res, 401, {
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Operator login failed.",
+        requestId,
+      },
+    });
+  }
+
+  const expiresAt = Math.floor(Date.now() / 1000) + ADMIN_SESSION_TTL_SECONDS;
+  const session = signAdminSession({ exp: expiresAt });
+  writeJson(res, 200, { status: "authenticated", expires_at: new Date(expiresAt * 1000).toISOString(), request_id: requestId }, [adminSessionCookie(session, ADMIN_SESSION_TTL_SECONDS)]);
+}
+
+function handleAdminSessionLogout(res: ServerResponse): void {
+  writeJson(res, 200, { status: "signed_out" }, [`${ADMIN_SESSION_COOKIE}=; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=0`]);
+}
+
+function readRequestBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk: string) => {
+      body += chunk;
+      if (body.length > 10_000) reject(new Error("Request body too large"));
+    });
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
+}
+
+function adminSessionCookie(session: string, maxAgeSeconds: number): string {
+  return `${ADMIN_SESSION_COOKIE}=${session}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
+}
+
+function signAdminSession(payload: { readonly exp: number }): string {
+  const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  const signature = createHmac("sha256", operatorSessionSecret()).update(encoded).digest("base64url");
+  return `${encoded}.${signature}`;
+}
+
+function verifyAdminSession(session: string | undefined): boolean {
+  if (!session) return false;
+  const [encoded, signature] = session.split(".", 2);
+  if (!encoded || !signature) return false;
+  const expected = createHmac("sha256", operatorSessionSecret()).update(encoded).digest("base64url");
+  if (!constantTimeEqual(signature, expected)) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as { readonly exp?: unknown };
+    return typeof payload.exp === "number" && payload.exp > Math.floor(Date.now() / 1000);
+  } catch {
+    return false;
+  }
+}
+
+function operatorSessionSecret(): string {
+  return process.env.OPERATOR_DIAGNOSTICS_TOKEN?.trim() || "paygate-session-not-configured";
+}
+
+function readCookie(req: IncomingMessage, name: string): string | undefined {
+  const cookieHeader = req.headers.cookie?.toString();
+  if (!cookieHeader) return undefined;
+  for (const part of cookieHeader.split(";")) {
+    const [rawKey, ...rawValue] = part.trim().split("=");
+    if (rawKey === name) return rawValue.join("=");
+  }
+  return undefined;
+}
 type DiagnosticsAuthError = {
   readonly status: 401 | 503;
   readonly body: {
@@ -144,13 +256,15 @@ function requireOperatorDiagnosticsAuth(req: IncomingMessage, requestId: string)
 
   const authorization = req.headers.authorization?.toString() ?? "";
   const [scheme, presentedToken] = authorization.split(/\s+/, 2);
-  if (scheme !== "Bearer" || !presentedToken || !constantTimeEqual(presentedToken, configuredToken)) {
+  const bearerOk = scheme === "Bearer" && Boolean(presentedToken) && constantTimeEqual(presentedToken, configuredToken);
+  const sessionOk = verifyAdminSession(readCookie(req, ADMIN_SESSION_COOKIE));
+  if (!bearerOk && !sessionOk) {
     return {
       status: 401,
       body: {
         error: {
           code: "UNAUTHORIZED",
-          message: "Operator diagnostics require a valid bearer token.",
+          message: "Operator diagnostics require a valid bearer token or admin session.",
           requestId,
         },
       },
@@ -399,7 +513,7 @@ function writeHtml(res: ServerResponse, status: number, body: string): void {
   });
   res.end(body);
 }
-function writeJson(res: ServerResponse, status: number, body: unknown): void {
+function writeJson(res: ServerResponse, status: number, body: unknown, cookies: string[] = []): void {
   res.writeHead(status, {
     "content-type": "application/json",
     "cache-control": "no-store",
@@ -407,6 +521,7 @@ function writeJson(res: ServerResponse, status: number, body: unknown): void {
     "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-headers": "authorization,content-type,idempotency-key,x-request-id,stripe-signature",
     "access-control-expose-headers": "x-request-id",
+  ...(cookies.length ? { "set-cookie": cookies } : {}),
   });
   res.end(body === undefined ? undefined : JSON.stringify(body));
 }
@@ -495,18 +610,18 @@ const ADMIN_HTML = `<!doctype html>
 
     <section>
       <div class="toolbar">
-        <label>Operator token<input id="token" type="password" placeholder="Paste operator diagnostics token" autocomplete="off" /></label>
+        <label>Operator login<input id="token" type="password" placeholder="Paste token once to sign in" autocomplete="off" /></label>
         <label>Search apps<input id="appSearch" placeholder="Search app name, ID, provider" /></label>
         <label>Environment<select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
-        <button id="refresh">Refresh</button>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><button id="refresh">Load Console</button><button id="logout" class="ghost" type="button">Logout</button></div>
       </div>
-      <p id="status" class="status-line">Not loaded. Token is held only in this browser tab memory.</p>
+      <p id="status" class="status-line">Not loaded. Sign in once; PayGate stores a secure HttpOnly admin session cookie.</p>
     </section>
 
     <section id="actionPanel" class="callout warn">
       <div>
         <div class="callout-title">Load PayGate status</div>
-        <p>Paste the operator token and click Refresh. Then choose an app from the app switcher.</p>
+        <p>Sign in and load the console. Then choose an app from the app switcher.</p>
       </div>
       <span class="badge warn">waiting</span>
     </section>
@@ -582,12 +697,34 @@ function currentParams() {
   if ($("environment").value) params.set("environment", $("environment").value);
   return params;
 }
-async function fetchJson(url, token) {
-  var response = await fetch(url, { headers: { authorization: 'Bearer ' + token } });
+async function fetchJson(url) {
+  var response = await fetch(url, { credentials: 'same-origin' });
   var body = await response.json().catch(function () { return {}; });
   return { ok: response.ok, status: response.status, body: body };
 }
-function collectProviderAccounts(apps) {
+async function loginIfTokenPresent() {
+  var token = $("token").value.trim();
+  if (!token) return;
+  var response = await fetch('/admin/session/login', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: token }) });
+  var body = await response.json().catch(function () { return {}; });
+  if (!response.ok) throw new Error(body && body.error && body.error.message || 'Operator login failed');
+  $("token").value = '';
+}
+async function logout() {
+  await fetch('/admin/session/logout', { method: 'POST', credentials: 'same-origin' });
+  state.summary = null;
+  state.monitoring = null;
+  state.selectedAppId = '';
+  state.scope = 'all';
+  $("status").textContent = 'Logged out.';
+  $("dashboard").innerHTML = '<div class="empty">No data loaded.</div>';
+  $("appDirectory").innerHTML = '<div class="empty">Sign in and load apps first.</div>';
+  $("appWorkspace").innerHTML = '<div class="empty">No app selected.</div>';
+  $("customers").innerHTML = '<div class="empty">No data loaded.</div>';
+  $("checkouts").innerHTML = '<div class="empty">No data loaded.</div>';
+  $("webhooks").innerHTML = '<div class="empty">No data loaded.</div>';
+  $("reconciliation").innerHTML = '<div class="empty">No data loaded.</div>';
+}function collectProviderAccounts(apps) {
   var set = {};
   (apps || []).forEach(function (app) { if (app.provider_account) set[(app.provider_id || 'provider') + ':' + app.provider_account] = true; });
   return Object.keys(set).sort();
@@ -698,12 +835,11 @@ function renderAll() {
   renderOnboarding();
 }
 async function refresh() {
-  var token = $("token").value.trim();
-  if (!token) { $("status").textContent = 'Operator token is required.'; return; }
+  await loginIfTokenPresent();
   var params = currentParams();
   $("status").textContent = 'Loading all apps...';
-  var monitoringResult = await fetchJson('/admin/monitoring?' + params.toString(), token);
-  var summaryResult = await fetchJson('/admin/summary?' + params.toString(), token);
+  var monitoringResult = await fetchJson('/admin/monitoring?' + params.toString());
+  var summaryResult = await fetchJson('/admin/summary?' + params.toString());
   $("raw").textContent = JSON.stringify({ monitoring: monitoringResult.body, summary: summaryResult.body }, null, 2);
   if (!summaryResult.ok) { $("status").textContent = summaryResult.status + ': ' + (summaryResult.body && summaryResult.body.error && summaryResult.body.error.code || 'error'); return; }
   state.summary = summaryResult.body || {};
@@ -712,9 +848,9 @@ async function refresh() {
   if (!state.selectedAppId && apps.length) state.selectedAppId = apps[0].app_id;
   $("status").textContent = 'Loaded ' + state.summary.generated_at + ' · apps=' + apps.length + ' · env=' + ($("environment").value || 'all');
   renderAll();
-}
-renderOnboarding();
+}renderOnboarding();
 $("refresh").addEventListener("click", function () { refresh().catch(function (error) { $("status").textContent = error.message; }); });
+$("logout").addEventListener("click", function () { logout().catch(function (error) { $("status").textContent = error.message; }); });
 $("appSearch").addEventListener("input", renderAppDirectory);
 $("allAppsTab").addEventListener("click", function () { state.scope = 'all'; renderAll(); });
 $("selectedAppTab").addEventListener("click", function () { state.scope = 'selected'; renderAll(); });

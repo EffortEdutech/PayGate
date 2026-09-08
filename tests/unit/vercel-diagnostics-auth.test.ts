@@ -1,19 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { Readable } from "node:stream";
 import handler from "../../api/index.ts";
 
 type CapturedResponse = {
   readonly status: number;
-  readonly headers: Record<string, string>;
+  readonly headers: Record<string, string | string[]>;
   readonly body: unknown;
 };
 
-async function invoke(path: string, headers: Record<string, string> = {}): Promise<CapturedResponse> {
+async function invoke(path: string, headers: Record<string, string> = {}, method = "GET", body = ""): Promise<CapturedResponse> {
   let status = 0;
-  let responseHeaders: Record<string, string> = {};
+  let responseHeaders: Record<string, string | string[]> = {};
   let rawBody = "";
-  const req = { method: "GET", url: path, headers } as IncomingMessage;
+  const req = Object.assign(Readable.from(body ? [body] : []), { method, url: path, headers }) as IncomingMessage;
   const res = {
     writeHead(nextStatus: number, nextHeaders: Record<string, string>) {
       status = nextStatus;
@@ -133,7 +134,23 @@ test("Vercel admin summary requires operator bearer token before runtime access"
   });
 });
 
-test("Vercel admin console shell does not embed operator token", async () => {
+test("Vercel admin session login creates cookie for operator console APIs", async () => {
+  await withEnv({ OPERATOR_DIAGNOSTICS_TOKEN: "operator-secret" }, async () => {
+    const login = await invoke("/admin/session/login", { "content-type": "application/json", "x-request-id": "req_login" }, "POST", JSON.stringify({ token: "operator-secret" }));
+    assert.equal(login.status, 200);
+    assert.equal((login.body as { status: string }).status, "authenticated");
+    const setCookie = login.headers["set-cookie"];
+    const cookie = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+    assert.match(cookie, /paygate_admin_session=/);
+    assert.match(cookie, /HttpOnly/);
+    assert.match(cookie, /Secure/);
+    assert.doesNotMatch(String(cookie), /operator-secret/);
+
+    const session = await invoke("/admin/session", { cookie: String(cookie).split(";", 1)[0], "x-request-id": "req_session" });
+    assert.equal(session.status, 200);
+    assert.equal((session.body as { status: string }).status, "authenticated");
+  });
+});test("Vercel admin console shell does not embed operator token", async () => {
   await withEnv({ OPERATOR_DIAGNOSTICS_TOKEN: "operator-secret" }, async () => {
     const response = await invoke("/admin", { "x-request-id": "req_admin_shell" });
     assert.equal(response.status, 200);

@@ -275,3 +275,54 @@ Boundary decisions:
 Next planned track:
 
 - Phase 7 Track 1D - Draft App Setup / Edit Wizard, where changes are previewed and validated before any registry update.
+## Track 1D Implementation Evidence - Operator Login and Session UX
+
+Date: 2026-09-09.
+
+Implemented the corrected operator access workflow.
+
+Previous issue:
+
+- The console expected the operator to paste a raw token repeatedly.
+- The UI felt like a protected API tester instead of an operator product.
+- Loading apps required knowing too much about the token/admin API boundary.
+
+Correction applied:
+
+- Added `/admin/session/login`.
+- Added `/admin/session/logout`.
+- Added `/admin/session` status check endpoint.
+- Login accepts the operator token once and creates a signed HttpOnly Secure SameSite session cookie.
+- Admin summary and monitoring endpoints now accept either the existing Bearer token or a valid admin session cookie.
+- The console clears the token input after successful login.
+- The console now uses same-origin credentials for admin API calls instead of sending the token repeatedly.
+- Existing PowerShell/operator Bearer-token diagnostics remain supported for controlled operations.
+
+Operator workflow after Track 1D:
+
+```text
+Open /admin
+-> paste operator login token once
+-> Load Console
+-> PayGate creates secure admin session cookie
+-> console loads all registered apps
+-> select app from App Directory
+-> view selected app workspace and evidence
+-> Logout when done
+```
+
+Security boundaries preserved:
+
+- The operator token is not embedded in the page source.
+- The session cookie is HttpOnly, Secure, SameSite=Lax, and scoped to `/admin`.
+- The session value is signed and expires after 8 hours.
+- Existing diagnostics remain protected.
+- No app setup/edit mutation is implemented in this track.
+
+Validation:
+
+- [x] Registry validation passed.
+- [x] Typecheck passed.
+- [x] Unit tests passed.
+- [x] Added test that login creates an HttpOnly/Secure admin session cookie.
+- [x] Added test that the session cookie can access admin session status.
