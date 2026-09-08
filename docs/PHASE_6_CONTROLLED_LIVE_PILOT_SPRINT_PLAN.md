@@ -6,6 +6,7 @@ Related gate: `docs/CONTROLLED_LIVE_PAYMENT_REFUND_GATE.md`.
 Related approval template: `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md`.
 Working approval draft: `docs/PHASE_6_LIVE_PILOT_APPROVAL_DRAFT.md`.
 Related evidence log: `docs/PHASE_6_LIVE_PILOT_EVIDENCE_LOG_TEMPLATE.md`.
+Portal/reconciliation evidence: `docs/PHASE_6_PORTAL_RECONCILIATION_EVIDENCE.md`.
 Preflight evidence: `docs/PHASE_6_PREFLIGHT_VERIFICATION.md`.
 Live checkout/webhook evidence: `docs/PHASE_6_LIVE_CHECKOUT_WEBHOOK_EVIDENCE.md`.
 
@@ -96,12 +97,12 @@ Checklist:
 
 - [x] Enable live portal adapter path for approved Phase 6 pilot.
 - [x] Enable live reconciliation adapter path for approved Phase 6 pilot.
-- [ ] Deploy live portal/reconciliation adapter path to PayGate.
-- [ ] Create billing portal session for the same app/user.
-- [ ] Confirm portal belongs to the correct Stripe account/company.
-- [ ] Run live reconciliation only if needed or approved in the test window.
-- [ ] Record reconciliation run ID if used.
-- [ ] Confirm reconciliation does not cross provider account or environment boundaries.
+- [x] Deploy live portal/reconciliation adapter path to PayGate.
+- [x] Create billing portal session for the same app/user.
+- [x] Confirm portal belongs to the correct Stripe account/company.
+- [x] Run live reconciliation only if needed or approved in the test window.
+- [x] Record reconciliation run ID if used.
+- [x] Confirm reconciliation does not cross provider account or environment boundaries.
 
 ## Track 6 - Refund Pilot, If Approved
 

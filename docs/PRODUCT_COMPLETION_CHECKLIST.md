@@ -92,7 +92,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
   - [x] Operator-side Vercel/Stripe/token checks completed.
 - [x] One approved live checkout completed or pilot explicitly aborted.
 - [x] Live webhook and entitlement proof complete.
-- [ ] Portal/reconciliation proof complete or intentionally deferred.
+- [x] Portal/reconciliation proof complete or intentionally deferred.
 - [ ] Refund proof complete if approved.
 - [ ] Evidence recorded safely.
 - [ ] Phase 6 freeze note created.
