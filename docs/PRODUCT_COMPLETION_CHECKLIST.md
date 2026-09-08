@@ -90,8 +90,8 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 - [x] Preflight verification passed.
   - [x] Public health/protection/registry checks recorded.
   - [x] Operator-side Vercel/Stripe/token checks completed.
-- [ ] One approved live checkout completed or pilot explicitly aborted.
-- [ ] Live webhook and entitlement proof complete.
+- [x] One approved live checkout completed or pilot explicitly aborted.
+- [x] Live webhook and entitlement proof complete.
 - [ ] Portal/reconciliation proof complete or intentionally deferred.
 - [ ] Refund proof complete if approved.
 - [ ] Evidence recorded safely.

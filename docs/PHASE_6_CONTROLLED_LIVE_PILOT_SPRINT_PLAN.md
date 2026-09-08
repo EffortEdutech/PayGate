@@ -7,6 +7,7 @@ Related approval template: `docs/PHASE_6_LIVE_PILOT_APPROVAL_TEMPLATE.md`.
 Working approval draft: `docs/PHASE_6_LIVE_PILOT_APPROVAL_DRAFT.md`.
 Related evidence log: `docs/PHASE_6_LIVE_PILOT_EVIDENCE_LOG_TEMPLATE.md`.
 Preflight evidence: `docs/PHASE_6_PREFLIGHT_VERIFICATION.md`.
+Live checkout/webhook evidence: `docs/PHASE_6_LIVE_CHECKOUT_WEBHOOK_EVIDENCE.md`.
 
 ## Objective
 
@@ -29,15 +30,15 @@ Checklist:
 - [x] Create approval record template.
 - [x] Create evidence log template.
 - [x] Create pre-filled approval draft with known PayGate/AIntern values.
-- [ ] Complete the approval record outside source control before live execution.
-- [ ] Confirm app name and production URL.
-- [ ] Confirm company/legal Stripe account owner.
-- [ ] Confirm provider account alias and Stripe account ID.
-- [ ] Confirm plan key, amount, currency, and checkout mode.
-- [ ] Confirm operator-controlled test user/customer email.
-- [ ] Confirm refund test: full, partial, or none.
-- [ ] Confirm support/rollback owner.
-- [ ] Confirm evidence storage location outside source control.
+- [x] Complete the approval record outside source control before live execution.
+- [x] Confirm app name and production URL.
+- [x] Confirm company/legal Stripe account owner.
+- [x] Confirm provider account alias and Stripe account ID.
+- [x] Confirm plan key, amount, currency, and checkout mode.
+- [x] Confirm operator-controlled test user/customer email.
+- [x] Confirm refund test: full, partial, or none.
+- [x] Confirm support/rollback owner.
+- [x] Confirm evidence storage location outside source control.
 
 ## Track 2 - Preflight Verification
 
@@ -46,13 +47,13 @@ Goal: verify the deployed system is ready before creating live checkout.
 Checklist:
 
 - [x] Confirm PayGate deployment commit SHA.
-- [ ] Confirm PayGate `/health` is healthy.
-- [ ] Confirm protected diagnostics require operator token.
-- [ ] Confirm admin console requires operator token.
+- [x] Confirm PayGate `/health` is healthy.
+- [x] Confirm protected diagnostics require operator token.
+- [x] Confirm admin console requires operator token.
 - [x] Confirm monitoring has no unresolved critical alerts, or only accepted non-critical historical warnings.
 - [x] Confirm live provider account config exists server-side only using `STRIPE_LIVE_*` env vars.
 - [x] Confirm live webhook endpoint exists and uses the correct provider account alias.
-- [ ] Confirm registry live mapping matches approved plan.
+- [x] Confirm registry live mapping matches approved plan.
 - [x] Confirm database backup/restore readiness or accepted manual rollback plan.
 
 ## Track 3 - Live Checkout Pilot
@@ -62,17 +63,17 @@ Goal: create and complete exactly one approved live checkout.
 Checklist:
 
 - [x] Enable live checkout adapter path for approved Phase 6 pilot.
-- [ ] Deploy live checkout adapter path to PayGate.
-- [ ] Create checkout from the production app for the approved user.
+- [x] Deploy live checkout adapter path to PayGate.
+- [x] Create checkout from the production app for the approved user.
 - [x] Record live return URL correction from unreachable `https://aintern.effortedutech.com` to actual AIntern URL `https://a-intern.vercel.app`.
-- [ ] Redeploy PayGate after live return URL correction.
-- [ ] Create a replacement checkout only if required, using a new explicit correction note.
-- [ ] Confirm Stripe checkout shows the approved company/account branding.
-- [ ] Confirm amount and currency match approval exactly.
-- [ ] Complete payment using approved payment method.
-- [ ] Record checkout session ID safely.
-- [ ] Record payment intent/charge ID safely.
-- [ ] Do not run any second live checkout unless separately approved.
+- [x] Redeploy PayGate after live return URL correction.
+- [x] Create a replacement checkout only if required, using a new explicit correction note.
+- [x] Confirm Stripe checkout shows the approved company/account branding.
+- [x] Confirm amount and currency match approval exactly.
+- [x] Complete payment using approved payment method.
+- [x] Record checkout session ID safely.
+- [x] Record payment intent/charge ID safely.
+- [x] Do not run any further live checkout unless separately approved.
 
 ## Track 4 - Live Webhook and Entitlement Proof
 
@@ -80,12 +81,12 @@ Goal: prove entitlement changes come from verified live evidence only.
 
 Checklist:
 
-- [ ] Confirm signed live webhook received.
-- [ ] Confirm webhook event ID and processed status.
-- [ ] Confirm entitlement/subscription projection changed only after verified webhook.
-- [ ] Confirm browser redirect alone did not grant entitlement.
-- [ ] Confirm admin console shows the live payment state safely.
-- [ ] Confirm monitoring remains healthy after webhook processing.
+- [x] Confirm signed live webhook received.
+- [x] Confirm webhook event ID and processed status.
+- [x] Confirm entitlement/subscription projection changed only after verified webhook.
+- [x] Confirm browser redirect alone did not grant entitlement.
+- [x] Confirm admin console shows the live payment state safely.
+- [x] Confirm monitoring remains healthy after webhook processing.
 
 ## Track 5 - Portal and Reconciliation Proof
 
