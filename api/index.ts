@@ -430,10 +430,12 @@ const ADMIN_HTML = `<!doctype html>
     button { cursor: pointer; background: #0f172a; color: white; border-color: #0f172a; font-weight: 700; }
     button.secondary { background: white; color: #0f172a; }
     section { background: rgba(255,255,255,0.88); border: 1px solid #dbe4f0; border-radius: 22px; padding: 18px; margin: 16px 0; box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08); backdrop-filter: blur(10px); }
-    .hero { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 16px; align-items: stretch; }
+    .hero { display: block; }
     .panel { background: rgba(15, 23, 42, 0.96); color: #e2e8f0; border-radius: 22px; padding: 20px; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .toolbar { display: grid; grid-template-columns: minmax(260px, 1.5fr) minmax(180px, .8fr) minmax(140px, .5fr) auto; gap: 10px; align-items: end; }
+    .toolbar { display: grid; grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(160px, .6fr) 150px; gap: 14px; align-items: end; }
+    label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .toolbar button { min-height: 43px; width: 100%; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
     .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; }
     .card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; background: #fff; min-width: 0; }
@@ -453,7 +455,7 @@ const ADMIN_HTML = `<!doctype html>
     .empty { padding: 14px; border: 1px dashed #cbd5e1; border-radius: 14px; color: #64748b; background: #f8fafc; }
     .step { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; margin: 10px 0; }
     .step-num { width: 26px; height: 26px; border-radius: 999px; display: inline-grid; place-items: center; background: #0f172a; color: white; font-size: 12px; font-weight: 800; }
-    @media (max-width: 860px) { .hero, .toolbar { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .toolbar { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -477,7 +479,7 @@ const ADMIN_HTML = `<!doctype html>
           <label><span class="small muted">Environment</span><select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
           <button id="refresh">Refresh</button>
         </div>
-        <p id="status" class="muted small">Not loaded. Token is held only in this browser tab memory.</p>
+        <p id="status" class="muted small">Not loaded. Paste the operator diagnostics token, confirm the app/environment, then click Refresh. Token is held only in this browser tab memory.</p>
       </section>
     </div>
 
