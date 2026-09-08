@@ -1,7 +1,7 @@
 # PayGate Product Plan
 
 Status: governing product plan for Payment Hub work.
-Last updated: 2026-09-06.
+Last updated: 2026-09-08.
 
 ## Product Objective
 
@@ -43,10 +43,10 @@ This roadmap is intentionally finite. We do not create new phases unless a new p
 | 1 | Executable foundation | Frozen | Build TypeScript workspace, registry validation, provider interfaces, config, auth/idempotency foundations, and DB baseline. | Foundation compiles and registry validation passes. |
 | 2 | Stripe sandbox vertical slice | Frozen | Prove checkout, verified webhooks, entitlements, portal, and reconciliation using Stripe sandbox. | Real sandbox proof recorded and Phase 2 freeze complete. |
 | 3 | First app integration - AIntern | Frozen | Connect AIntern to PayGate through a thin client and named provider account, without app-owned Stripe logic. | AIntern deployed sandbox checkout, webhook, entitlement, portal, and reconciliation proof complete. |
-| 4 | Production hardening | Current closeout | Protect diagnostics, improve reconciliation inspection, admin console, onboarding, live readiness, monitoring, account isolation, and live-test gate. | Phase 4 checklist complete and freeze note recorded. |
-| 5 | Live-mode implementation readiness | Planned, not started | Design and implement explicit live-mode boundaries only after Phase 4 freeze. | Sandbox/live separation tests pass; live credentials still not used without approval. |
-| 6 | Controlled live pilot | Planned, future approval required | Run one approved low-value real payment/refund test. | Evidence recorded; refund and entitlement behavior confirmed. |
-| 7 | Multi-app scale-out | Planned, future | Onboard app #2 and later apps using the multi-app runbook. | New app passes onboarding, sandbox proof, monitoring, and isolation gates. |
+| 4 | Production hardening | Frozen | Protect diagnostics, improve reconciliation inspection, admin console, onboarding, live readiness, monitoring, account isolation, and live-test gate. | Phase 4 checklist complete and freeze note recorded. |
+| 5 | Live-mode implementation readiness | Frozen | Design and implement explicit live-mode boundaries only after Phase 4 freeze. | Sandbox/live separation tests pass; live credentials still not used without approval. |
+| 6 | Controlled live pilot | Partially complete; refund deferred | Run one approved low-value real payment/refund test. | Evidence recorded; refund remains deferred until separately approved. |
+| 7 | Operator console and multi-app scale-out | Current | Build a clean operator console, then onboard app #2 and later apps using the multi-app runbook. | Operator console supports guided setup; new app passes onboarding, sandbox proof, monitoring, and isolation gates. |
 
 
 ## Documentation Set Through Product Finish
@@ -63,19 +63,20 @@ This roadmap is intentionally finite. We do not create new phases unless a new p
 - Multi-app onboarding runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 ## Current Sprint Authority
 
-Current sprint: Phase 4 - Production Hardening.
+Current sprint: Phase 7 - Operator Console and Multi-App Scale-Out.
 
-Phase 4 is complete when:
+Phase 7 starts with the operator console because PayGate must become manageable without command-first workflows before app #2 onboarding. Phase 6 refund proof is intentionally deferred and must not block Phase 7 planning or UI work.
 
-- [x] Operator diagnostics are protected.
-- [x] Stripe reconciliation inspection exists.
-- [x] Audit/admin console exists.
-- [x] Multi-app onboarding checklist exists.
-- [x] Live-mode readiness checklist exists.
-- [x] Monitoring and alerting baseline exists.
-- [x] Provider account isolation tests pass.
-- [x] Controlled live payment/refund planning gate exists and execution remains deferred.
-- [ ] Phase 4 freeze note is recorded.
+Phase 7 Track 1 is complete when:
+
+- [x] Operator console objective is documented.
+- [x] Primary screens are defined.
+- [x] Screen-level acceptance checklist is documented.
+- [x] Safety boundaries are documented.
+- [x] Recommended first implementation slice is documented.
+- [x] Product roadmap graph is regenerated.
+- [x] Project validation passes.
+- [ ] Changes are committed and pushed.
 
 ## Stop Creating New Phases Rule
 
@@ -90,13 +91,12 @@ If these are not true, work must continue inside the current phase or stop for p
 
 ## What Is Not Authorized Now
 
-- No live Stripe secret use.
-- No live checkout creation.
-- No live webhook endpoint activation for entitlement mutation.
-- No real payment or refund.
-- No app #2 implementation before Phase 4 freeze and app #2 intake.
+- No live refund execution while refund is deferred.
+- No additional live checkout/payment pilots without a new explicit operator approval record.
+- No app #2 implementation before the operator console UX plan and app #2 intake are accepted.
 - No new payment provider implementation before Stripe/AIntern production readiness is controlled.
+- No direct app-owned Stripe implementation.
 
 ## Immediate Next Action
 
-Freeze Phase 4 with evidence, then create the Phase 5 sprint plan and checklist before any Phase 5 implementation.
+Close Phase 7 Track 1, then proceed to the first operator console implementation slice before app #2 onboarding.

@@ -1,18 +1,93 @@
-# Phase 7 - Multi-App Scale-Out Sprint Plan
+# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: planned; not started.
+Status: started; Track 1 in progress.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 
 ## Objective
 
-Scale PayGate from the first proven app, AIntern, to a repeatable multi-app payment platform where each new app can be onboarded through a controlled checklist with correct company/provider account routing, registry-owned commercial authority, app-owned authentication, sandbox proof, monitoring, and production readiness gates.
+Scale PayGate from the first proven app, AIntern, to a repeatable multi-app payment platform where the operator can onboard, verify, monitor, and support each app through a clear UI-backed workflow with correct company/provider account routing, registry-owned commercial authority, app-owned authentication, sandbox proof, monitoring, and production readiness gates.
 
 ## Core Guardrail
 
-Phase 7 starts only after the controlled live pilot is accepted or explicitly deferred by the operator. New apps must never copy AIntern-specific assumptions blindly. Every app must declare its own app ID, user identity strategy, provider account owner, return URL allowlist, plan catalog, entitlements, and deployment evidence.
+Phase 7 starts after the controlled live pilot is accepted or explicitly deferred by the operator. New apps must never copy AIntern-specific assumptions blindly. Every app must declare its own app ID, user identity strategy, provider account owner, return URL allowlist, plan catalog, entitlements, and deployment evidence.
 
-## Track 1 - App #2 Intake and Classification
+The operator console is not allowed to weaken PayGate authority. It may guide, validate, display, and generate controlled changes, but apps must still submit only `app_id`, `user_ref`, `plan_key`, `return_context`, and `environment`.
+
+## Track 1 - Operator Console UX Plan and Checklist
+
+Goal: define the clean operator UI before adding app #2 deeply, so PayGate can be managed without PowerShell-first workflows or unsafe manual file edits.
+
+Operator promise:
+
+- The console tells the operator what is configured, what is missing, what is safe to test, and what must not be touched yet.
+- The console never exposes Stripe secret keys, webhook secrets, JWT secrets, raw app tokens, or database credentials.
+- The console uses provider-neutral PayGate language first and provider details only where the operator needs evidence.
+- The console separates sandbox and live clearly on every app, plan, provider account, webhook, checkout, portal, reconciliation, and refund screen.
+- The console makes the next safe action obvious, but it does not bypass approval gates for live payments, refunds, provider changes, or registry authority.
+
+Primary screens:
+
+1. Dashboard
+   - Shows total apps, active apps, provider accounts, monitoring status, failed webhooks, failed reconciliation, and live-mode gates.
+   - Gives a clear needs-attention summary without requiring raw JSON.
+
+2. Apps
+   - Lists all registered apps.
+   - Shows app ID, display name, provider account, sandbox/live status, last webhook, entitlement health, and onboarding stage.
+
+3. App detail
+   - Shows one app's registry configuration, origins, return contexts, plans, entitlements, provider mapping, and evidence links.
+   - Clearly shows whether the app is sandbox-only, live-ready, or live-enabled.
+
+4. App onboarding wizard
+   - Guides the operator through adding a new app.
+   - Captures app identity, company/provider account, URLs, return contexts, plans, lookup keys, entitlements, auth model, webhook setup, and sandbox proof.
+   - Initially may generate a reviewable registry change instead of writing directly to production configuration.
+
+5. Provider accounts
+   - Shows provider aliases such as `nhl_global_solution`, linked apps, sandbox/live readiness, webhook configured status, and isolation checks.
+   - Does not show secret values.
+
+6. Plans and prices
+   - Shows PayGate-authoritative plan keys, mode, amount in integer minor units, display amount, currency, lookup key, status, and entitlement set.
+   - Makes clear that apps do not control price, currency, provider price IDs, or entitlement authority.
+
+7. Webhooks
+   - Shows endpoint URL, environment, provider account, latest events, processed/failed/retry/dead counts, and safe redelivery notes.
+
+8. Entitlements and subscription state
+   - Shows current user/app state, active plan, entitlement keys, source event, and last projection time.
+   - Makes clear redirects do not grant access.
+
+9. Portal and reconciliation
+   - Allows safe portal creation for a selected app/user/environment when provider customer evidence exists.
+   - Allows reconciliation only with idempotency, operator evidence, and environment/provider account visibility.
+
+10. Refunds and disputes
+    - Shows refund eligibility and evidence requirements.
+    - Does not execute live refunds unless the controlled refund gate is explicitly approved.
+
+11. Settings and readiness
+    - Shows safe diagnostics for database, configured provider accounts, JWKS/auth, CORS origins, webhook readiness, live enable flags, and deployment commit.
+    - Provides copyable setup guidance without exposing secrets.
+
+Track 1 checklist:
+
+- [x] Confirm operator UI is required before deeper app #2 onboarding.
+- [x] Define primary operator screens.
+- [x] Define screen-level safety boundaries.
+- [x] Keep app onboarding behind registry authority and validation.
+- [x] Preserve sandbox/live separation in every screen.
+- [x] Preserve provider account isolation visibility.
+- [x] Define no-secret display rule.
+- [x] Define refund/live-operation approval guardrail.
+- [ ] Build first console information architecture/wireframe.
+- [ ] Decide implementation path: extend current PayGate admin HTML or build richer frontend.
+- [ ] Add UI acceptance checklist before coding.
+- [ ] Create Track 1 closeout evidence.
+
+## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.
 
@@ -27,7 +102,7 @@ Checklist:
 - [ ] Confirm support/refund owner.
 - [ ] Confirm whether app #2 can use existing PayGate contracts unchanged.
 
-## Track 2 - Registry Package Creation
+## Track 3 - Registry Package Creation
 
 Goal: add app #2 to PayGate without giving the app commercial authority.
 
@@ -43,7 +118,7 @@ Checklist:
 - [ ] Define entitlements.
 - [ ] Run `npm run validate:registry`.
 
-## Track 3 - Provider Account and Stripe Setup
+## Track 4 - Provider Account and Stripe Setup
 
 Goal: ensure app #2 bills through the correct company account.
 
@@ -57,7 +132,7 @@ Checklist:
 - [ ] Store secrets only in Vercel/server-side secret storage.
 - [ ] Verify provider account isolation tests still pass.
 
-## Track 4 - App Thin Payment Client
+## Track 5 - App Thin Payment Client
 
 Goal: integrate app #2 as a PayGate consumer only.
 
@@ -71,7 +146,7 @@ Checklist:
 - [ ] App reads subscription/entitlement state from PayGate or its backend projection.
 - [ ] App displays provider-neutral states only.
 
-## Track 5 - App Authentication Boundary
+## Track 6 - App Authentication Boundary
 
 Goal: ensure PayGate trusts app #2 requests safely.
 
@@ -83,7 +158,7 @@ Checklist:
 - [ ] Enforce user_ref binding.
 - [ ] Add negative tests for cross-app/cross-user requests.
 
-## Track 6 - Sandbox E2E Proof
+## Track 7 - Sandbox E2E Proof
 
 Goal: prove app #2 works in sandbox before live readiness.
 
@@ -98,7 +173,7 @@ Checklist:
 - [ ] Confirm monitoring/admin visibility.
 - [ ] Record evidence safely.
 
-## Track 7 - Multi-App Operator Console Readiness
+## Track 8 - Multi-App Operator Console Readiness
 
 Goal: make the operator view useful as apps multiply.
 
@@ -111,7 +186,7 @@ Checklist:
 - [ ] Confirm failed webhook/reconciliation alerts identify app/provider account/environment.
 - [ ] Document operator triage steps for app #2.
 
-## Track 8 - Scale-Out Freeze and Repeatability
+## Track 9 - Scale-Out Freeze and Repeatability
 
 Goal: ensure app #3 can follow the same process.
 
@@ -147,6 +222,7 @@ Stop and update the product plan before proceeding if app #2 requires:
 
 Phase 7 is complete only when:
 
+- [ ] operator console supports guided multi-app setup safely;
 - [ ] at least one additional app is onboarded through the runbook;
 - [ ] app #2 sandbox proof is complete;
 - [ ] provider account isolation still passes;

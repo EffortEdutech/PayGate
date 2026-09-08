@@ -97,12 +97,14 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 - [ ] Evidence recorded safely.
 - [ ] Phase 6 freeze note created.
 
-## Phase 7 - Multi-App Scale-Out
+## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: planned, not started.
+Status: started; Track 1 operator console UX plan documented.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
+- [x] Operator console UX plan documented.
+- [ ] Operator console first implementation slice built.
 - [ ] Operator approves app #2 intake.
 - [ ] App #2 registry package created.
 - [ ] App #2 provider account and Stripe sandbox setup complete.
