@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1H operator identity UX implemented locally pending deployment review.
+Status: started; Track 1I workspace tabs and app detail cards implemented locally pending deployment review.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -162,7 +162,34 @@ Future target:
 
 Next gate:
 
-- [ ] Deploy and visually review `/admin` identity wording with the operator before workspace tab work resumes.
+- [x] Operator proceeded to Track 1I workspace tabs and app detail cards.
+## Track 1I - Workspace Tabs and Better App Detail Cards
+
+Goal: make the selected app workspace readable by separating the app evidence into clear tabs instead of one long mixed panel.
+
+Implemented scope:
+
+- [x] Add App Workspace tab bar.
+- [x] Add Overview tab for provider mapping, current scope, and next safe action.
+- [x] Add Plans tab for PayGate-owned plan details, price display, lookup configuration, and entitlements.
+- [x] Add URLs tab for test/live return origins and registry allowlist boundary.
+- [x] Add Customers tab for subscription and entitlement state.
+- [x] Add Webhooks tab for verified provider event evidence.
+- [x] Add Reconciliation tab for explicit reconciliation evidence.
+- [x] Add Evidence tab for checkout sessions and the rule that redirects do not grant access.
+- [x] Keep all workspace cards read-only.
+
+Safety boundary:
+
+- No registry edits.
+- No secret display.
+- No refund actions.
+- No live payment actions.
+- No entitlement mutation from browser redirects.
+
+Next gate:
+
+- [ ] Deploy and visually review `/admin` workspace tabs with the operator.
 ## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.

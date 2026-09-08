@@ -595,6 +595,10 @@ const ADMIN_HTML = `<!doctype html>
     .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 130px; gap: 10px; align-items:end; }
     .empty { border: 1px dashed #cbd5e1; border-radius: 16px; padding: 18px; text-align: center; color: var(--muted); background: #fff; }
     .debug { white-space: pre-wrap; overflow: auto; max-height: 520px; background: #0b1220; color: #d0d5dd; border-radius: 16px; padding: 14px; font-size: 12px; }
+    .workspace-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+    .workspace-tab { background: white; color: var(--ink); border: 1px solid #d0d5dd; padding: 9px 12px; min-height: 38px; }
+    .workspace-tab.active { background: var(--brand); color: white; border-color: var(--brand); }
+    .workspace-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
     .identity-help { margin-top: 14px; display: grid; gap: 5px; border: 1px solid #b2ccff; background: var(--brand-soft); border-radius: 16px; padding: 12px; color: #1849a9; }
     .identity-help span { color: #194185; font-size: 13px; line-height: 1.45; }
     @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar { grid-template-columns: 1fr; display: grid; min-width: 0; } }
@@ -784,13 +788,32 @@ const ADMIN_HTML = `<!doctype html>
     var appCustomers = customers().filter(function(c){ return c.app_id === app.app_id; });
     var appWebhooks = webhooks().filter(function(w){ return w.app_id === app.app_id; });
     var appRuns = runs().filter(function(r){ return r.app_id === app.app_id; });
+    var appSessions = sessions().filter(function(s){ return s.app_id === app.app_id; });
+    var tab = state.workspaceTab || 'overview';
+    var tabs = ['overview','plans','urls','customers','webhooks','reconciliation','evidence'];
+    var tabLabels = { overview:'Overview', plans:'Plans', urls:'URLs', customers:'Customers', webhooks:'Webhooks', reconciliation:'Reconciliation', evidence:'Evidence' };
+    var tabButtons = tabs.map(function(name){ return '<button class="workspace-tab ' + (tab === name ? 'active' : '') + '" type="button" data-workspace-tab="' + name + '">' + tabLabels[name] + '</button>'; }).join('');
     el('view-workspace').innerHTML =
-      '<div class="view-header"><div><h2>App Workspace: ' + esc(app.name || app.app_id) + '</h2><p>One app, one operating surface. Use this view for setup readiness, customer state, webhook evidence, and reconciliation evidence.</p></div><span class="status ok">' + esc(app.app_id) + '</span></div>' +
-      '<div class="three-col">' + panel('Provider Mapping', '<p><strong>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</strong></p><p>Secrets remain server-side. Apps never receive provider keys.</p>') + panel('Return Origins', '<p>Test: ' + esc(app.origins && app.origins.test ? app.origins.test : 'not set') + '</p><p>Live: ' + esc(app.origins && app.origins.live ? app.origins.live : 'not set') + '</p>') + panel('Evidence Summary', '<p>Customers: <strong>' + appCustomers.length + '</strong></p><p>Webhooks: <strong>' + appWebhooks.length + '</strong></p><p>Reconciliation: <strong>' + appRuns.length + '</strong></p>') + '</div>' +
-      '<div class="two-col">' + panel('Plans', arr(app.plans).map(function(p){ return row(p.plan_key, money(p) + ' - ' + esc(p.mode || '') + ' - ' + esc(p.status || ''), 'lookup configured: ' + Boolean(p.provider_lookup_configured)); }).join('') || empty('No plans configured.')) + panel('Customers and Entitlements', appCustomers.map(customerCard).join('') || empty('No customers in this filter.')) + '</div>' +
-      '<div class="two-col">' + panel('Webhook Evidence', appWebhooks.map(function(w){ return row(w.event_type, w.provider_event_id, w.status + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook evidence.')) + panel('Reconciliation Evidence', appRuns.map(function(r){ return row(r.status, r.id, fmtDate(r.completed_at)); }).join('') || empty('No reconciliation evidence.')) + '</div>';
+      '<div class="view-header"><div><h2>App Workspace: ' + esc(app.name || app.app_id) + '</h2><p>One app, one operating surface. Pick a tab instead of scanning one long page.</p></div><span class="status ok">' + esc(app.app_id) + '</span></div>' +
+      '<div class="workspace-summary">' +
+        kpi('Plans', arr(app.plans).length, 'PayGate-owned catalog') +
+        kpi('Customers', appCustomers.length, 'In current filter') +
+        kpi('Webhooks', appWebhooks.length, 'Verified provider events') +
+        kpi('Reconciliation', appRuns.length, 'Explicit evidence runs') +
+      '</div>' +
+      '<div class="workspace-tabs">' + tabButtons + '</div>' +
+      '<div>' + workspaceTabContent(tab, app, appCustomers, appWebhooks, appRuns, appSessions) + '</div>';
+    document.querySelectorAll('[data-workspace-tab]').forEach(function(btn){ btn.addEventListener('click', function(){ state.workspaceTab = btn.getAttribute('data-workspace-tab') || 'overview'; renderWorkspace(); }); });
   }
-  function renderProviders(){
+  function workspaceTabContent(tab, app, appCustomers, appWebhooks, appRuns, appSessions){
+    if(tab === 'plans') return panel('Plans and Prices', arr(app.plans).map(function(p){ return row(p.name || p.plan_key, money(p) + ' - ' + esc(p.mode || '') + ' - ' + esc(p.status || ''), 'Plan key: ' + p.plan_key + ' - lookup configured: ' + Boolean(p.provider_lookup_configured) + ' - entitlements: ' + arr(p.entitlements).join(', ')); }).join('') || empty('No plans configured.'));
+    if(tab === 'urls') return '<div class="two-col">' + panel('Return Origins', '<p><strong>Test:</strong> ' + esc(app.origins && app.origins.test ? app.origins.test : 'not set') + '</p><p><strong>Live:</strong> ' + esc(app.origins && app.origins.live ? app.origins.live : 'not set') + '</p>') + panel('Boundary Rule', '<p>Apps may request a return context only. PayGate resolves the final return URL from registry allowlists.</p><p>Browser redirects never grant entitlements.</p>') + '</div>';
+    if(tab === 'customers') return panel('Customers and Entitlements', appCustomers.map(customerCard).join('') || empty('No customers in this filter.'));
+    if(tab === 'webhooks') return panel('Webhook Evidence', appWebhooks.map(function(w){ return row(w.event_type, w.provider_event_id, w.status + ' - ' + w.provider_account + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook evidence for this app.'));
+    if(tab === 'reconciliation') return panel('Reconciliation Evidence', appRuns.map(function(r){ return row(r.status, r.id, (r.provider_account || 'provider account') + ' - ' + fmtDate(r.completed_at)); }).join('') || empty('No reconciliation evidence for this app.'));
+    if(tab === 'evidence') return '<div class="two-col">' + panel('Checkout Sessions', appSessions.map(function(s){ return row(s.plan_key, s.provider_checkout_session_ref, s.status + ' - ' + s.environment + ' - expires ' + fmtDate(s.expires_at)); }).join('') || empty('No checkout sessions in this filter.')) + panel('Evidence Rule', '<p>Financial state shown here comes from verified webhooks or explicit reconciliation results.</p><p>Do not use redirect success pages as payment proof.</p>') + '</div>';
+    return '<div class="three-col">' + panel('Provider Mapping', '<p><strong>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</strong></p><p>Secrets remain server-side. Apps never receive provider keys.</p>') + panel('Operating Status', '<p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Selected app: <strong>' + esc(app.app_id) + '</strong></p><p>Workspace tabs keep each evidence type separate.</p>') + panel('Next Safe Action', '<p>Review plans, URLs, customers, webhooks, and reconciliation evidence in their own tabs.</p><p>Edit/add/refund actions remain disabled until their controlled tracks.</p>') + '</div>';
+  }  function renderProviders(){
     var groups = {};
     apps().forEach(function(app){ var key = (app.provider_id || 'provider') + ':' + (app.provider_account || 'account'); groups[key] = groups[key] || []; groups[key].push(app); });
     el('view-providers').innerHTML = '<div class="view-header"><div><h2>Provider Accounts</h2><p>Company-scoped Stripe accounts mapped to apps. This proves isolation without exposing keys.</p></div></div><div class="list">' + Object.keys(groups).map(function(key){ return row(key, groups[key].map(function(app){ return app.app_id; }).join(', '), groups[key].length + ' app(s)'); }).join('') + '</div>';

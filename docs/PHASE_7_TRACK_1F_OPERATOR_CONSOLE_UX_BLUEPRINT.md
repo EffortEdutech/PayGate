@@ -473,3 +473,24 @@ Validation:
 Safety boundary:
 
 Track 1H does not change authentication authority yet. It clarifies the UX and documentation while preserving the existing protected session-cookie flow.
+
+## Track 1I Implementation Evidence
+
+Date: 2026-09-09
+
+Implemented in `api/index.ts`:
+
+- App Workspace now uses tabs instead of one long mixed panel.
+- Tabs: Overview, Plans, URLs, Customers, Webhooks, Reconciliation, Evidence.
+- Workspace top summary shows plans, customers, webhooks, and reconciliation counts.
+- Plan cards show PayGate-owned plan key, amount, mode, status, lookup configuration, and entitlement list.
+- URL cards restate the registry allowlist rule and browser redirect non-authority rule.
+- Evidence cards isolate checkout sessions from webhook/reconciliation proof.
+
+Validation:
+
+- Admin shell unit test now locks workspace tab labels and card headings.
+
+Safety boundary:
+
+Track 1I is still read-only. It improves operator comprehension but does not add edit, refund, registry mutation, or live-operation buttons.
