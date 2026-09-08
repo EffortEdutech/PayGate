@@ -417,120 +417,129 @@ const ADMIN_HTML = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PayGate Operator Console</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --soft:#f8fafc; --brand:#2563eb; --ok:#15803d; --warn:#a16207; --danger:#b91c1c; }
     * { box-sizing: border-box; }
-    body { margin: 0; color: #0f172a; background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #ecfeff 100%); }
-    main { max-width: 1280px; margin: 0 auto; padding: 28px 20px 56px; }
-    h1 { margin: 0; font-size: 34px; letter-spacing: -0.04em; }
-    h2 { margin: 0 0 12px; font-size: 18px; letter-spacing: -0.02em; }
-    h3 { margin: 0 0 8px; font-size: 15px; }
-    p { margin: 8px 0; line-height: 1.5; }
-    input, button, select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; font: inherit; }
-    input, select { background: white; color: #0f172a; }
-    button { cursor: pointer; background: #0f172a; color: white; border-color: #0f172a; font-weight: 700; }
-    button.secondary { background: white; color: #0f172a; }
-    section { background: rgba(255,255,255,0.88); border: 1px solid #dbe4f0; border-radius: 22px; padding: 18px; margin: 16px 0; box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08); backdrop-filter: blur(10px); }
-    .hero { display: block; }
-    .panel { background: rgba(15, 23, 42, 0.96); color: #e2e8f0; border-radius: 22px; padding: 20px; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .toolbar { display: grid; grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(160px, .6fr) 150px; gap: 14px; align-items: end; }
-    label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    .toolbar button { min-height: 43px; width: 100%; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-    .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; }
-    .card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; background: #fff; min-width: 0; }
-    .card.dark { background: #111827; color: #e5e7eb; border-color: #334155; }
-    .metric { font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
-    .muted { color: #64748b; }
+    body { margin: 0; color: var(--ink); background: #f6f8fb; }
+    main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 48px; }
+    h1 { margin: 0; font-size: 24px; letter-spacing: -0.03em; }
+    h2 { margin: 0 0 12px; font-size: 17px; letter-spacing: -0.02em; }
+    h3 { margin: 0 0 8px; font-size: 14px; }
+    p { margin: 6px 0; line-height: 1.45; }
+    input, button, select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font: inherit; }
+    input, select { width: 100%; background: white; color: var(--ink); }
+    button { cursor: pointer; background: var(--brand); color: white; border-color: var(--brand); font-weight: 800; min-height: 42px; }
+    section { background: white; border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
+    .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 14px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .safety { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .control-card { margin-top: 0; }
+    .toolbar { display: grid; grid-template-columns: minmax(320px, 1.8fr) minmax(180px, .9fr) minmax(140px, .6fr) 130px; gap: 12px; align-items: end; }
+    label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); font-weight: 700; }
+    .status-line { margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px; background: #fff; min-width: 0; }
+    .card.soft { background: var(--soft); }
+    .callout { border-radius: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+    .callout.ok { background: #ecfdf5; border: 1px solid #bbf7d0; }
+    .callout.warn { background: #fffbeb; border: 1px solid #fde68a; }
+    .callout.danger { background: #fef2f2; border: 1px solid #fecaca; }
+    .callout-title { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; }
+    .metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .metric { background: var(--soft); border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
+    .metric-value { font-size: 26px; font-weight: 900; letter-spacing: -0.04em; }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .muted { color: var(--muted); }
     .small { font-size: 13px; }
-    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 10px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: 700; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: 800; margin: 2px 4px 2px 0; }
     .badge.ok { background: #dcfce7; color: #166534; }
     .badge.warn { background: #fef3c7; color: #92400e; }
     .badge.danger { background: #fee2e2; color: #991b1b; }
     .badge.info { background: #dbeafe; color: #1e40af; }
     code { background: #eef2ff; padding: 2px 6px; border-radius: 7px; overflow-wrap: anywhere; }
-    .dark code { background: #1e293b; color: #bae6fd; }
     pre { white-space: pre-wrap; background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 14px; overflow: auto; max-height: 420px; }
     details summary { cursor: pointer; font-weight: 800; }
-    .empty { padding: 14px; border: 1px dashed #cbd5e1; border-radius: 14px; color: #64748b; background: #f8fafc; }
-    .step { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; margin: 10px 0; }
-    .step-num { width: 26px; height: 26px; border-radius: 999px; display: inline-grid; place-items: center; background: #0f172a; color: white; font-size: 12px; font-weight: 800; }
-    @media (max-width: 860px) { .toolbar { grid-template-columns: 1fr; } }
+    .empty { padding: 14px; border: 1px dashed #cbd5e1; border-radius: 14px; color: var(--muted); background: var(--soft); }
+    .section-kicker { color: var(--muted); font-size: 13px; margin-top: -6px; margin-bottom: 12px; }
+    .record { display: grid; gap: 8px; }
+    .record-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 13px; }
+    .record-label { color: var(--muted); font-weight: 700; }
+    .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
+    .step-num { width: 24px; height: 24px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--ink); color: white; font-size: 12px; font-weight: 900; }
+    @media (max-width: 900px) { .toolbar, .metric-row, .callout { grid-template-columns: 1fr; } .topbar { align-items: flex-start; flex-direction: column; } .safety { justify-content: flex-start; } }
   </style>
 </head>
 <body>
   <main>
-    <div class="hero">
-      <section class="panel">
-        <p class="badge info">Read-only operator dashboard</p>
+    <header class="topbar">
+      <div>
         <h1>PayGate Operator Console</h1>
-        <p>Manage the gateway from the operator view: apps, provider accounts, plans, webhooks, entitlements, reconciliation, and setup readiness. Secrets stay server-side. Apps stay payment consumers.</p>
-        <div class="row" style="margin-top: 14px">
-          <span class="badge">Stripe behind PayGate</span>
-          <span class="badge">Sandbox/live separated</span>
-          <span class="badge">No refund actions in this slice</span>
-        </div>
-      </section>
-      <section>
-        <h2>Connection</h2>
-        <div class="toolbar">
-          <label><span class="small muted">Operator token</span><input id="token" type="password" placeholder="OPERATOR_DIAGNOSTICS_TOKEN" autocomplete="off" /></label>
-          <label><span class="small muted">App filter</span><input id="appId" placeholder="app_id" value="aintern" /></label>
-          <label><span class="small muted">Environment</span><select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
-          <button id="refresh">Refresh</button>
-        </div>
-        <p id="status" class="muted small">Not loaded. Paste the operator diagnostics token, confirm the app/environment, then click Refresh. Token is held only in this browser tab memory.</p>
-      </section>
-    </div>
+        <p class="subtitle">Read-only control room for app payments, provider routing, entitlement evidence, and setup readiness.</p>
+      </div>
+      <div class="safety">
+        <span class="badge info">Stripe behind PayGate</span>
+        <span class="badge info">Sandbox/live separated</span>
+        <span class="badge warn">Refund deferred</span>
+      </div>
+    </header>
 
-    <section>
-      <h2>Dashboard</h2>
-      <div id="dashboard" class="grid"><div class="empty">Load data to see gateway status.</div></div>
+    <section class="control-card">
+      <div class="toolbar">
+        <label>Operator token<input id="token" type="password" placeholder="Paste operator diagnostics token" autocomplete="off" /></label>
+        <label>App filter<input id="appId" placeholder="app_id" value="aintern" /></label>
+        <label>Environment<select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
+        <button id="refresh">Refresh</button>
+      </div>
+      <p id="status" class="status-line">Not loaded. Token is held only in this browser tab memory.</p>
+    </section>
+
+    <section id="actionPanel" class="callout warn">
+      <div>
+        <div class="callout-title">Load PayGate status</div>
+        <p>Paste the operator token and click Refresh. The console will show the next safe action first, then details below.</p>
+      </div>
+      <span class="badge warn">waiting</span>
     </section>
 
     <section>
-      <h2>Next Safe Action</h2>
-      <div id="nextAction" class="card">Refresh the dashboard first. The console will suggest the next safe operator action.</div>
+      <h2>Operational Snapshot</h2>
+      <p class="section-kicker">A compact summary for the selected app and environment.</p>
+      <div id="dashboard" class="metric-row"><div class="empty">No data loaded.</div></div>
     </section>
 
     <section>
-      <h2>Apps and Plans</h2>
+      <h2>Apps, Plans, and Provider Accounts</h2>
+      <p class="section-kicker">Commercial authority stays in PayGate registry. Apps do not provide amounts, price IDs, or entitlements.</p>
       <div id="apps" class="wide-grid"><div class="empty">No data loaded.</div></div>
+      <div id="providerAccounts" class="grid" style="margin-top:12px"></div>
     </section>
 
     <section>
-      <h2>Provider Accounts</h2>
-      <div id="providerAccounts" class="grid"><div class="empty">No data loaded.</div></div>
-    </section>
-
-    <section>
-      <h2>Customers and Entitlements</h2>
+      <h2>Customer Payment State</h2>
+      <p class="section-kicker">Entitlements come from verified webhooks or explicit reconciliation, never browser redirects.</p>
       <div id="customers" class="wide-grid"><div class="empty">No data loaded.</div></div>
     </section>
 
     <section>
-      <h2>Checkout Sessions</h2>
-      <div id="checkouts" class="wide-grid"><div class="empty">No data loaded.</div></div>
-    </section>
-
-    <section>
-      <h2>Webhooks</h2>
-      <div id="webhooks" class="wide-grid"><div class="empty">No data loaded.</div></div>
-    </section>
-
-    <section>
-      <h2>Reconciliation</h2>
-      <div id="reconciliation" class="wide-grid"><div class="empty">No data loaded.</div></div>
+      <h2>Evidence Trail</h2>
+      <p class="section-kicker">Checkout, webhook, and reconciliation evidence for operator review.</p>
+      <div class="wide-grid">
+        <div><h3>Checkout Sessions</h3><div id="checkouts" class="record"><div class="empty">No data loaded.</div></div></div>
+        <div><h3>Webhooks</h3><div id="webhooks" class="record"><div class="empty">No data loaded.</div></div></div>
+        <div><h3>Reconciliation</h3><div id="reconciliation" class="record"><div class="empty">No data loaded.</div></div></div>
+      </div>
     </section>
 
     <section>
       <h2>App Onboarding Checklist</h2>
+      <p class="section-kicker">Use this before connecting app #2. This slice is guidance only; registry writes are not automated yet.</p>
       <div id="onboarding" class="grid"></div>
     </section>
 
     <section>
       <details>
-        <summary>Last Raw Summary</summary>
+        <summary>Support JSON</summary>
+        <p class="muted small">For debugging only. Safe summary data; no secrets should appear here.</p>
         <pre id="raw">{}</pre>
       </details>
     </section>
@@ -539,11 +548,11 @@ const ADMIN_HTML = `<!doctype html>
 var $ = function (id) { return document.getElementById(id); };
 function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
 function badge(value, tone) { return '<span class="badge ' + esc(tone || '') + '">' + esc(value) + '</span>'; }
-function line(label, value) { return '<p><span class="muted small">' + esc(label) + '</span><br />' + value + '</p>'; }
-function card(title, lines, extraClass) { return '<div class="card ' + esc(extraClass || '') + '"><h3>' + esc(title) + '</h3>' + lines.join('') + '</div>'; }
+function row(label, value) { return '<div class="record-row"><div class="record-label">' + esc(label) + '</div><div>' + value + '</div></div>'; }
+function card(title, rows) { return '<div class="card"><h3>' + esc(title) + '</h3><div class="record">' + rows.join('') + '</div></div>'; }
+function metric(label, value, tone, detail) { return '<div class="metric"><div class="metric-label">' + esc(label) + '</div><div class="metric-value">' + esc(value) + '</div><div>' + (detail || badge(tone || 'ok', tone)) + '</div></div>'; }
 function renderList(id, items, empty, render) { $(id).innerHTML = items && items.length ? items.map(render).join('') : '<div class="empty">' + esc(empty) + '</div>'; }
-function envTone(env) { return env === 'live' ? 'warn' : env === 'test' ? 'info' : ''; }
-function statusTone(status) { return status === 'ok' || status === 'ready' || status === 'processed' || status === 'active' ? 'ok' : status === 'attention_required' || status === 'open' ? 'warn' : status ? 'danger' : ''; }
+function statusTone(status) { return status === 'ok' || status === 'ready' || status === 'processed' || status === 'active' ? 'ok' : status === 'attention_required' || status === 'open' || status === 'warning' ? 'warn' : status ? 'danger' : ''; }
 function money(plan) { return esc(plan.currency || '') + ' ' + ((Number(plan.amount_minor || 0) / 100).toFixed(2)); }
 function currentParams() {
   var params = new URLSearchParams();
@@ -556,61 +565,52 @@ async function fetchJson(url, token) {
   var body = await response.json().catch(function () { return {}; });
   return { ok: response.ok, status: response.status, body: body };
 }
+function collectProviderAccounts(apps) {
+  var set = {};
+  (apps || []).forEach(function (app) { if (app.provider_account) set[(app.provider_id || 'provider') + ':' + app.provider_account] = true; });
+  return Object.keys(set).sort();
+}
+function renderActionPanel(summary, monitoring) {
+  var alerts = monitoring.alerts || [];
+  var apps = summary.apps || [];
+  var critical = alerts.filter(function (a) { return a.severity === 'critical'; });
+  var panel = $("actionPanel");
+  var tone = critical.length ? 'danger' : alerts.length ? 'warn' : 'ok';
+  var title = critical.length ? 'Stop: critical payment issue' : alerts.length ? 'Review warnings before onboarding' : 'PayGate is healthy for the selected view';
+  var body = critical.length
+    ? 'Clear critical monitoring or webhook issues before connecting another app.'
+    : alerts.length
+      ? 'Warnings are present. For AIntern one-time passes, no provider subscription can be normal, but no-provider-customer warnings should be reviewed.'
+      : 'Next safe step: continue with the app onboarding wizard UI. Refund remains deferred.';
+  if (!apps.length) { tone = 'warn'; title = 'No app found'; body = 'Clear the app filter or confirm the app ID before onboarding.'; }
+  panel.className = 'callout ' + tone;
+  panel.innerHTML = '<div><div class="callout-title">' + esc(title) + '</div><p>' + esc(body) + '</p>' + (alerts.length ? '<p>' + alerts.map(function (a) { return badge(a.severity + ':' + a.code, a.severity === 'critical' ? 'danger' : 'warn'); }).join('') + '</p>' : '') + '</div>' + badge(tone === 'ok' ? 'ok' : 'needs review', tone);
+}
 function renderDashboard(summary, monitoring) {
   var apps = summary.apps || [];
   var customers = summary.customers || [];
   var webhooks = summary.webhooks || [];
   var reconciliations = summary.reconciliation_runs || [];
-  var alerts = monitoring.alerts || [];
   var providerAccounts = collectProviderAccounts(apps);
   var webhookChecks = monitoring.checks && monitoring.checks.webhook_inbox || {};
   var reconciliationChecks = monitoring.checks && monitoring.checks.reconciliation || {};
   $("dashboard").innerHTML = [
-    card('Overall status', [line('Monitoring', badge(monitoring.status || 'unknown', statusTone(monitoring.status))), line('Alerts', alerts.length ? alerts.map(function (a) { return badge(a.severity + ':' + a.code, a.severity === 'critical' ? 'danger' : 'warn'); }).join(' ') : badge('none', 'ok'))], 'dark'),
-    card('Apps', [line('Registered apps in view', '<span class="metric">' + apps.length + '</span>'), line('Provider accounts', providerAccounts.map(function (p) { return badge(p, 'info'); }).join(' ') || 'none')]),
-    card('Webhooks', [line('Recent events in view', '<span class="metric">' + webhooks.length + '</span>'), line('Pending/retry/dead', '<code>' + esc((webhookChecks.pending || 0) + '/' + (webhookChecks.retryable || 0) + '/' + (webhookChecks.deadLetter || 0)) + '</code>')]),
-    card('Reconciliation', [line('Recent runs in view', '<span class="metric">' + reconciliations.length + '</span>'), line('Failed/no customer/no subscription', '<code>' + esc((reconciliationChecks.failed || 0) + '/' + (reconciliationChecks.noProviderCustomer || 0) + '/' + (reconciliationChecks.noProviderSubscription || 0)) + '</code>')]),
-    card('Customers', [line('Customers in view', '<span class="metric">' + customers.length + '</span>'), line('Entitlement source', 'Verified webhooks or explicit reconciliation only')])
+    metric('Gateway status', monitoring.status || 'unknown', statusTone(monitoring.status)),
+    metric('Apps / customers', apps.length + ' / ' + customers.length, 'info', badge('selected scope', 'info')),
+    metric('Webhooks', webhooks.length, (webhookChecks.deadLetter || webhookChecks.retryable) ? 'danger' : 'ok', '<span class="small muted">pending/retry/dead</span><br /><code>' + esc((webhookChecks.pending || 0) + '/' + (webhookChecks.retryable || 0) + '/' + (webhookChecks.deadLetter || 0)) + '</code>'),
+    metric('Reconciliation', reconciliations.length, (reconciliationChecks.failed || 0) > 0 ? 'danger' : (reconciliationChecks.noProviderCustomer || reconciliationChecks.noProviderSubscription) ? 'warn' : 'ok', '<span class="small muted">failed/no customer/no subscription</span><br /><code>' + esc((reconciliationChecks.failed || 0) + '/' + (reconciliationChecks.noProviderCustomer || 0) + '/' + (reconciliationChecks.noProviderSubscription || 0)) + '</code>')
   ].join('');
-  renderNextAction(summary, monitoring);
-}
-function renderNextAction(summary, monitoring) {
-  var alerts = monitoring.alerts || [];
-  var apps = summary.apps || [];
-  if (alerts.some(function (a) { return a.severity === 'critical'; })) {
-    $("nextAction").innerHTML = '<strong>Critical attention required.</strong><p>Open Monitoring and Webhooks first. Do not onboard another app until critical alerts are cleared.</p>';
-    return;
-  }
-  if (!apps.length) {
-    $("nextAction").innerHTML = '<strong>No app found for this filter.</strong><p>Clear the app filter or start app intake only after confirming the app ID.</p>';
-    return;
-  }
-  var missingLiveLookup = apps.some(function (app) { return (app.plans || []).some(function (plan) { return !plan.live_provider_lookup_configured; }); });
-  if (missingLiveLookup) {
-    $("nextAction").innerHTML = '<strong>Plan lookup configuration needs review.</strong><p>Check Plans and Prices before any live operation. Apps must use plan keys only; PayGate owns lookup keys.</p>';
-    return;
-  }
-  if (alerts.length) {
-    $("nextAction").innerHTML = '<strong>Warnings exist, but no critical alert.</strong><p>Review reconciliation warnings. For one-time payment plans, no provider subscription can be expected.</p>';
-    return;
-  }
-  $("nextAction").innerHTML = '<strong>Safe next step: build the app onboarding wizard.</strong><p>The current view is healthy enough to proceed with UI-guided app #2 intake, still without live payment/refund actions.</p>';
-}
-function collectProviderAccounts(apps) {
-  var set = {};
-  apps.forEach(function (app) { if (app.provider_account) set[(app.provider_id || 'provider') + ':' + app.provider_account] = true; });
-  return Object.keys(set).sort();
+  renderActionPanel(summary, monitoring);
 }
 function renderApps(apps) {
   renderList("apps", apps || [], "No apps.", function (app) {
-    var plans = (app.plans || []).map(function (plan) {
-      return '<div class="card"><strong>' + esc(plan.plan_key) + '</strong> ' + badge(plan.status, statusTone(plan.status)) + '<br />' + esc(plan.name) + '<br />' + money(plan) + ' · ' + esc(plan.mode) + '<br /><span class="small muted">lookup:</span> ' + badge(plan.provider_lookup_configured ? 'sandbox ok' : 'sandbox missing', plan.provider_lookup_configured ? 'ok' : 'danger') + ' ' + badge(plan.live_provider_lookup_configured ? 'live ok' : 'live missing', plan.live_provider_lookup_configured ? 'ok' : 'warn') + '<br /><span class="small muted">entitlements:</span> ' + esc((plan.entitlements || []).join(', ') || 'none') + '</div>';
-    }).join('');
+    var plans = (app.plans || []).map(function (plan) { return '<div class="card soft"><strong>' + esc(plan.plan_key) + '</strong> ' + badge(plan.status, statusTone(plan.status)) + '<p>' + esc(plan.name) + '</p><p><strong>' + money(plan) + '</strong> · ' + esc(plan.mode) + '</p><p>' + badge(plan.provider_lookup_configured ? 'sandbox lookup ok' : 'sandbox lookup missing', plan.provider_lookup_configured ? 'ok' : 'danger') + badge(plan.live_provider_lookup_configured ? 'live lookup ok' : 'live lookup missing', plan.live_provider_lookup_configured ? 'ok' : 'warn') + '</p><p class="small muted">' + esc((plan.entitlements || []).join(', ') || 'No entitlements') + '</p></div>'; }).join('');
     return card(app.app_id, [
-      line('Name', esc(app.name)),
-      line('Provider account', '<code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>'),
-      line('Origins', badge('test', 'info') + ' ' + esc(app.origins && app.origins.test || 'missing') + '<br />' + badge('live', 'warn') + ' ' + esc(app.origins && app.origins.live || 'missing')),
-      line('Plans', plans || 'No plans configured')
+      row('Name', esc(app.name)),
+      row('Provider', '<code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>'),
+      row('Test URL', esc(app.origins && app.origins.test || 'missing')),
+      row('Live URL', esc(app.origins && app.origins.live || 'missing')),
+      row('Plans', plans || 'No plans configured')
     ]);
   });
 }
@@ -622,47 +622,31 @@ function renderProviderAccounts(apps) {
     rows[key].apps.push(app.app_id);
     (app.plans || []).forEach(function (plan) { rows[key].plans += 1; if (plan.provider_lookup_configured) rows[key].sandboxReady += 1; if (plan.live_provider_lookup_configured) rows[key].liveReady += 1; });
   });
-  renderList("providerAccounts", Object.values(rows), "No provider accounts.", function (row) {
-    return card(row.key, [line('Linked apps', row.apps.map(function (app) { return badge(app, 'info'); }).join(' ')), line('Plan lookup readiness', badge('sandbox ' + row.sandboxReady + '/' + row.plans, row.sandboxReady === row.plans ? 'ok' : 'warn') + ' ' + badge('live ' + row.liveReady + '/' + row.plans, row.liveReady === row.plans ? 'ok' : 'warn')), line('Secrets', 'Hidden server-side')]);
+  renderList("providerAccounts", Object.values(rows), "No provider accounts.", function (item) {
+    return card(item.key, [row('Linked apps', item.apps.map(function (app) { return badge(app, 'info'); }).join(' ')), row('Lookup readiness', badge('sandbox ' + item.sandboxReady + '/' + item.plans, item.sandboxReady === item.plans ? 'ok' : 'warn') + badge('live ' + item.liveReady + '/' + item.plans, item.liveReady === item.plans ? 'ok' : 'warn')), row('Secrets', 'Hidden server-side')]);
   });
 }
 function renderCustomers(customers) {
   renderList("customers", customers || [], "No customers.", function (c) {
     return card((c.app_id || 'app') + ' / ' + (c.user_ref || 'user'), [
-      line('PayGate state', badge(c.subscription && c.subscription.state || 'none', statusTone(c.subscription && c.subscription.state)) + ' ' + esc(c.subscription && c.subscription.plan_key || '')),
-      line('Provider customers', ((c.provider_customers || []).map(function (pc) { return '<code>' + esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref) + '</code>'; }).join('<br />')) || 'none'),
-      line('Entitlements', ((c.entitlements || []).map(function (e) { return badge(e.key + '=' + e.state, statusTone(e.state)); }).join(' ')) || 'none')
+      row('PayGate state', badge(c.subscription && c.subscription.state || 'none', statusTone(c.subscription && c.subscription.state)) + ' ' + esc(c.subscription && c.subscription.plan_key || '')),
+      row('Provider customer', ((c.provider_customers || []).map(function (pc) { return '<code>' + esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref) + '</code>'; }).join('<br />')) || 'none'),
+      row('Entitlements', ((c.entitlements || []).map(function (e) { return badge(e.key + '=' + e.state, statusTone(e.state)); }).join(' ')) || 'none')
     ]);
   });
 }
 function renderCheckouts(sessions) {
-  renderList("checkouts", sessions || [], "No checkout sessions.", function (s) {
-    return card(s.provider_checkout_session_ref || 'session', [line('App/user', esc(s.app_id) + ' / ' + esc(s.user_ref)), line('Provider/env', '<code>' + esc(s.provider_id) + ':' + esc(s.provider_account) + ':' + esc(s.environment) + '</code>'), line('Plan/status', badge(s.plan_key, 'info') + ' ' + badge(s.status, statusTone(s.status))), line('Created/expires', esc(s.created_at) + '<br />' + esc(s.expires_at || ''))]);
-  });
+  renderList("checkouts", sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref || 'session', [row('App/user', esc(s.app_id) + ' / ' + esc(s.user_ref)), row('Provider', '<code>' + esc(s.provider_id) + ':' + esc(s.provider_account) + ':' + esc(s.environment) + '</code>'), row('Plan/status', badge(s.plan_key, 'info') + badge(s.status, statusTone(s.status))), row('Created', esc(s.created_at))]); });
 }
 function renderWebhooks(webhooks) {
-  renderList("webhooks", webhooks || [], "No webhooks.", function (w) {
-    return card(w.provider_event_id || 'event', [line('Type/status', '<code>' + esc(w.event_type) + '</code> ' + badge(w.status, statusTone(w.status))), line('Provider/env', '<code>' + esc(w.provider_id) + ':' + esc(w.provider_account) + ':' + esc(w.environment) + '</code>'), line('App/user', esc(w.app_id || 'unknown') + ' / ' + esc(w.user_ref || 'unknown')), line('Received/processed', esc(w.received_at || '') + '<br />' + esc(w.processed_at || ''))]);
-  });
+  renderList("webhooks", webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id || 'event', [row('Type/status', '<code>' + esc(w.event_type) + '</code> ' + badge(w.status, statusTone(w.status))), row('Provider', '<code>' + esc(w.provider_id) + ':' + esc(w.provider_account) + ':' + esc(w.environment) + '</code>'), row('App/user', esc(w.app_id || 'unknown') + ' / ' + esc(w.user_ref || 'unknown')), row('Processed', esc(w.processed_at || 'not yet'))]); });
 }
 function renderReconciliation(runs) {
-  renderList("reconciliation", runs || [], "No reconciliation runs.", function (r) {
-    var note = r.status === 'no_provider_subscription' ? 'For one-time payment plans this can be expected; PayGate state is still the authority.' : esc(r.classification || 'none');
-    return card(r.id || 'run', [line('Status', badge(r.status || 'unknown', statusTone(r.status))), line('Classification/note', note), line('Provider/env', '<code>' + esc(r.provider_id) + ':' + esc(r.provider_account) + ':' + esc(r.environment) + '</code>'), line('App/user', esc(r.app_id || '') + ' / ' + esc(r.user_ref || '')), line('Completed', esc(r.completed_at || ''))]);
-  });
+  renderList("reconciliation", runs || [], "No reconciliation runs.", function (r) { var note = r.status === 'no_provider_subscription' ? 'Expected for one-time payment plans; PayGate state remains the authority.' : esc(r.classification || 'none'); return card(r.id || 'run', [row('Status', badge(r.status || 'unknown', statusTone(r.status))), row('Note', note), row('Provider', '<code>' + esc(r.provider_id) + ':' + esc(r.provider_account) + ':' + esc(r.environment) + '</code>'), row('App/user', esc(r.app_id || '') + ' / ' + esc(r.user_ref || ''))]); });
 }
 function renderOnboarding() {
-  var steps = [
-    'Confirm app owner, repository, production URL, and sandbox URL.',
-    'Confirm user identity and app auth boundary.',
-    'Choose company-scoped provider account alias.',
-    'Define PayGate-owned plans, prices, lookup keys, and entitlements.',
-    'Configure Stripe products/prices and webhook endpoint.',
-    'Run registry validation and provider isolation tests.',
-    'Complete sandbox checkout, webhook, entitlement, portal, and reconciliation proof.',
-    'Record evidence before any live-mode approval.'
-  ];
-  $("onboarding").innerHTML = steps.map(function (step, index) { return '<div class="card"><div class="step"><span class="step-num">' + (index + 1) + '</span><p>' + esc(step) + '</p></div></div>'; }).join('');
+  var steps = ['Confirm app owner, repository, production URL, and sandbox URL.', 'Confirm user identity and app auth boundary.', 'Choose company-scoped provider account alias.', 'Define PayGate-owned plans, prices, lookup keys, and entitlements.', 'Configure Stripe products/prices and webhook endpoint.', 'Run registry validation and provider isolation tests.', 'Complete sandbox checkout, webhook, entitlement, portal, and reconciliation proof.', 'Record evidence before live-mode approval.'];
+  $("onboarding").innerHTML = steps.map(function (step, index) { return '<div class="card soft"><div class="step"><span class="step-num">' + (index + 1) + '</span><p>' + esc(step) + '</p></div></div>'; }).join('');
 }
 async function refresh() {
   var token = $("token").value.trim();
@@ -672,16 +656,10 @@ async function refresh() {
   var monitoringResult = await fetchJson('/admin/monitoring?' + params.toString(), token);
   var summaryResult = await fetchJson('/admin/summary?' + params.toString(), token);
   $("raw").textContent = JSON.stringify({ monitoring: monitoringResult.body, summary: summaryResult.body }, null, 2);
-  if (!monitoringResult.ok) {
-    $("dashboard").innerHTML = card('Monitoring error', [line('HTTP', '<code>' + esc(monitoringResult.status) + '</code>'), line('Code', '<code>' + esc(monitoringResult.body && monitoringResult.body.error && monitoringResult.body.error.code || 'unknown') + '</code>'), line('Message', esc(monitoringResult.body && monitoringResult.body.error && monitoringResult.body.error.message || 'Unable to load monitoring'))], '');
-  }
-  if (!summaryResult.ok) {
-    $("status").textContent = summaryResult.status + ': ' + (summaryResult.body && summaryResult.body.error && summaryResult.body.error.code || 'error');
-    return;
-  }
+  if (!summaryResult.ok) { $("status").textContent = summaryResult.status + ': ' + (summaryResult.body && summaryResult.body.error && summaryResult.body.error.code || 'error'); return; }
   var summary = summaryResult.body || {};
   var monitoring = monitoringResult.ok ? monitoringResult.body : { status: 'attention_required', alerts: [{ severity: 'warning', code: 'MONITORING_UNAVAILABLE' }], checks: {} };
-  $("status").textContent = 'Loaded ' + summary.generated_at + ' · filter app=' + ($("appId").value.trim() || 'all') + ' env=' + ($("environment").value || 'all');
+  $("status").textContent = 'Loaded ' + summary.generated_at + ' · app=' + ($("appId").value.trim() || 'all') + ' · env=' + ($("environment").value || 'all');
   renderDashboard(summary, monitoring);
   renderApps(summary.apps || []);
   renderProviderAccounts(summary.apps || []);

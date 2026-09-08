@@ -224,3 +224,25 @@ Track 1A validation:
 - [x] Unit tests passed.
 - [x] Admin console shell test asserts operator UI sections exist.
 - [x] Secret scan passed.
+## Track 1A UX Correction - Operator Hierarchy
+
+Date: 2026-09-08.
+
+The first dashboard slice was corrected after operator review. The original visual hierarchy still behaved like a developer debug page: the hero consumed space, the connection controls were too prominent in the wrong way, and the dashboard treated every metric as equal.
+
+Correction applied:
+
+- Removed the large marketing-style hero block.
+- Replaced it with a compact top bar.
+- Kept the connection controls in a single full-width operator control strip.
+- Moved operator guidance into one action panel above the metrics.
+- Renamed the main metric area to Operational Snapshot.
+- Grouped details into Apps/Plans/Provider Accounts, Customer Payment State, Evidence Trail, and App Onboarding Checklist.
+- Kept Support JSON collapsed by default.
+
+Design direction locked for the next UI work:
+
+- First answer: is PayGate okay?
+- Second answer: what should the operator do next?
+- Third answer: what evidence supports that?
+- Raw/debug data stays behind disclosure, not in the main path.
