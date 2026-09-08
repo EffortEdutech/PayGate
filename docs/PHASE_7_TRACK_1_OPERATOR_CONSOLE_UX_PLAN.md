@@ -246,3 +246,32 @@ Design direction locked for the next UI work:
 - Second answer: what should the operator do next?
 - Third answer: what evidence supports that?
 - Raw/debug data stays behind disclosure, not in the main path.
+## Track 1B and Track 1C Implementation Evidence
+
+Date: 2026-09-09.
+
+Track 1B - Multi-App Operator Console Design + App Switcher:
+
+- Added an app directory/sidebar pattern for multiple apps.
+- Removed the single hardcoded `aintern` app filter workflow from the main operator path.
+- Added app search by name, app ID, provider, or provider account.
+- Added All apps / Selected app scope tabs.
+- Kept environment as a global operator filter: test, live, or all.
+
+Track 1C - App Directory + App Detail View:
+
+- Added selectable app cards showing app name, app ID, provider account, and plan count.
+- Added selected app workspace showing app authority, provider account, URLs, setup guidance, and plans.
+- Customer, checkout, webhook, and reconciliation sections now filter to the selected app when Selected app scope is active.
+- Provider account readiness is shown for all apps or the selected app depending on scope.
+
+Boundary decisions:
+
+- The console remains read-only.
+- Editing/updating apps is intentionally not implemented in Track 1C.
+- App changes must go through a future draft registry-change workflow.
+- No provider secrets, webhook secrets, JWTs, database credentials, or operator tokens are displayed.
+
+Next planned track:
+
+- Phase 7 Track 1D - Draft App Setup / Edit Wizard, where changes are previewed and validated before any registry update.

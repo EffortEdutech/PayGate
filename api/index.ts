@@ -420,26 +420,29 @@ const ADMIN_HTML = `<!doctype html>
     :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --soft:#f8fafc; --brand:#2563eb; --ok:#15803d; --warn:#a16207; --danger:#b91c1c; }
     * { box-sizing: border-box; }
     body { margin: 0; color: var(--ink); background: #f6f8fb; }
-    main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 48px; }
+    main { max-width: 1260px; margin: 0 auto; padding: 18px 20px 48px; }
     h1 { margin: 0; font-size: 24px; letter-spacing: -0.03em; }
-    h2 { margin: 0 0 12px; font-size: 17px; letter-spacing: -0.02em; }
+    h2 { margin: 0 0 10px; font-size: 17px; letter-spacing: -0.02em; }
     h3 { margin: 0 0 8px; font-size: 14px; }
     p { margin: 6px 0; line-height: 1.45; }
     input, button, select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font: inherit; }
     input, select { width: 100%; background: white; color: var(--ink); }
     button { cursor: pointer; background: var(--brand); color: white; border-color: var(--brand); font-weight: 800; min-height: 42px; }
+    button.ghost { background: white; color: var(--ink); border-color: #cbd5e1; }
     section { background: white; border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
     .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 14px; }
     .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
     .safety { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .control-card { margin-top: 0; }
     .toolbar { display: grid; grid-template-columns: minmax(320px, 1.8fr) minmax(180px, .9fr) minmax(140px, .6fr) 130px; gap: 12px; align-items: end; }
     label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); font-weight: 700; }
     .status-line { margin-top: 10px; color: var(--muted); font-size: 13px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-    .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
-    .card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px; background: #fff; min-width: 0; }
-    .card.soft { background: var(--soft); }
+    .console-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 14px; align-items: start; }
+    .sidebar { position: sticky; top: 14px; }
+    .app-list { display: grid; gap: 8px; }
+    .app-button { width: 100%; text-align: left; background: #fff; color: var(--ink); border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; min-height: unset; }
+    .app-button:hover, .app-button.active { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+    .app-button-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-weight: 900; }
+    .app-button-meta { color: var(--muted); font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
     .callout { border-radius: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
     .callout.ok { background: #ecfdf5; border: 1px solid #bbf7d0; }
     .callout.warn { background: #fffbeb; border: 1px solid #fde68a; }
@@ -447,8 +450,12 @@ const ADMIN_HTML = `<!doctype html>
     .callout-title { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; }
     .metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .metric { background: var(--soft); border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
-    .metric-value { font-size: 26px; font-weight: 900; letter-spacing: -0.04em; }
+    .metric-value { font-size: 26px; font-weight: 900; letter-spacing: -0.04em; overflow-wrap: anywhere; }
     .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+    .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(315px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px; background: #fff; min-width: 0; }
+    .card.soft { background: var(--soft); }
     .muted { color: var(--muted); }
     .small { font-size: 13px; }
     .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: 800; margin: 2px 4px 2px 0; }
@@ -460,13 +467,16 @@ const ADMIN_HTML = `<!doctype html>
     pre { white-space: pre-wrap; background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 14px; overflow: auto; max-height: 420px; }
     details summary { cursor: pointer; font-weight: 800; }
     .empty { padding: 14px; border: 1px dashed #cbd5e1; border-radius: 14px; color: var(--muted); background: var(--soft); }
-    .section-kicker { color: var(--muted); font-size: 13px; margin-top: -6px; margin-bottom: 12px; }
+    .section-kicker { color: var(--muted); font-size: 13px; margin-top: -5px; margin-bottom: 12px; }
     .record { display: grid; gap: 8px; }
     .record-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 13px; }
     .record-label { color: var(--muted); font-weight: 700; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+    .tab { background: white; color: var(--ink); border: 1px solid #cbd5e1; min-height: 34px; padding: 7px 11px; }
+    .tab.active { background: var(--ink); color: white; border-color: var(--ink); }
     .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
     .step-num { width: 24px; height: 24px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--ink); color: white; font-size: 12px; font-weight: 900; }
-    @media (max-width: 900px) { .toolbar, .metric-row, .callout { grid-template-columns: 1fr; } .topbar { align-items: flex-start; flex-direction: column; } .safety { justify-content: flex-start; } }
+    @media (max-width: 980px) { .toolbar, .metric-row, .callout, .console-layout { grid-template-columns: 1fr; } .sidebar { position: static; } .topbar { align-items: flex-start; flex-direction: column; } .safety { justify-content: flex-start; } }
   </style>
 </head>
 <body>
@@ -474,19 +484,19 @@ const ADMIN_HTML = `<!doctype html>
     <header class="topbar">
       <div>
         <h1>PayGate Operator Console</h1>
-        <p class="subtitle">Read-only control room for app payments, provider routing, entitlement evidence, and setup readiness.</p>
+        <p class="subtitle">Multi-app control room for provider routing, plan authority, entitlement evidence, and setup readiness.</p>
       </div>
       <div class="safety">
-        <span class="badge info">Stripe behind PayGate</span>
+        <span class="badge info">Registry-owned commercial authority</span>
         <span class="badge info">Sandbox/live separated</span>
         <span class="badge warn">Refund deferred</span>
       </div>
     </header>
 
-    <section class="control-card">
+    <section>
       <div class="toolbar">
         <label>Operator token<input id="token" type="password" placeholder="Paste operator diagnostics token" autocomplete="off" /></label>
-        <label>App filter<input id="appId" placeholder="app_id" value="aintern" /></label>
+        <label>Search apps<input id="appSearch" placeholder="Search app name, ID, provider" /></label>
         <label>Environment<select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
         <button id="refresh">Refresh</button>
       </div>
@@ -496,56 +506,69 @@ const ADMIN_HTML = `<!doctype html>
     <section id="actionPanel" class="callout warn">
       <div>
         <div class="callout-title">Load PayGate status</div>
-        <p>Paste the operator token and click Refresh. The console will show the next safe action first, then details below.</p>
+        <p>Paste the operator token and click Refresh. Then choose an app from the app switcher.</p>
       </div>
       <span class="badge warn">waiting</span>
     </section>
 
     <section>
-      <h2>Operational Snapshot</h2>
-      <p class="section-kicker">A compact summary for the selected app and environment.</p>
+      <h2>Global Operational Snapshot</h2>
+      <p class="section-kicker">All apps in the selected environment. Use the app switcher below to inspect one app.</p>
       <div id="dashboard" class="metric-row"><div class="empty">No data loaded.</div></div>
     </section>
 
-    <section>
-      <h2>Apps, Plans, and Provider Accounts</h2>
-      <p class="section-kicker">Commercial authority stays in PayGate registry. Apps do not provide amounts, price IDs, or entitlements.</p>
-      <div id="apps" class="wide-grid"><div class="empty">No data loaded.</div></div>
-      <div id="providerAccounts" class="grid" style="margin-top:12px"></div>
-    </section>
+    <div class="console-layout">
+      <aside class="sidebar">
+        <section>
+          <h2>App Directory</h2>
+          <p class="section-kicker">Select an app. No hardcoded app workflow.</p>
+          <div class="tabs"><button id="allAppsTab" class="tab active">All apps</button><button id="selectedAppTab" class="tab">Selected app</button></div>
+          <div id="appDirectory" class="app-list"><div class="empty">Load apps first.</div></div>
+        </section>
+      </aside>
 
-    <section>
-      <h2>Customer Payment State</h2>
-      <p class="section-kicker">Entitlements come from verified webhooks or explicit reconciliation, never browser redirects.</p>
-      <div id="customers" class="wide-grid"><div class="empty">No data loaded.</div></div>
-    </section>
+      <div>
+        <section>
+          <h2 id="workspaceTitle">Selected App Workspace</h2>
+          <p id="workspaceSubtitle" class="section-kicker">Choose an app from the directory to view plans, provider account, URLs, customers, webhooks, and reconciliation.</p>
+          <div id="appWorkspace"><div class="empty">No app selected.</div></div>
+        </section>
 
-    <section>
-      <h2>Evidence Trail</h2>
-      <p class="section-kicker">Checkout, webhook, and reconciliation evidence for operator review.</p>
-      <div class="wide-grid">
-        <div><h3>Checkout Sessions</h3><div id="checkouts" class="record"><div class="empty">No data loaded.</div></div></div>
-        <div><h3>Webhooks</h3><div id="webhooks" class="record"><div class="empty">No data loaded.</div></div></div>
-        <div><h3>Reconciliation</h3><div id="reconciliation" class="record"><div class="empty">No data loaded.</div></div></div>
+        <section>
+          <h2>Customer Payment State</h2>
+          <p class="section-kicker">Filtered to the selected app when an app is selected.</p>
+          <div id="customers" class="wide-grid"><div class="empty">No data loaded.</div></div>
+        </section>
+
+        <section>
+          <h2>Evidence Trail</h2>
+          <p class="section-kicker">Checkout, webhook, and reconciliation evidence for selected scope.</p>
+          <div class="wide-grid">
+            <div><h3>Checkout Sessions</h3><div id="checkouts" class="record"><div class="empty">No data loaded.</div></div></div>
+            <div><h3>Webhooks</h3><div id="webhooks" class="record"><div class="empty">No data loaded.</div></div></div>
+            <div><h3>Reconciliation</h3><div id="reconciliation" class="record"><div class="empty">No data loaded.</div></div></div>
+          </div>
+        </section>
+
+        <section>
+          <h2>App Onboarding Checklist</h2>
+          <p class="section-kicker">Use this before connecting app #2. This slice is guidance only; registry writes are not automated yet.</p>
+          <div id="onboarding" class="grid"></div>
+        </section>
+
+        <section>
+          <details>
+            <summary>Support JSON</summary>
+            <p class="muted small">For debugging only. Safe summary data; no secrets should appear here.</p>
+            <pre id="raw">{}</pre>
+          </details>
+        </section>
       </div>
-    </section>
-
-    <section>
-      <h2>App Onboarding Checklist</h2>
-      <p class="section-kicker">Use this before connecting app #2. This slice is guidance only; registry writes are not automated yet.</p>
-      <div id="onboarding" class="grid"></div>
-    </section>
-
-    <section>
-      <details>
-        <summary>Support JSON</summary>
-        <p class="muted small">For debugging only. Safe summary data; no secrets should appear here.</p>
-        <pre id="raw">{}</pre>
-      </details>
-    </section>
+    </div>
   </main>
 <script>
 var $ = function (id) { return document.getElementById(id); };
+var state = { summary: null, monitoring: null, selectedAppId: '', scope: 'all' };
 function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
 function badge(value, tone) { return '<span class="badge ' + esc(tone || '') + '">' + esc(value) + '</span>'; }
 function row(label, value) { return '<div class="record-row"><div class="record-label">' + esc(label) + '</div><div>' + value + '</div></div>'; }
@@ -556,7 +579,6 @@ function statusTone(status) { return status === 'ok' || status === 'ready' || st
 function money(plan) { return esc(plan.currency || '') + ' ' + ((Number(plan.amount_minor || 0) / 100).toFixed(2)); }
 function currentParams() {
   var params = new URLSearchParams();
-  if ($("appId").value.trim()) params.set("app_id", $("appId").value.trim());
   if ($("environment").value) params.set("environment", $("environment").value);
   return params;
 }
@@ -570,19 +592,30 @@ function collectProviderAccounts(apps) {
   (apps || []).forEach(function (app) { if (app.provider_account) set[(app.provider_id || 'provider') + ':' + app.provider_account] = true; });
   return Object.keys(set).sort();
 }
+function filteredApps() {
+  var search = $("appSearch").value.trim().toLowerCase();
+  var apps = state.summary && state.summary.apps || [];
+  if (!search) return apps;
+  return apps.filter(function (app) { return [app.app_id, app.name, app.provider_id, app.provider_account].join(' ').toLowerCase().includes(search); });
+}
+function selectedApp() {
+  var apps = state.summary && state.summary.apps || [];
+  return apps.find(function (app) { return app.app_id === state.selectedAppId; }) || null;
+}
+function recordsForSelected(name) {
+  var rows = state.summary && state.summary[name] || [];
+  if (state.scope !== 'selected' || !state.selectedAppId) return rows;
+  return rows.filter(function (row) { return row.app_id === state.selectedAppId; });
+}
 function renderActionPanel(summary, monitoring) {
   var alerts = monitoring.alerts || [];
   var apps = summary.apps || [];
   var critical = alerts.filter(function (a) { return a.severity === 'critical'; });
   var panel = $("actionPanel");
   var tone = critical.length ? 'danger' : alerts.length ? 'warn' : 'ok';
-  var title = critical.length ? 'Stop: critical payment issue' : alerts.length ? 'Review warnings before onboarding' : 'PayGate is healthy for the selected view';
-  var body = critical.length
-    ? 'Clear critical monitoring or webhook issues before connecting another app.'
-    : alerts.length
-      ? 'Warnings are present. For AIntern one-time passes, no provider subscription can be normal, but no-provider-customer warnings should be reviewed.'
-      : 'Next safe step: continue with the app onboarding wizard UI. Refund remains deferred.';
-  if (!apps.length) { tone = 'warn'; title = 'No app found'; body = 'Clear the app filter or confirm the app ID before onboarding.'; }
+  var title = critical.length ? 'Stop: critical payment issue' : alerts.length ? 'Review warnings before app setup' : 'PayGate is healthy for this environment';
+  var body = critical.length ? 'Clear critical monitoring or webhook issues before connecting another app.' : alerts.length ? 'Warnings are present. Select an app and inspect customer/reconciliation evidence before onboarding.' : 'Next safe step: continue with app onboarding wizard UI. Refund remains deferred.';
+  if (!apps.length) { tone = 'warn'; title = 'No apps configured'; body = 'PayGate needs at least one registry app before setup can continue.'; }
   panel.className = 'callout ' + tone;
   panel.innerHTML = '<div><div class="callout-title">' + esc(title) + '</div><p>' + esc(body) + '</p>' + (alerts.length ? '<p>' + alerts.map(function (a) { return badge(a.severity + ':' + a.code, a.severity === 'critical' ? 'danger' : 'warn'); }).join('') + '</p>' : '') + '</div>' + badge(tone === 'ok' ? 'ok' : 'needs review', tone);
 }
@@ -596,25 +629,43 @@ function renderDashboard(summary, monitoring) {
   var reconciliationChecks = monitoring.checks && monitoring.checks.reconciliation || {};
   $("dashboard").innerHTML = [
     metric('Gateway status', monitoring.status || 'unknown', statusTone(monitoring.status)),
-    metric('Apps / customers', apps.length + ' / ' + customers.length, 'info', badge('selected scope', 'info')),
+    metric('Apps', apps.length, 'info', providerAccounts.map(function (p) { return badge(p, 'info'); }).join('') || badge('no provider', 'warn')),
+    metric('Customers', customers.length, 'info', badge('selected environment', 'info')),
     metric('Webhooks', webhooks.length, (webhookChecks.deadLetter || webhookChecks.retryable) ? 'danger' : 'ok', '<span class="small muted">pending/retry/dead</span><br /><code>' + esc((webhookChecks.pending || 0) + '/' + (webhookChecks.retryable || 0) + '/' + (webhookChecks.deadLetter || 0)) + '</code>'),
     metric('Reconciliation', reconciliations.length, (reconciliationChecks.failed || 0) > 0 ? 'danger' : (reconciliationChecks.noProviderCustomer || reconciliationChecks.noProviderSubscription) ? 'warn' : 'ok', '<span class="small muted">failed/no customer/no subscription</span><br /><code>' + esc((reconciliationChecks.failed || 0) + '/' + (reconciliationChecks.noProviderCustomer || 0) + '/' + (reconciliationChecks.noProviderSubscription || 0)) + '</code>')
   ].join('');
   renderActionPanel(summary, monitoring);
 }
-function renderApps(apps) {
-  renderList("apps", apps || [], "No apps.", function (app) {
-    var plans = (app.plans || []).map(function (plan) { return '<div class="card soft"><strong>' + esc(plan.plan_key) + '</strong> ' + badge(plan.status, statusTone(plan.status)) + '<p>' + esc(plan.name) + '</p><p><strong>' + money(plan) + '</strong> · ' + esc(plan.mode) + '</p><p>' + badge(plan.provider_lookup_configured ? 'sandbox lookup ok' : 'sandbox lookup missing', plan.provider_lookup_configured ? 'ok' : 'danger') + badge(plan.live_provider_lookup_configured ? 'live lookup ok' : 'live lookup missing', plan.live_provider_lookup_configured ? 'ok' : 'warn') + '</p><p class="small muted">' + esc((plan.entitlements || []).join(', ') || 'No entitlements') + '</p></div>'; }).join('');
-    return card(app.app_id, [
-      row('Name', esc(app.name)),
-      row('Provider', '<code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>'),
-      row('Test URL', esc(app.origins && app.origins.test || 'missing')),
-      row('Live URL', esc(app.origins && app.origins.live || 'missing')),
-      row('Plans', plans || 'No plans configured')
-    ]);
+function renderAppDirectory() {
+  var apps = filteredApps();
+  renderList('appDirectory', apps, 'No apps match this search.', function (app) {
+    var planCount = (app.plans || []).length;
+    var selected = app.app_id === state.selectedAppId ? ' active' : '';
+    return '<button class="app-button' + selected + '" data-app-id="' + esc(app.app_id) + '"><div class="app-button-title"><span>' + esc(app.name || app.app_id) + '</span>' + badge(planCount + ' plan' + (planCount === 1 ? '' : 's'), 'info') + '</div><div class="app-button-meta"><code>' + esc(app.app_id) + '</code><br />' + esc((app.provider_id || 'provider') + ':' + (app.provider_account || 'unknown')) + '</div></button>';
   });
+  Array.prototype.forEach.call(document.querySelectorAll('.app-button'), function (button) { button.addEventListener('click', function () { state.selectedAppId = button.getAttribute('data-app-id') || ''; state.scope = 'selected'; renderAll(); }); });
 }
-function renderProviderAccounts(apps) {
+function renderWorkspace() {
+  var app = selectedApp();
+  $("allAppsTab").className = 'tab ' + (state.scope === 'all' ? 'active' : '');
+  $("selectedAppTab").className = 'tab ' + (state.scope === 'selected' ? 'active' : '');
+  if (!app) {
+    $("workspaceTitle").textContent = 'Selected App Workspace';
+    $("workspaceSubtitle").textContent = 'Choose an app from the directory to view and verify its setup.';
+    $("appWorkspace").innerHTML = '<div class="empty">No app selected. Choose an app from the left directory.</div>';
+    return;
+  }
+  $("workspaceTitle").textContent = app.name + ' Workspace';
+  $("workspaceSubtitle").textContent = app.app_id + ' uses ' + app.provider_id + ':' + app.provider_account + '. All values shown here are PayGate-owned configuration.';
+  var plans = (app.plans || []).map(function (plan) { return '<div class="card soft"><h3>' + esc(plan.plan_key) + ' ' + badge(plan.status, statusTone(plan.status)) + '</h3><p>' + esc(plan.name) + '</p><p><strong>' + money(plan) + '</strong> · ' + esc(plan.mode) + '</p><p>' + badge(plan.provider_lookup_configured ? 'sandbox lookup ok' : 'sandbox lookup missing', plan.provider_lookup_configured ? 'ok' : 'danger') + badge(plan.live_provider_lookup_configured ? 'live lookup ok' : 'live lookup missing', plan.live_provider_lookup_configured ? 'ok' : 'warn') + '</p><p class="small muted">Entitlements: ' + esc((plan.entitlements || []).join(', ') || 'none') + '</p></div>'; }).join('');
+  $("appWorkspace").innerHTML = '<div class="wide-grid">' +
+    card('App authority', [row('App ID', '<code>' + esc(app.app_id) + '</code>'), row('Provider', '<code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>'), row('Secrets', 'Hidden server-side'), row('Edit mode', badge('view-only in Track 1C', 'warn'))]) +
+    card('URLs', [row('Test', esc(app.origins && app.origins.test || 'missing')), row('Live', esc(app.origins && app.origins.live || 'missing')), row('Return URLs', 'Registry allowlist only; callers cannot pass arbitrary URLs.')]) +
+    card('Setup actions', [row('Current safe action', 'Review this app, then use Track 1D draft wizard for changes.'), row('Danger actions', 'Live payments/refunds and direct registry mutation remain gated.')]) +
+    '</div><h3 style="margin-top:14px">Plans</h3><div class="grid">' + (plans || '<div class="empty">No plans configured.</div>') + '</div>';
+}
+function renderProviderAccounts() {
+  var apps = state.scope === 'selected' && selectedApp() ? [selectedApp()] : filteredApps();
   var rows = {};
   (apps || []).forEach(function (app) {
     var key = (app.provider_id || 'provider') + ':' + (app.provider_account || 'unknown');
@@ -622,55 +673,51 @@ function renderProviderAccounts(apps) {
     rows[key].apps.push(app.app_id);
     (app.plans || []).forEach(function (plan) { rows[key].plans += 1; if (plan.provider_lookup_configured) rows[key].sandboxReady += 1; if (plan.live_provider_lookup_configured) rows[key].liveReady += 1; });
   });
-  renderList("providerAccounts", Object.values(rows), "No provider accounts.", function (item) {
-    return card(item.key, [row('Linked apps', item.apps.map(function (app) { return badge(app, 'info'); }).join(' ')), row('Lookup readiness', badge('sandbox ' + item.sandboxReady + '/' + item.plans, item.sandboxReady === item.plans ? 'ok' : 'warn') + badge('live ' + item.liveReady + '/' + item.plans, item.liveReady === item.plans ? 'ok' : 'warn')), row('Secrets', 'Hidden server-side')]);
-  });
+  return Object.values(rows).map(function (item) { return card(item.key, [row('Linked apps', item.apps.map(function (app) { return badge(app, 'info'); }).join(' ')), row('Lookup readiness', badge('sandbox ' + item.sandboxReady + '/' + item.plans, item.sandboxReady === item.plans ? 'ok' : 'warn') + badge('live ' + item.liveReady + '/' + item.plans, item.liveReady === item.plans ? 'ok' : 'warn')), row('Secrets', 'Hidden server-side')]); }).join('') || '<div class="empty">No provider accounts.</div>';
 }
 function renderCustomers(customers) {
-  renderList("customers", customers || [], "No customers.", function (c) {
-    return card((c.app_id || 'app') + ' / ' + (c.user_ref || 'user'), [
-      row('PayGate state', badge(c.subscription && c.subscription.state || 'none', statusTone(c.subscription && c.subscription.state)) + ' ' + esc(c.subscription && c.subscription.plan_key || '')),
-      row('Provider customer', ((c.provider_customers || []).map(function (pc) { return '<code>' + esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref) + '</code>'; }).join('<br />')) || 'none'),
-      row('Entitlements', ((c.entitlements || []).map(function (e) { return badge(e.key + '=' + e.state, statusTone(e.state)); }).join(' ')) || 'none')
-    ]);
-  });
+  renderList("customers", customers || [], "No customers.", function (c) { return card((c.app_id || 'app') + ' / ' + (c.user_ref || 'user'), [row('PayGate state', badge(c.subscription && c.subscription.state || 'none', statusTone(c.subscription && c.subscription.state)) + ' ' + esc(c.subscription && c.subscription.plan_key || '')), row('Provider customer', ((c.provider_customers || []).map(function (pc) { return '<code>' + esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref) + '</code>'; }).join('<br />')) || 'none'), row('Entitlements', ((c.entitlements || []).map(function (e) { return badge(e.key + '=' + e.state, statusTone(e.state)); }).join(' ')) || 'none')]); });
 }
-function renderCheckouts(sessions) {
-  renderList("checkouts", sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref || 'session', [row('App/user', esc(s.app_id) + ' / ' + esc(s.user_ref)), row('Provider', '<code>' + esc(s.provider_id) + ':' + esc(s.provider_account) + ':' + esc(s.environment) + '</code>'), row('Plan/status', badge(s.plan_key, 'info') + badge(s.status, statusTone(s.status))), row('Created', esc(s.created_at))]); });
-}
-function renderWebhooks(webhooks) {
-  renderList("webhooks", webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id || 'event', [row('Type/status', '<code>' + esc(w.event_type) + '</code> ' + badge(w.status, statusTone(w.status))), row('Provider', '<code>' + esc(w.provider_id) + ':' + esc(w.provider_account) + ':' + esc(w.environment) + '</code>'), row('App/user', esc(w.app_id || 'unknown') + ' / ' + esc(w.user_ref || 'unknown')), row('Processed', esc(w.processed_at || 'not yet'))]); });
-}
-function renderReconciliation(runs) {
-  renderList("reconciliation", runs || [], "No reconciliation runs.", function (r) { var note = r.status === 'no_provider_subscription' ? 'Expected for one-time payment plans; PayGate state remains the authority.' : esc(r.classification || 'none'); return card(r.id || 'run', [row('Status', badge(r.status || 'unknown', statusTone(r.status))), row('Note', note), row('Provider', '<code>' + esc(r.provider_id) + ':' + esc(r.provider_account) + ':' + esc(r.environment) + '</code>'), row('App/user', esc(r.app_id || '') + ' / ' + esc(r.user_ref || ''))]); });
-}
+function renderCheckouts(sessions) { renderList("checkouts", sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref || 'session', [row('App/user', esc(s.app_id) + ' / ' + esc(s.user_ref)), row('Provider', '<code>' + esc(s.provider_id) + ':' + esc(s.provider_account) + ':' + esc(s.environment) + '</code>'), row('Plan/status', badge(s.plan_key, 'info') + badge(s.status, statusTone(s.status))), row('Created', esc(s.created_at))]); }); }
+function renderWebhooks(webhooks) { renderList("webhooks", webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id || 'event', [row('Type/status', '<code>' + esc(w.event_type) + '</code> ' + badge(w.status, statusTone(w.status))), row('Provider', '<code>' + esc(w.provider_id) + ':' + esc(w.provider_account) + ':' + esc(w.environment) + '</code>'), row('App/user', esc(w.app_id || 'unknown') + ' / ' + esc(w.user_ref || 'unknown')), row('Processed', esc(w.processed_at || 'not yet'))]); }); }
+function renderReconciliation(runs) { renderList("reconciliation", runs || [], "No reconciliation runs.", function (r) { var note = r.status === 'no_provider_subscription' ? 'Expected for one-time payment plans; PayGate state remains the authority.' : esc(r.classification || 'none'); return card(r.id || 'run', [row('Status', badge(r.status || 'unknown', statusTone(r.status))), row('Note', note), row('Provider', '<code>' + esc(r.provider_id) + ':' + esc(r.provider_account) + ':' + esc(r.environment) + '</code>'), row('App/user', esc(r.app_id || '') + ' / ' + esc(r.user_ref || ''))]); }); }
 function renderOnboarding() {
-  var steps = ['Confirm app owner, repository, production URL, and sandbox URL.', 'Confirm user identity and app auth boundary.', 'Choose company-scoped provider account alias.', 'Define PayGate-owned plans, prices, lookup keys, and entitlements.', 'Configure Stripe products/prices and webhook endpoint.', 'Run registry validation and provider isolation tests.', 'Complete sandbox checkout, webhook, entitlement, portal, and reconciliation proof.', 'Record evidence before live-mode approval.'];
+  var steps = ['Add New App starts as draft, not live.', 'Confirm app owner, repository, production URL, and sandbox URL.', 'Confirm user identity and app auth boundary.', 'Choose company-scoped provider account alias.', 'Define PayGate-owned plans, lookup keys, and entitlements.', 'Configure Stripe products/prices and webhook endpoint.', 'Run registry validation and provider isolation tests.', 'Complete sandbox checkout, webhook, entitlement, portal, and reconciliation proof.', 'Record evidence before live-mode approval.'];
   $("onboarding").innerHTML = steps.map(function (step, index) { return '<div class="card soft"><div class="step"><span class="step-num">' + (index + 1) + '</span><p>' + esc(step) + '</p></div></div>'; }).join('');
+}
+function renderAll() {
+  if (!state.summary || !state.monitoring) return;
+  renderDashboard(state.summary, state.monitoring);
+  renderAppDirectory();
+  renderWorkspace();
+  $("providerAccounts").innerHTML = renderProviderAccounts();
+  renderCustomers(recordsForSelected('customers'));
+  renderCheckouts(recordsForSelected('checkout_sessions'));
+  renderWebhooks(recordsForSelected('webhooks'));
+  renderReconciliation(recordsForSelected('reconciliation_runs'));
+  renderOnboarding();
 }
 async function refresh() {
   var token = $("token").value.trim();
   if (!token) { $("status").textContent = 'Operator token is required.'; return; }
   var params = currentParams();
-  $("status").textContent = 'Loading...';
+  $("status").textContent = 'Loading all apps...';
   var monitoringResult = await fetchJson('/admin/monitoring?' + params.toString(), token);
   var summaryResult = await fetchJson('/admin/summary?' + params.toString(), token);
   $("raw").textContent = JSON.stringify({ monitoring: monitoringResult.body, summary: summaryResult.body }, null, 2);
   if (!summaryResult.ok) { $("status").textContent = summaryResult.status + ': ' + (summaryResult.body && summaryResult.body.error && summaryResult.body.error.code || 'error'); return; }
-  var summary = summaryResult.body || {};
-  var monitoring = monitoringResult.ok ? monitoringResult.body : { status: 'attention_required', alerts: [{ severity: 'warning', code: 'MONITORING_UNAVAILABLE' }], checks: {} };
-  $("status").textContent = 'Loaded ' + summary.generated_at + ' · app=' + ($("appId").value.trim() || 'all') + ' · env=' + ($("environment").value || 'all');
-  renderDashboard(summary, monitoring);
-  renderApps(summary.apps || []);
-  renderProviderAccounts(summary.apps || []);
-  renderCustomers(summary.customers || []);
-  renderCheckouts(summary.checkout_sessions || []);
-  renderWebhooks(summary.webhooks || []);
-  renderReconciliation(summary.reconciliation_runs || []);
-  renderOnboarding();
+  state.summary = summaryResult.body || {};
+  state.monitoring = monitoringResult.ok ? monitoringResult.body : { status: 'attention_required', alerts: [{ severity: 'warning', code: 'MONITORING_UNAVAILABLE' }], checks: {} };
+  var apps = state.summary.apps || [];
+  if (!state.selectedAppId && apps.length) state.selectedAppId = apps[0].app_id;
+  $("status").textContent = 'Loaded ' + state.summary.generated_at + ' · apps=' + apps.length + ' · env=' + ($("environment").value || 'all');
+  renderAll();
 }
 renderOnboarding();
 $("refresh").addEventListener("click", function () { refresh().catch(function (error) { $("status").textContent = error.message; }); });
+$("appSearch").addEventListener("input", renderAppDirectory);
+$("allAppsTab").addEventListener("click", function () { state.scope = 'all'; renderAll(); });
+$("selectedAppTab").addEventListener("click", function () { state.scope = 'selected'; renderAll(); });
 </script>
 </body>
 </html>`;

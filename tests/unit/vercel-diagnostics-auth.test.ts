@@ -141,7 +141,8 @@ test("Vercel admin console shell does not embed operator token", async () => {
     assert.match(String(response.body), /PayGate Operator Console/);
     assert.match(String(response.body), /Load PayGate status/);
     assert.match(String(response.body), /App Onboarding Checklist/);
-    assert.match(String(response.body), /Apps, Plans, and Provider Accounts/);
+    assert.match(String(response.body), /App Directory/);
+    assert.match(String(response.body), /Selected App Workspace/);
     assert.doesNotMatch(String(response.body), /operator-secret/);
   });
 });
