@@ -532,340 +532,304 @@ const ADMIN_HTML = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PayGate Operator Console</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --soft:#f8fafc; --brand:#2563eb; --ok:#15803d; --warn:#a16207; --danger:#b91c1c; }
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --bg:#f5f7fb; --panel:#ffffff; --ink:#111827; --muted:#667085; --line:#e4e7ec; --brand:#155eef; --brand-soft:#eff4ff; --ok:#067647; --warn:#b54708; --danger:#b42318; --soft:#f9fafb; --shadow:0 16px 44px rgba(16,24,40,.08); }
     * { box-sizing: border-box; }
-    body { margin: 0; color: var(--ink); background: #f6f8fb; }
-    main { max-width: 1260px; margin: 0 auto; padding: 18px 20px 48px; }
-    h1 { margin: 0; font-size: 24px; letter-spacing: -0.03em; }
-    h2 { margin: 0 0 10px; font-size: 17px; letter-spacing: -0.02em; }
-    h3 { margin: 0 0 8px; font-size: 14px; }
-    p { margin: 6px 0; line-height: 1.45; }
-    input, button, select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font: inherit; }
-    input, select { width: 100%; background: white; color: var(--ink); }
-    button { cursor: pointer; background: var(--brand); color: white; border-color: var(--brand); font-weight: 800; min-height: 42px; }
-    button.ghost { background: white; color: var(--ink); border-color: #cbd5e1; }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    section { background: white; border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
-    .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 14px; }
-    .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    .safety { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .toolbar { display: grid; grid-template-columns: minmax(260px, 1.3fr) minmax(220px, 1fr) minmax(220px, 1fr) minmax(130px, .55fr) 180px; gap: 12px; align-items: end; }
-    label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); font-weight: 700; }
-    .status-line { margin-top: 10px; color: var(--muted); font-size: 13px; }
-    .console-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 14px; align-items: start; }
-    .sidebar { position: sticky; top: 14px; }
-    .app-list { display: grid; gap: 8px; }
-    .app-button { width: 100%; text-align: left; background: #fff; color: var(--ink); border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; min-height: unset; }
-    .app-button:hover, .app-button.active { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
-    .app-button-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-weight: 900; }
-    .app-button-meta { color: var(--muted); font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
-    .callout { border-radius: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
-    .callout.ok { background: #ecfdf5; border: 1px solid #bbf7d0; }
-    .callout.warn { background: #fffbeb; border: 1px solid #fde68a; }
-    .callout.danger { background: #fef2f2; border: 1px solid #fecaca; }
-    .callout-title { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; }
-    .metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .metric { background: var(--soft); border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
-    .metric-value { font-size: 26px; font-weight: 900; letter-spacing: -0.04em; overflow-wrap: anywhere; }
-    .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
-    .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(315px, 1fr)); gap: 12px; }
-    .card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px; background: #fff; min-width: 0; }
-    .card.soft { background: var(--soft); }
-    .muted { color: var(--muted); }
-    .small { font-size: 13px; }
-    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: 800; margin: 2px 4px 2px 0; }
-    .badge.ok { background: #dcfce7; color: #166534; }
-    .badge.warn { background: #fef3c7; color: #92400e; }
-    .badge.danger { background: #fee2e2; color: #991b1b; }
-    .badge.info { background: #dbeafe; color: #1e40af; }
-    code { background: #eef2ff; padding: 2px 6px; border-radius: 7px; overflow-wrap: anywhere; }
-    pre { white-space: pre-wrap; background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 14px; overflow: auto; max-height: 420px; }
-    details summary { cursor: pointer; font-weight: 800; }
-    .empty { padding: 14px; border: 1px dashed #cbd5e1; border-radius: 14px; color: var(--muted); background: var(--soft); }
-    .section-kicker { color: var(--muted); font-size: 13px; margin-top: -5px; margin-bottom: 12px; }
-    .record { display: grid; gap: 8px; }
-    .record-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 13px; }
-    .record-label { color: var(--muted); font-weight: 700; }
-    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
-    .tab { background: white; color: var(--ink); border: 1px solid #cbd5e1; min-height: 34px; padding: 7px 11px; }
-    .tab.active { background: var(--ink); color: white; border-color: var(--ink); }
-    .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
-    .step-num { width: 24px; height: 24px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--ink); color: white; font-size: 12px; font-weight: 900; }
-    @media (max-width: 980px) { .toolbar, .metric-row, .callout, .console-layout { grid-template-columns: 1fr; } .sidebar { position: static; } .topbar { align-items: flex-start; flex-direction: column; } .safety { justify-content: flex-start; } }
+    body { margin: 0; background: var(--bg); color: var(--ink); }
+    button, input, select { font: inherit; }
+    button { border: 0; border-radius: 12px; cursor: pointer; font-weight: 800; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    input, select { width: 100%; border: 1px solid #d0d5dd; border-radius: 12px; padding: 11px 12px; background: white; color: var(--ink); }
+    label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 8px; }
+    h2 { font-size: 20px; letter-spacing: -.025em; margin-bottom: 8px; }
+    h3 { font-size: 14px; margin-bottom: 8px; }
+    p { color: var(--muted); line-height: 1.55; }
+    code { background: #eef2f6; border: 1px solid #d9e0ea; border-radius: 8px; padding: 2px 6px; }
+    .hidden { display: none !important; }
+    .login-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .login-card { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 26px; box-shadow: var(--shadow); }
+    .login-badge { display: inline-flex; border: 1px solid #b2ccff; color: #1849a9; background: var(--brand-soft); border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 900; margin-bottom: 14px; }
+    .primary { background: var(--brand); color: white; padding: 11px 14px; min-height: 44px; }
+    .secondary { background: white; color: var(--ink); border: 1px solid #d0d5dd; padding: 10px 12px; min-height: 42px; }
+    .danger { background: #fff1f3; color: var(--danger); border: 1px solid #fecdd6; padding: 10px 12px; }
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 282px minmax(0, 1fr); }
+    .sidebar { background: #0b1220; color: white; padding: 18px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; }
+    .brand { display: grid; gap: 4px; padding: 4px 2px 8px; }
+    .brand-title { font-size: 20px; font-weight: 950; letter-spacing: -.03em; }
+    .brand-subtitle { color: #98a2b3; font-size: 12px; line-height: 1.4; }
+    .nav { display: grid; gap: 7px; }
+    .nav button { width: 100%; text-align: left; background: transparent; color: #d0d5dd; padding: 11px 12px; border-radius: 12px; min-height: 42px; }
+    .nav button:hover, .nav button.active { background: #1d2939; color: white; }
+    .nav button.future { color: #98a2b3; border: 1px dashed #475467; }
+    .sidebar-footer { margin-top: auto; border-top: 1px solid #344054; padding-top: 14px; display: grid; gap: 10px; }
+    .operator-pill { background: #101828; border: 1px solid #344054; border-radius: 16px; padding: 12px; }
+    .operator-pill strong { display: block; font-size: 13px; }
+    .operator-pill span { color: #98a2b3; font-size: 12px; }
+    .content { min-width: 0; padding: 22px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .topbar-actions { display: flex; align-items: end; gap: 10px; min-width: 360px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 8px 28px rgba(16,24,40,.04); margin-bottom: 14px; }
+    .view-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 15px; }
+    .kpi-label { color: var(--muted); font-size: 12px; font-weight: 850; }
+    .kpi-value { font-size: 24px; font-weight: 950; margin-top: 5px; letter-spacing: -.025em; }
+    .kpi-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 900; border: 1px solid #d0d5dd; background: white; color: var(--muted); }
+    .status.ok { color: var(--ok); border-color: #abefc6; background: #ecfdf3; }
+    .status.warn { color: var(--warn); border-color: #fedf89; background: #fffaeb; }
+    .status.danger { color: var(--danger); border-color: #fecdca; background: #fef3f2; }
+    .banner { border-radius: 18px; padding: 15px; border: 1px solid #fedf89; background: #fffaeb; color: #93370d; margin-bottom: 14px; }
+    .banner.ok { border-color: #abefc6; background: #ecfdf3; color: #05603a; }
+    .two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .app-card { text-align: left; background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 18px; padding: 15px; min-height: 150px; }
+    .app-card:hover, .app-card.active { border-color: #84adff; box-shadow: 0 0 0 4px var(--brand-soft); }
+    .app-card-title { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; font-weight:950; margin-bottom:8px; }
+    .list { display: grid; gap: 9px; }
+    .row { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: #fff; }
+    .row-title { font-weight: 900; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 5px; line-height: 1.45; overflow-wrap: anywhere; }
+    .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 130px; gap: 10px; align-items:end; }
+    .empty { border: 1px dashed #cbd5e1; border-radius: 16px; padding: 18px; text-align: center; color: var(--muted); background: #fff; }
+    .debug { white-space: pre-wrap; overflow: auto; max-height: 520px; background: #0b1220; color: #d0d5dd; border-radius: 16px; padding: 14px; font-size: 12px; }
+    @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar { grid-template-columns: 1fr; display: grid; min-width: 0; } }
   </style>
 </head>
 <body>
-  <main>
-    <header class="topbar">
-      <div>
-        <h1>PayGate Operator Console</h1>
-        <p class="subtitle">Multi-app control room for provider routing, plan authority, entitlement evidence, and setup readiness.</p>
-      </div>
-      <div class="safety">
-        <span class="badge info">Registry-owned commercial authority</span>
-        <span class="badge info">Sandbox/live separated</span>
-        <span class="badge warn">Refund deferred</span>
-      </div>
-    </header>
-
-    <section>
-      <div class="toolbar">
-        <label>Operator login<input id="token" type="password" placeholder="Paste token once to sign in" autocomplete="off" /></label>
-        <label>Choose app<select id="appSelect"><option value="">All apps</option></select></label>
-        <label>Filter loaded apps<input id="appSearch" placeholder="Optional search" /></label>
-        <label>Environment<select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><button id="refresh">Load Console</button><button id="logout" class="ghost" type="button">Logout</button></div>
-      </div>
-      <p id="status" class="status-line">Not loaded. Sign in once; PayGate stores a secure HttpOnly admin session cookie.</p>
+  <main id="loginScreen" class="login-screen">
+    <section class="login-card">
+      <div class="login-badge">Protected operator area</div>
+      <h1>PayGate Operator Login</h1>
+      <p>Sign in once to manage the gateway view. Your operator token is exchanged for a protected server-side session cookie and is not stored in page source.</p>
+      <form id="loginForm">
+        <label>Operator access name or token
+          <input id="operatorToken" type="password" autocomplete="current-password" placeholder="Paste operator token" />
+        </label>
+        <div style="height:12px"></div>
+        <button class="primary" type="submit" style="width:100%">Load Console</button>
+      </form>
+      <p id="loginStatus" class="meta">Use the protected operator token configured in Vercel as OPERATOR_DIAGNOSTICS_TOKEN.</p>
     </section>
-
-    <section id="actionPanel" class="callout warn">
-      <div>
-        <div class="callout-title">Load PayGate status</div>
-        <p>Sign in and load the console. Then choose an app from the app switcher.</p>
-      </div>
-      <span class="badge warn">waiting</span>
-    </section>
-
-    <section>
-      <h2>Global Operational Snapshot</h2>
-      <p class="section-kicker">All apps in the selected environment. Use the app switcher below to inspect one app.</p>
-      <div id="dashboard" class="metric-row"><div class="empty">No data loaded.</div></div>
-    </section>
-
-    <div class="console-layout">
-      <aside class="sidebar">
-        <section>
-          <h2>App Directory</h2>
-          <p class="section-kicker">Select from registered PayGate apps. Search only filters the loaded list.</p>
-          <div class="tabs"><button id="allAppsTab" class="tab active">All apps</button><button id="selectedAppTab" class="tab">Selected app</button></div>
-          <button id="addApp" class="app-button" type="button" disabled><div class="app-button-title"><span>+ Add New App</span><span class="badge warn">Track 1F</span></div><div class="app-button-meta">Draft setup wizard coming next. No direct registry edits here.</div></button><div id="appDirectory" class="app-list"><div class="empty">Load apps first.</div></div>
-        </section>
-      </aside>
-
-      <div>
-        <section>
-          <h2 id="workspaceTitle">Selected App Workspace</h2>
-          <p id="workspaceSubtitle" class="section-kicker">Choose an app from the directory to view plans, provider account, URLs, customers, webhooks, and reconciliation.</p>
-          <div id="appWorkspace"><div class="empty">No app selected.</div></div>
-        </section>
-
-        <section>
-          <h2>Customer Payment State</h2>
-          <p class="section-kicker">Filtered to the selected app when an app is selected.</p>
-          <div id="customers" class="wide-grid"><div class="empty">No data loaded.</div></div>
-        </section>
-
-        <section>
-          <h2>Evidence Trail</h2>
-          <p class="section-kicker">Checkout, webhook, and reconciliation evidence for selected scope.</p>
-          <div class="wide-grid">
-            <div><h3>Checkout Sessions</h3><div id="checkouts" class="record"><div class="empty">No data loaded.</div></div></div>
-            <div><h3>Webhooks</h3><div id="webhooks" class="record"><div class="empty">No data loaded.</div></div></div>
-            <div><h3>Reconciliation</h3><div id="reconciliation" class="record"><div class="empty">No data loaded.</div></div></div>
-          </div>
-        </section>
-
-        <section>
-          <h2>App Onboarding Checklist</h2>
-          <p class="section-kicker">Use this before connecting app #2. This slice is guidance only; registry writes are not automated yet.</p>
-          <div id="onboarding" class="grid"></div>
-        </section>
-
-        <section>
-          <details>
-            <summary>Support JSON</summary>
-            <p class="muted small">For debugging only. Safe summary data; no secrets should appear here.</p>
-            <pre id="raw">{}</pre>
-          </details>
-        </section>
-      </div>
-    </div>
   </main>
+
+  <section id="appShell" class="shell hidden" aria-label="PayGate Operator Console">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-title">PayGate</div>
+        <div class="brand-subtitle">Operator Console<br/>Dashboard + app workspaces</div>
+      </div>
+      <nav class="nav" aria-label="Console navigation">
+        <button data-view="dashboard" class="active">Dashboard</button>
+        <button data-view="apps">Apps Directory</button>
+        <button data-view="workspace">App Workspace</button>
+        <button data-view="providers">Provider Accounts</button>
+        <button data-view="webhooks">Webhooks</button>
+        <button data-view="reconciliation">Reconciliation</button>
+        <button data-view="settings">Settings</button>
+        <button data-view="support">Support / Debug</button>
+        <button class="future" disabled>Add App - planned</button>
+      </nav>
+      <div class="sidebar-footer">
+        <label>Environment
+          <select id="environmentFilter">
+            <option value="live">live</option>
+            <option value="test">test</option>
+            <option value="all">all</option>
+          </select>
+        </label>
+        <div class="operator-pill"><strong>Operator session active</strong><span>Read-only shell. Logout clears the browser session.</span></div>
+        <button id="logoutBtn" class="danger" type="button">Logout</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div>
+          <h1>PayGate Operator Console</h1>
+          <p id="pageSubtitle">Monitor gateway health first, then open an app workspace when action is needed.</p>
+        </div>
+        <div class="topbar-actions">
+          <label>Search apps
+            <input id="appSearch" placeholder="Search app name, id, provider" />
+          </label>
+          <button id="refreshBtn" class="primary" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="loadState" class="panel">Loading PayGate operator workspace...</div>
+
+      <div id="view-dashboard" class="view"></div>
+      <div id="view-apps" class="view hidden"></div>
+      <div id="view-workspace" class="view hidden"></div>
+      <div id="view-providers" class="view hidden"></div>
+      <div id="view-webhooks" class="view hidden"></div>
+      <div id="view-reconciliation" class="view hidden"></div>
+      <div id="view-settings" class="view hidden"></div>
+      <div id="view-support" class="view hidden"></div>
+    </main>
+  </section>
+
 <script>
-var $ = function (id) { return document.getElementById(id); };
-var state = { summary: null, monitoring: null, selectedAppId: '', scope: 'all' };
-function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
-function badge(value, tone) { return '<span class="badge ' + esc(tone || '') + '">' + esc(value) + '</span>'; }
-function row(label, value) { return '<div class="record-row"><div class="record-label">' + esc(label) + '</div><div>' + value + '</div></div>'; }
-function card(title, rows) { return '<div class="card"><h3>' + esc(title) + '</h3><div class="record">' + rows.join('') + '</div></div>'; }
-function metric(label, value, tone, detail) { return '<div class="metric"><div class="metric-label">' + esc(label) + '</div><div class="metric-value">' + esc(value) + '</div><div>' + (detail || badge(tone || 'ok', tone)) + '</div></div>'; }
-function renderList(id, items, empty, render) { $(id).innerHTML = items && items.length ? items.map(render).join('') : '<div class="empty">' + esc(empty) + '</div>'; }
-function statusTone(status) { return status === 'ok' || status === 'ready' || status === 'processed' || status === 'active' ? 'ok' : status === 'attention_required' || status === 'open' || status === 'warning' ? 'warn' : status ? 'danger' : ''; }
-function money(plan) { return esc(plan.currency || '') + ' ' + ((Number(plan.amount_minor || 0) / 100).toFixed(2)); }
-function currentParams() {
-  var params = new URLSearchParams();
-  if ($("environment").value) params.set("environment", $("environment").value);
-  return params;
-}
-async function fetchJson(url) {
-  var response = await fetch(url, { credentials: 'same-origin' });
-  var body = await response.json().catch(function () { return {}; });
-  return { ok: response.ok, status: response.status, body: body };
-}
-async function loginIfTokenPresent() {
-  var token = $("token").value.trim();
-  if (!token) return;
-  var response = await fetch('/admin/session/login', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: token }) });
-  var body = await response.json().catch(function () { return {}; });
-  if (!response.ok) throw new Error(body && body.error && body.error.message || 'Operator login failed');
-  $("token").value = '';
-}
-async function logout() {
-  await fetch('/admin/session/logout', { method: 'POST', credentials: 'same-origin' });
-  state.summary = null;
-  state.monitoring = null;
-  state.selectedAppId = '';
-  state.scope = 'all';
-  $("status").textContent = 'Logged out.';
-  $("dashboard").innerHTML = '<div class="empty">No data loaded.</div>';
-  $("appDirectory").innerHTML = '<div class="empty">Sign in and load apps first.</div>';
-  $("appWorkspace").innerHTML = '<div class="empty">No app selected.</div>';
-  $("customers").innerHTML = '<div class="empty">No data loaded.</div>';
-  $("checkouts").innerHTML = '<div class="empty">No data loaded.</div>';
-  $("webhooks").innerHTML = '<div class="empty">No data loaded.</div>';
-  $("reconciliation").innerHTML = '<div class="empty">No data loaded.</div>';
-}function collectProviderAccounts(apps) {
-  var set = {};
-  (apps || []).forEach(function (app) { if (app.provider_account) set[(app.provider_id || 'provider') + ':' + app.provider_account] = true; });
-  return Object.keys(set).sort();
-}
-function filteredApps() {
-  var search = $("appSearch").value.trim().toLowerCase();
-  var apps = state.summary && state.summary.apps || [];
-  if (!search) return apps;
-  return apps.filter(function (app) { return [app.app_id, app.name, app.provider_id, app.provider_account].join(' ').toLowerCase().includes(search); });
-}
-function selectedApp() {
-  var apps = state.summary && state.summary.apps || [];
-  return apps.find(function (app) { return app.app_id === state.selectedAppId; }) || null;
-}
-function recordsForSelected(name) {
-  var rows = state.summary && state.summary[name] || [];
-  if (state.scope !== 'selected' || !state.selectedAppId) return rows;
-  return rows.filter(function (row) { return row.app_id === state.selectedAppId; });
-}
-function renderActionPanel(summary, monitoring) {
-  var alerts = monitoring.alerts || [];
-  var apps = summary.apps || [];
-  var critical = alerts.filter(function (a) { return a.severity === 'critical'; });
-  var panel = $("actionPanel");
-  var tone = critical.length ? 'danger' : alerts.length ? 'warn' : 'ok';
-  var title = critical.length ? 'Stop: critical payment issue' : alerts.length ? 'Review warnings before app setup' : 'PayGate is healthy for this environment';
-  var body = critical.length ? 'Clear critical monitoring or webhook issues before connecting another app.' : alerts.length ? 'Warnings are present. Select an app and inspect customer/reconciliation evidence before onboarding.' : 'Next safe step: continue with app onboarding wizard UI. Refund remains deferred.';
-  if (!apps.length) { tone = 'warn'; title = 'No apps configured'; body = 'PayGate needs at least one registry app before setup can continue.'; }
-  panel.className = 'callout ' + tone;
-  panel.innerHTML = '<div><div class="callout-title">' + esc(title) + '</div><p>' + esc(body) + '</p>' + (alerts.length ? '<p>' + alerts.map(function (a) { return badge(a.severity + ':' + a.code, a.severity === 'critical' ? 'danger' : 'warn'); }).join('') + '</p>' : '') + '</div>' + badge(tone === 'ok' ? 'ok' : 'needs review', tone);
-}
-function renderDashboard(summary, monitoring) {
-  var apps = summary.apps || [];
-  var customers = summary.customers || [];
-  var webhooks = summary.webhooks || [];
-  var reconciliations = summary.reconciliation_runs || [];
-  var providerAccounts = collectProviderAccounts(apps);
-  var webhookChecks = monitoring.checks && monitoring.checks.webhook_inbox || {};
-  var reconciliationChecks = monitoring.checks && monitoring.checks.reconciliation || {};
-  $("dashboard").innerHTML = [
-    metric('Gateway status', monitoring.status || 'unknown', statusTone(monitoring.status)),
-    metric('Apps', apps.length, 'info', providerAccounts.map(function (p) { return badge(p, 'info'); }).join('') || badge('no provider', 'warn')),
-    metric('Customers', customers.length, 'info', badge('selected environment', 'info')),
-    metric('Webhooks', webhooks.length, (webhookChecks.deadLetter || webhookChecks.retryable) ? 'danger' : 'ok', '<span class="small muted">pending/retry/dead</span><br /><code>' + esc((webhookChecks.pending || 0) + '/' + (webhookChecks.retryable || 0) + '/' + (webhookChecks.deadLetter || 0)) + '</code>'),
-    metric('Reconciliation', reconciliations.length, (reconciliationChecks.failed || 0) > 0 ? 'danger' : (reconciliationChecks.noProviderCustomer || reconciliationChecks.noProviderSubscription) ? 'warn' : 'ok', '<span class="small muted">failed/no customer/no subscription</span><br /><code>' + esc((reconciliationChecks.failed || 0) + '/' + (reconciliationChecks.noProviderCustomer || 0) + '/' + (reconciliationChecks.noProviderSubscription || 0)) + '</code>')
-  ].join('');
-  renderActionPanel(summary, monitoring);
-}
-function renderAppSelect() {
-  var select = $("appSelect");
-  var apps = state.summary && state.summary.apps || [];
-  var previous = select.value;
-  select.innerHTML = '<option value="">All apps</option>' + apps.map(function (app) { return '<option value="' + esc(app.app_id) + '">' + esc(app.name || app.app_id) + ' — ' + esc(app.app_id) + '</option>'; }).join('');
-  select.value = state.scope === 'selected' && state.selectedAppId ? state.selectedAppId : '';
-  if (previous && apps.some(function (app) { return app.app_id === previous; }) && !state.selectedAppId) select.value = previous;
-}
-function renderAppDirectory() {
-  var apps = filteredApps();
-  renderList('appDirectory', apps, 'No apps match this search.', function (app) {
-    var planCount = (app.plans || []).length;
-    var selected = app.app_id === state.selectedAppId ? ' active' : '';
-    return '<button class="app-button' + selected + '" data-app-id="' + esc(app.app_id) + '"><div class="app-button-title"><span>' + esc(app.name || app.app_id) + '</span>' + badge(planCount + ' plan' + (planCount === 1 ? '' : 's'), 'info') + '</div><div class="app-button-meta"><code>' + esc(app.app_id) + '</code><br />' + esc((app.provider_id || 'provider') + ':' + (app.provider_account || 'unknown')) + '</div></button>';
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('.app-button'), function (button) { button.addEventListener('click', function () { state.selectedAppId = button.getAttribute('data-app-id') || ''; state.scope = 'selected'; renderAll(); }); });
-}
-function renderWorkspace() {
-  var app = selectedApp();
-  $("allAppsTab").className = 'tab ' + (state.scope === 'all' ? 'active' : '');
-  $("selectedAppTab").className = 'tab ' + (state.scope === 'selected' ? 'active' : '');
-  if (!app) {
-    $("workspaceTitle").textContent = 'Selected App Workspace';
-    $("workspaceSubtitle").textContent = 'Choose an app from the directory to view and verify its setup.';
-    $("appWorkspace").innerHTML = '<div class="empty">No app selected. Choose an app from the left directory.</div>';
-    return;
+(function(){
+  var state = { view: 'dashboard', environment: 'live', summary: null, monitoring: null, selectedAppId: '', loadedAt: '', error: null };
+  function el(id){ return document.getElementById(id); }
+  function esc(value){ return String(value == null ? '' : value).replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }
+  function fmtDate(value){ if(!value) return 'not recorded'; try { return new Date(value).toLocaleString(); } catch(e) { return value; } }
+  function arr(value){ return Array.isArray(value) ? value : []; }
+  function money(plan){ return (plan.currency || '').toUpperCase() + ' ' + ((Number(plan.amount_minor || 0) / 100).toFixed(2)); }
+  function apps(){ return arr(state.summary && state.summary.apps); }
+  function customers(){ return arr(state.summary && state.summary.customers); }
+  function sessions(){ return arr(state.summary && state.summary.checkout_sessions); }
+  function webhooks(){ return arr(state.summary && state.summary.webhooks); }
+  function runs(){ return arr(state.summary && state.summary.reconciliation_runs); }
+  function selectedApp(){ return apps().find(function(app){ return app.app_id === state.selectedAppId; }) || apps()[0]; }
+  function selectedAppId(){ var app = selectedApp(); return app ? app.app_id : ''; }
+  function filteredApps(){
+    var term = el('appSearch').value.trim().toLowerCase();
+    if(!term) return apps();
+    return apps().filter(function(app){ return [app.app_id, app.name, app.provider_id, app.provider_account].join(' ').toLowerCase().indexOf(term) >= 0; });
   }
-  $("workspaceTitle").textContent = app.name + ' Workspace';
-  $("workspaceSubtitle").textContent = app.app_id + ' uses ' + app.provider_id + ':' + app.provider_account + '. All values shown here are PayGate-owned configuration.';
-  var plans = (app.plans || []).map(function (plan) { return '<div class="card soft"><h3>' + esc(plan.plan_key) + ' ' + badge(plan.status, statusTone(plan.status)) + '</h3><p>' + esc(plan.name) + '</p><p><strong>' + money(plan) + '</strong> · ' + esc(plan.mode) + '</p><p>' + badge(plan.provider_lookup_configured ? 'sandbox lookup ok' : 'sandbox lookup missing', plan.provider_lookup_configured ? 'ok' : 'danger') + badge(plan.live_provider_lookup_configured ? 'live lookup ok' : 'live lookup missing', plan.live_provider_lookup_configured ? 'ok' : 'warn') + '</p><p class="small muted">Entitlements: ' + esc((plan.entitlements || []).join(', ') || 'none') + '</p></div>'; }).join('');
-  $("appWorkspace").innerHTML = '<div class="wide-grid">' +
-    card('App authority', [row('App ID', '<code>' + esc(app.app_id) + '</code>'), row('Provider', '<code>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</code>'), row('Secrets', 'Hidden server-side'), row('Edit mode', badge('view-only in Track 1C', 'warn'))]) +
-    card('URLs', [row('Test', esc(app.origins && app.origins.test || 'missing')), row('Live', esc(app.origins && app.origins.live || 'missing')), row('Return URLs', 'Registry allowlist only; callers cannot pass arbitrary URLs.')]) +
-    card('Setup actions', [row('Current safe action', 'Review this app, then use Track 1D draft wizard for changes.'), row('Danger actions', 'Live payments/refunds and direct registry mutation remain gated.')]) +
-    '</div><h3 style="margin-top:14px">Plans</h3><div class="grid">' + (plans || '<div class="empty">No plans configured.</div>') + '</div>';
-}
-function renderProviderAccounts() {
-  var apps = state.scope === 'selected' && selectedApp() ? [selectedApp()] : filteredApps();
-  var rows = {};
-  (apps || []).forEach(function (app) {
-    var key = (app.provider_id || 'provider') + ':' + (app.provider_account || 'unknown');
-    if (!rows[key]) rows[key] = { key: key, apps: [], plans: 0, liveReady: 0, sandboxReady: 0 };
-    rows[key].apps.push(app.app_id);
-    (app.plans || []).forEach(function (plan) { rows[key].plans += 1; if (plan.provider_lookup_configured) rows[key].sandboxReady += 1; if (plan.live_provider_lookup_configured) rows[key].liveReady += 1; });
-  });
-  return Object.values(rows).map(function (item) { return card(item.key, [row('Linked apps', item.apps.map(function (app) { return badge(app, 'info'); }).join(' ')), row('Lookup readiness', badge('sandbox ' + item.sandboxReady + '/' + item.plans, item.sandboxReady === item.plans ? 'ok' : 'warn') + badge('live ' + item.liveReady + '/' + item.plans, item.liveReady === item.plans ? 'ok' : 'warn')), row('Secrets', 'Hidden server-side')]); }).join('') || '<div class="empty">No provider accounts.</div>';
-}
-function renderCustomers(customers) {
-  renderList("customers", customers || [], "No customers.", function (c) { return card((c.app_id || 'app') + ' / ' + (c.user_ref || 'user'), [row('PayGate state', badge(c.subscription && c.subscription.state || 'none', statusTone(c.subscription && c.subscription.state)) + ' ' + esc(c.subscription && c.subscription.plan_key || '')), row('Provider customer', ((c.provider_customers || []).map(function (pc) { return '<code>' + esc(pc.provider_account + ':' + pc.environment + ':' + pc.provider_customer_ref) + '</code>'; }).join('<br />')) || 'none'), row('Entitlements', ((c.entitlements || []).map(function (e) { return badge(e.key + '=' + e.state, statusTone(e.state)); }).join(' ')) || 'none')]); });
-}
-function renderCheckouts(sessions) { renderList("checkouts", sessions || [], "No checkout sessions.", function (s) { return card(s.provider_checkout_session_ref || 'session', [row('App/user', esc(s.app_id) + ' / ' + esc(s.user_ref)), row('Provider', '<code>' + esc(s.provider_id) + ':' + esc(s.provider_account) + ':' + esc(s.environment) + '</code>'), row('Plan/status', badge(s.plan_key, 'info') + badge(s.status, statusTone(s.status))), row('Created', esc(s.created_at))]); }); }
-function renderWebhooks(webhooks) { renderList("webhooks", webhooks || [], "No webhooks.", function (w) { return card(w.provider_event_id || 'event', [row('Type/status', '<code>' + esc(w.event_type) + '</code> ' + badge(w.status, statusTone(w.status))), row('Provider', '<code>' + esc(w.provider_id) + ':' + esc(w.provider_account) + ':' + esc(w.environment) + '</code>'), row('App/user', esc(w.app_id || 'unknown') + ' / ' + esc(w.user_ref || 'unknown')), row('Processed', esc(w.processed_at || 'not yet'))]); }); }
-function renderReconciliation(runs) { renderList("reconciliation", runs || [], "No reconciliation runs.", function (r) { var note = r.status === 'no_provider_subscription' ? 'Expected for one-time payment plans; PayGate state remains the authority.' : esc(r.classification || 'none'); return card(r.id || 'run', [row('Status', badge(r.status || 'unknown', statusTone(r.status))), row('Note', note), row('Provider', '<code>' + esc(r.provider_id) + ':' + esc(r.provider_account) + ':' + esc(r.environment) + '</code>'), row('App/user', esc(r.app_id || '') + ' / ' + esc(r.user_ref || ''))]); }); }
-function renderOnboarding() {
-  var steps = ['Add New App starts as draft, not live.', 'Confirm app owner, repository, production URL, and sandbox URL.', 'Confirm user identity and app auth boundary.', 'Choose company-scoped provider account alias.', 'Define PayGate-owned plans, lookup keys, and entitlements.', 'Configure Stripe products/prices and webhook endpoint.', 'Run registry validation and provider isolation tests.', 'Complete sandbox checkout, webhook, entitlement, portal, and reconciliation proof.', 'Record evidence before live-mode approval.'];
-  $("onboarding").innerHTML = steps.map(function (step, index) { return '<div class="card soft"><div class="step"><span class="step-num">' + (index + 1) + '</span><p>' + esc(step) + '</p></div></div>'; }).join('');
-}
-function renderAll() {
-  if (!state.summary || !state.monitoring) return;
-  renderDashboard(state.summary, state.monitoring);
-  renderAppDirectory();
-  renderWorkspace();
-  $("providerAccounts").innerHTML = renderProviderAccounts();
-  renderCustomers(recordsForSelected('customers'));
-  renderCheckouts(recordsForSelected('checkout_sessions'));
-  renderWebhooks(recordsForSelected('webhooks'));
-  renderReconciliation(recordsForSelected('reconciliation_runs'));
-  renderOnboarding();
-}
-async function refresh() {
-  await loginIfTokenPresent();
-  var params = currentParams();
-  $("status").textContent = 'Loading all apps...';
-  var monitoringResult = await fetchJson('/admin/monitoring?' + params.toString());
-  var summaryResult = await fetchJson('/admin/summary?' + params.toString());
-  $("raw").textContent = JSON.stringify({ monitoring: monitoringResult.body, summary: summaryResult.body }, null, 2);
-  if (!summaryResult.ok) { $("status").textContent = summaryResult.status + ': ' + (summaryResult.body && summaryResult.body.error && summaryResult.body.error.code || 'error'); return; }
-  state.summary = summaryResult.body || {};
-  state.monitoring = monitoringResult.ok ? monitoringResult.body : { status: 'attention_required', alerts: [{ severity: 'warning', code: 'MONITORING_UNAVAILABLE' }], checks: {} };
-  var apps = state.summary.apps || [];
-  if (apps.length === 1) { state.selectedAppId = apps[0].app_id; state.scope = 'selected'; } else if (state.selectedAppId && !apps.some(function (app) { return app.app_id === state.selectedAppId; })) { state.selectedAppId = ''; state.scope = 'all'; }
-  $("status").textContent = 'Loaded ' + state.summary.generated_at + ' · apps=' + apps.length + ' · env=' + ($("environment").value || 'all');
-  renderAll();
-}
-renderOnboarding();
-$("refresh").addEventListener("click", function () { refresh().catch(function (error) { $("status").textContent = error.message; }); });
-$("logout").addEventListener("click", function () { logout().catch(function (error) { $("status").textContent = error.message; }); });
-$("appSearch").addEventListener("input", renderAppDirectory);
-$("appSelect").addEventListener("change", function () { state.selectedAppId = $("appSelect").value; state.scope = state.selectedAppId ? 'selected' : 'all'; renderAll(); });
-$("allAppsTab").addEventListener("click", function () { state.scope = 'all'; state.selectedAppId = ''; renderAll(); });
-$("selectedAppTab").addEventListener("click", function () { state.scope = 'selected'; renderAll(); });
+  function statusClass(value){ if(value === 'ok' || value === 'ready' || value === 'processed' || value === 'active') return 'ok'; if(value === 'failed' || value === 'dead' || value === 'critical') return 'danger'; return 'warn'; }
+  function setStatus(text){ el('loadState').textContent = text; el('loadState').classList.remove('hidden'); }
+  function hideStatus(){ el('loadState').classList.add('hidden'); }
+  async function jsonFetch(url, options){
+    var response = await fetch(url, Object.assign({ credentials: 'same-origin' }, options || {}));
+    var body = await response.json().catch(function(){ return {}; });
+    if(!response.ok){ var err = new Error((body.error && body.error.message) || ('HTTP ' + response.status)); err.status = response.status; err.body = body; throw err; }
+    return body;
+  }
+  async function checkSession(){
+    try { await jsonFetch('/admin/session'); showShell(); await refresh(); }
+    catch(e) { showLogin(); }
+  }
+  function showLogin(){ el('loginScreen').classList.remove('hidden'); el('appShell').classList.add('hidden'); }
+  function showShell(){ el('loginScreen').classList.add('hidden'); el('appShell').classList.remove('hidden'); }
+  async function login(token){
+    el('loginStatus').textContent = 'Checking operator session...';
+    await jsonFetch('/admin/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: token }) });
+    el('operatorToken').value = '';
+    showShell();
+    await refresh();
+  }
+  async function logout(){ await jsonFetch('/admin/session/logout', { method: 'POST' }).catch(function(){}); state.summary = null; state.monitoring = null; showLogin(); }
+  async function refresh(){
+    try {
+      state.error = null;
+      state.environment = el('environmentFilter').value;
+      setStatus('Loading ' + state.environment + ' gateway snapshot...');
+      var envParam = state.environment === 'all' ? '' : ('?environment=' + encodeURIComponent(state.environment));
+      var joiner = envParam ? '&' : '?';
+      var summaryUrl = '/admin/summary' + envParam;
+      var monitoringUrl = '/admin/monitoring' + envParam + joiner + 'app_id=' + encodeURIComponent(state.selectedAppId || '');
+      var result = await Promise.all([jsonFetch(summaryUrl), jsonFetch(monitoringUrl)]);
+      state.summary = result[0];
+      state.monitoring = result[1];
+      state.loadedAt = new Date().toISOString();
+      if(!state.selectedAppId && apps()[0]) state.selectedAppId = apps()[0].app_id;
+      hideStatus();
+      render();
+    } catch(e) {
+      state.error = e;
+      setStatus('Unable to load console: ' + (e.body && e.body.error ? e.body.error.code + ' - ' + e.body.error.message : e.message));
+    }
+  }
+  function switchView(view){
+    state.view = view;
+    document.querySelectorAll('.nav button[data-view]').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.view === view); });
+    document.querySelectorAll('.view').forEach(function(node){ node.classList.add('hidden'); });
+    el('view-' + view).classList.remove('hidden');
+    var subtitles = { dashboard:'Monitor gateway health first, then open an app workspace when action is needed.', apps:'Find and select the app you want to operate.', workspace:'Work on one app at a time: plans, customers, webhooks, entitlements, evidence.', providers:'Check which Stripe accounts serve which apps without exposing secrets.', webhooks:'Review recent provider events and processing status.', reconciliation:'Review reconciliation outcomes and attention items.', settings:'Review safe operating boundaries and current environment.', support:'Raw safe JSON for troubleshooting only.' };
+    el('pageSubtitle').textContent = subtitles[view] || '';
+    render();
+  }
+  function render(){ if(!state.summary) return; renderDashboard(); renderApps(); renderWorkspace(); renderProviders(); renderWebhooks(); renderReconciliation(); renderSettings(); renderSupport(); }
+  function renderDashboard(){
+    var mon = state.monitoring || {};
+    var alerts = arr(mon.alerts);
+    var status = mon.status || 'unknown';
+    var selected = selectedAppId();
+    var webhookCounts = mon.checks && mon.checks.webhook_inbox ? mon.checks.webhook_inbox : {};
+    var recCounts = mon.checks && mon.checks.reconciliation ? mon.checks.reconciliation : {};
+    el('view-dashboard').innerHTML =
+      '<div class="view-header"><div><h2>Dashboard</h2><p>Gateway-wide health and action queue. This page answers: is PayGate safe right now?</p></div><span class="status ' + statusClass(status) + '">' + esc(status) + '</span></div>' +
+      '<div class="banner ' + (alerts.length ? '' : 'ok') + '">' + (alerts.length ? '<strong>Attention required.</strong> ' + esc(alerts.map(function(a){ return a.severity + ':' + a.code; }).join(', ')) : '<strong>All clear.</strong> No monitoring alerts for this filter.') + '</div>' +
+      '<div class="kpi-grid">' +
+        kpi('Apps registered', apps().length, 'Current filtered registry view') +
+        kpi('Customers', customers().length, 'Customers in current evidence window') +
+        kpi('Recent webhooks', webhooks().length, 'Provider events loaded') +
+        kpi('Reconciliation runs', runs().length, 'Recent reconciliation evidence') +
+      '</div>' +
+      '<div class="two-col" style="margin-top:14px">' +
+        panel('Attention Queue', alerts.length ? alerts.map(function(a){ return row(a.code, a.message || a.severity, a.severity); }).join('') : empty('No operator action is currently required.')) +
+        panel('Recent Activity', recentActivity()) +
+      '</div>' +
+      '<div class="panel"><h3>Current app focus</h3><p><strong>' + esc(selected || 'none') + '</strong> is selected for workspace actions. Use Apps Directory to change app.</p><button class="secondary" type="button" onclick="window.paygateSwitchView(\'workspace\')">Open App Workspace</button></div>';
+  }
+  function renderApps(){
+    var cards = filteredApps().map(function(app){
+      var planCount = arr(app.plans).length;
+      return '<button class="app-card ' + (app.app_id === state.selectedAppId ? 'active' : '') + '" type="button" data-app="' + esc(app.app_id) + '"><div class="app-card-title"><span>' + esc(app.name || app.app_id) + '</span><span class="status ' + statusClass('active') + '">' + esc(app.app_id) + '</span></div><p>' + esc(app.provider_id || 'provider') + ':' + esc(app.provider_account || 'account') + '</p><div class="meta">Plans: ' + planCount + '<br/>Test origin: ' + esc(app.origins && app.origins.test ? app.origins.test : 'not set') + '<br/>Live origin: ' + esc(app.origins && app.origins.live ? app.origins.live : 'not set') + '</div></button>';
+    }).join('');
+    el('view-apps').innerHTML = '<div class="view-header"><div><h2>Apps Directory</h2><p>Select one app, then work inside its workspace. This is where multi-app operation begins.</p></div><button class="secondary" disabled>Add New App - planned</button></div><div class="app-grid">' + (cards || empty('No apps match the current search.')) + '</div>';
+    document.querySelectorAll('[data-app]').forEach(function(btn){ btn.addEventListener('click', function(){ state.selectedAppId = btn.getAttribute('data-app') || ''; switchView('workspace'); }); });
+  }
+  function renderWorkspace(){
+    var app = selectedApp();
+    if(!app){ el('view-workspace').innerHTML = empty('No app selected. Open Apps Directory first.'); return; }
+    var appCustomers = customers().filter(function(c){ return c.app_id === app.app_id; });
+    var appWebhooks = webhooks().filter(function(w){ return w.app_id === app.app_id; });
+    var appRuns = runs().filter(function(r){ return r.app_id === app.app_id; });
+    el('view-workspace').innerHTML =
+      '<div class="view-header"><div><h2>App Workspace: ' + esc(app.name || app.app_id) + '</h2><p>One app, one operating surface. Use this view for setup readiness, customer state, webhook evidence, and reconciliation evidence.</p></div><span class="status ok">' + esc(app.app_id) + '</span></div>' +
+      '<div class="three-col">' + panel('Provider Mapping', '<p><strong>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</strong></p><p>Secrets remain server-side. Apps never receive provider keys.</p>') + panel('Return Origins', '<p>Test: ' + esc(app.origins && app.origins.test ? app.origins.test : 'not set') + '</p><p>Live: ' + esc(app.origins && app.origins.live ? app.origins.live : 'not set') + '</p>') + panel('Evidence Summary', '<p>Customers: <strong>' + appCustomers.length + '</strong></p><p>Webhooks: <strong>' + appWebhooks.length + '</strong></p><p>Reconciliation: <strong>' + appRuns.length + '</strong></p>') + '</div>' +
+      '<div class="two-col">' + panel('Plans', arr(app.plans).map(function(p){ return row(p.plan_key, money(p) + ' - ' + esc(p.mode || '') + ' - ' + esc(p.status || ''), 'lookup configured: ' + Boolean(p.provider_lookup_configured)); }).join('') || empty('No plans configured.')) + panel('Customers and Entitlements', appCustomers.map(customerCard).join('') || empty('No customers in this filter.')) + '</div>' +
+      '<div class="two-col">' + panel('Webhook Evidence', appWebhooks.map(function(w){ return row(w.event_type, w.provider_event_id, w.status + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook evidence.')) + panel('Reconciliation Evidence', appRuns.map(function(r){ return row(r.status, r.id, fmtDate(r.completed_at)); }).join('') || empty('No reconciliation evidence.')) + '</div>';
+  }
+  function renderProviders(){
+    var groups = {};
+    apps().forEach(function(app){ var key = (app.provider_id || 'provider') + ':' + (app.provider_account || 'account'); groups[key] = groups[key] || []; groups[key].push(app); });
+    el('view-providers').innerHTML = '<div class="view-header"><div><h2>Provider Accounts</h2><p>Company-scoped Stripe accounts mapped to apps. This proves isolation without exposing keys.</p></div></div><div class="list">' + Object.keys(groups).map(function(key){ return row(key, groups[key].map(function(app){ return app.app_id; }).join(', '), groups[key].length + ' app(s)'); }).join('') + '</div>';
+  }
+  function renderWebhooks(){
+    el('view-webhooks').innerHTML = '<div class="view-header"><div><h2>Webhooks</h2><p>Recent provider events after signature verification and trusted inbox processing.</p></div></div><div class="list">' + (webhooks().map(function(w){ return row(w.event_type, w.app_id + ' / ' + w.user_ref, w.status + ' - ' + w.provider_account + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook events loaded.')) + '</div>';
+  }
+  function renderReconciliation(){
+    el('view-reconciliation').innerHTML = '<div class="view-header"><div><h2>Reconciliation</h2><p>Evidence from explicit reconciliation runs. Warnings here are operator review items, not automatic browser-granted access.</p></div></div><div class="list">' + (runs().map(function(r){ return row(r.status, (r.app_id || 'unknown app') + ' / ' + (r.user_ref || 'all users'), r.provider_account + ' - ' + fmtDate(r.completed_at)); }).join('') || empty('No reconciliation runs loaded.')) + '</div>';
+  }
+  function renderSettings(){
+    el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="two-col">' + panel('Access Model', '<p>Operator login uses a protected session cookie created from <code>OPERATOR_DIAGNOSTICS_TOKEN</code>.</p><p>App users use their app JWT, not this operator session.</p>') + panel('Current Scope', '<p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p>') + '</div>';
+  }
+  function renderSupport(){
+    var safe = { loaded_at: state.loadedAt, environment: state.environment, selected_app_id: state.selectedAppId, monitoring: state.monitoring, summary: state.summary };
+    el('view-support').innerHTML = '<div class="view-header"><div><h2>Support / Debug</h2><p>Raw safe JSON is hidden here so normal operators do not start the day inside diagnostics output.</p></div></div><pre class="debug">' + esc(JSON.stringify(safe, null, 2)) + '</pre>';
+  }
+  function kpi(label, value, note){ return '<div class="kpi"><div class="kpi-label">' + esc(label) + '</div><div class="kpi-value">' + esc(value) + '</div><div class="kpi-note">' + esc(note) + '</div></div>'; }
+  function panel(title, body){ return '<section class="panel"><h3>' + esc(title) + '</h3>' + body + '</section>'; }
+  function row(title, body, meta){ return '<div class="row"><div class="row-title"><span>' + esc(title) + '</span></div><div class="meta">' + esc(body) + '</div>' + (meta ? '<div class="meta">' + esc(meta) + '</div>' : '') + '</div>'; }
+  function empty(message){ return '<div class="empty">' + esc(message) + '</div>'; }
+  function customerCard(c){
+    var entitlements = arr(c.entitlements).map(function(e){ return e.key + ':' + e.state; }).join(', ') || 'none';
+    var subscription = c.subscription ? c.subscription.state + ' / ' + c.subscription.plan_key : 'none';
+    return row(c.user_ref, 'Subscription: ' + subscription, 'Entitlements: ' + entitlements);
+  }
+  function recentActivity(){
+    var items = [];
+    webhooks().slice(0, 4).forEach(function(w){ items.push(row('Webhook: ' + w.event_type, w.app_id + ' - ' + w.status, fmtDate(w.received_at))); });
+    runs().slice(0, 3).forEach(function(r){ items.push(row('Reconciliation: ' + r.status, r.app_id || 'unknown app', fmtDate(r.completed_at))); });
+    return items.join('') || empty('No recent activity loaded.');
+  }
+  el('loginForm').addEventListener('submit', function(event){ event.preventDefault(); var token = el('operatorToken').value.trim(); if(!token){ el('loginStatus').textContent = 'Enter the operator access token first.'; return; } login(token).catch(function(e){ el('loginStatus').textContent = 'Login failed: ' + (e.body && e.body.error ? e.body.error.message : e.message); }); });
+  el('logoutBtn').addEventListener('click', logout);
+  el('refreshBtn').addEventListener('click', refresh);
+  el('environmentFilter').addEventListener('change', refresh);
+  el('appSearch').addEventListener('input', function(){ renderApps(); });
+  document.querySelectorAll('.nav button[data-view]').forEach(function(btn){ btn.addEventListener('click', function(){ switchView(btn.dataset.view); }); });
+  window.paygateSwitchView = switchView;
+  checkSession();
+})();
 </script>
 </body>
 </html>`;

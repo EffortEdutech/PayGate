@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1F UX blueprint awaiting operator acceptance.
+Status: started; Track 1G admin shell rebuild implemented locally pending deployment review.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -84,9 +84,9 @@ Track 1 checklist:
 - [x] Define no-secret display rule.
 - [x] Define refund/live-operation approval guardrail.
 - [x] Build first console information architecture/wireframe.
-- [ ] Decide implementation path after Track 1F blueprint acceptance.
+- [x] Decide implementation path after Track 1F blueprint acceptance: rebuild `/admin` as a dashboard/sidebar/workspace shell.
 - [x] Add UI acceptance checklist before coding.
-- [ ] Create Track 1 closeout evidence after blueprint acceptance.
+- [ ] Create Track 1 closeout evidence after deployed operator review.
 
 
 ## Track 1F - Operator Console UX Blueprint
@@ -103,9 +103,37 @@ Checklist:
 - [x] Define Provider Accounts, Webhooks, Reconciliation, Settings, and Add App future views.
 - [x] Document screen responsibilities and non-authorized actions.
 - [x] Mark raw JSON as Support/Debug only.
-- [ ] Operator accepts blueprint.
-- [ ] Rebuild `/admin` according to accepted blueprint.
+- [x] Operator accepts blueprint.
+- [x] Rebuild `/admin` according to accepted blueprint.
 
+## Track 1G - Rebuild Admin Shell Around Blueprint
+
+Goal: turn `/admin` into the accepted operator console shell instead of a mixed diagnostic page.
+
+Implemented scope:
+
+- Login gate before dashboard access.
+- Sidebar navigation after login.
+- Dashboard as the default global health view.
+- Apps Directory for multi-app selection.
+- App Workspace for one selected app at a time.
+- Provider Accounts, Webhooks, Reconciliation, Settings, and Support/Debug views.
+- Add App visible but disabled as a future controlled draft workflow.
+
+Checklist:
+
+- [x] Remove permanent top token form from the working dashboard.
+- [x] Keep token entry in login gate only.
+- [x] Use protected admin session cookie after login.
+- [x] Load registered apps from PayGate summary instead of requiring the operator to remember app IDs.
+- [x] Separate Dashboard from App Workspace.
+- [x] Keep Support/Debug JSON out of the normal operator workflow.
+- [x] Preserve read-only safety boundary for this slice.
+- [x] Validate with registry validation, TypeScript, and unit tests.
+
+Next gate:
+
+- [ ] Deploy and visually review `/admin` with the operator before continuing Track 1H.
 ## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.

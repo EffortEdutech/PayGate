@@ -1,6 +1,6 @@
 # Phase 7 Track 1F - Operator Console UX Blueprint
 
-Status: proposed blueprint; implementation paused until operator acceptance.
+Status: accepted; Track 1G admin shell rebuild implemented locally pending deployment review.
 Date: 2026-09-09.
 Parent sprint: `docs/PHASE_7_MULTI_APP_SCALE_OUT_SPRINT_PLAN.md`.
 Related plan: `docs/PHASE_7_TRACK_1_OPERATOR_CONSOLE_UX_PLAN.md`.
@@ -416,8 +416,33 @@ Track 1F does not implement this wizard. It only defines the entry point and exp
 - [x] Add App wizard entry point defined as future draft workflow.
 - [x] Screen-level safety rules documented.
 - [x] Raw/debug JSON moved out of main workflow.
-- [x] Implementation paused until operator accepts blueprint.
+- [x] Operator accepted blueprint on 2026-09-09.
+- [x] Track 1G rebuilt `/admin` around the accepted dashboard/sidebar/workspace shell.
+- [x] Admin shell remains read-only; Add App/edit/refund/live mutation actions remain future controlled tracks.
 
 ## Operator Acceptance Gate
 
-Do not rebuild `/admin` again until the operator accepts this blueprint or requests specific changes.
+Blueprint accepted by operator on 2026-09-09. Track 1G rebuild may proceed only inside this accepted shape: login gate, sidebar, Dashboard, Apps Directory, App Workspace, Provider Accounts, Webhooks, Reconciliation, Settings, and Support/Debug.
+## Track 1G Implementation Evidence
+
+Date: 2026-09-09
+
+Implemented in `api/index.ts`:
+
+- Login gate first: operator token is entered only on the login screen and exchanged for the existing protected admin session cookie.
+- Dashboard after login: high-level health, alerts, app/customer/webhook/reconciliation counts, and recent activity.
+- Sidebar navigation: Dashboard, Apps Directory, App Workspace, Provider Accounts, Webhooks, Reconciliation, Settings, Support/Debug.
+- Apps Directory: searchable app cards; selecting an app opens the App Workspace.
+- App Workspace: one app at a time with provider mapping, return origins, plans, customer/entitlement evidence, webhook evidence, and reconciliation evidence.
+- Provider Accounts: grouped app-to-provider-account mapping without exposing secrets.
+- Support/Debug: raw safe JSON is isolated away from the normal workflow.
+- Add App remains visible but disabled as a planned draft workflow.
+
+Validation:
+
+- `npm run check` passed: registry validation, TypeScript build, and 58/58 tests.
+- Admin shell unit test updated to lock the new blueprint labels and confirm the operator token is not embedded in HTML.
+
+Safety boundary:
+
+Track 1G is a read-only UX rebuild. It does not authorize registry edits, secret edits, refunds, live payment actions, or provider-side mutations.
