@@ -25,7 +25,7 @@ GET  /admin/summary
 GET  /admin/monitoring
 ```
 
-`GET /admin` serves a minimal read-only operator console shell. The shell stores the operator token only in browser tab memory and calls `/admin/summary` and `/admin/monitoring` with a bearer token.
+`GET /admin` serves the read-only operator console shell. Operator login accepts the PayGate bootstrap/admin token once, exchanges it for a signed HttpOnly Secure SameSite admin session cookie, and then calls protected admin APIs with that session. The token is not embedded in the page source and is not an AIntern/app-user JWT or Stripe/provider credential.
 
 Provider ingress is unauthenticated at the app layer but signature authenticated:
 
@@ -72,4 +72,3 @@ Errors use stable codes:
 ```
 
 Provider error types are logged internally and translated. Applications must not branch on provider-specific exceptions.
-

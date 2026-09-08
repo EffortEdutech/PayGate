@@ -1,6 +1,6 @@
 # Phase 7 Track 1F - Operator Console UX Blueprint
 
-Status: accepted; Track 1G admin shell rebuild implemented locally pending deployment review.
+Status: accepted; Track 1H operator identity UX implemented locally pending deployment review.
 Date: 2026-09-09.
 Parent sprint: `docs/PHASE_7_MULTI_APP_SCALE_OUT_SPRINT_PLAN.md`.
 Related plan: `docs/PHASE_7_TRACK_1_OPERATOR_CONSOLE_UX_PLAN.md`.
@@ -395,12 +395,19 @@ Track 1F does not implement this wizard. It only defines the entry point and exp
 - Add selected app workspace route/view state.
 - Keep data read-only.
 
-### Track 1H - Workspace Tabs
+### Track 1H - Operator Identity UX
+
+- Clarify that the operator login credential belongs to PayGate.
+- Clarify that AIntern/app users use app JWTs, not the PayGate operator token.
+- Clarify that Stripe account identity is represented by provider account aliases and server-side secrets.
+- Keep named operator accounts, roles, and audit trail as the next proper-auth target.
+
+### Track 1I - Workspace Tabs
 
 - Add app workspace tabs: Overview, Plans, Provider, URLs, Auth, Customers, Webhooks, Reconciliation, Evidence.
 - Keep edit buttons disabled or labelled future until draft workflow exists.
 
-### Track 1I - Draft Add/Edit App Wizard
+### Track 1J - Draft Add/Edit App Wizard
 
 - Add guided forms.
 - Generate draft registry package preview.
@@ -446,3 +453,23 @@ Validation:
 Safety boundary:
 
 Track 1G is a read-only UX rebuild. It does not authorize registry edits, secret edits, refunds, live payment actions, or provider-side mutations.
+
+## Track 1H Implementation Evidence
+
+Date: 2026-09-09
+
+Implemented in `api/index.ts`:
+
+- Login field now says `PayGate operator access token`.
+- Login copy states that the credential belongs to PayGate, not AIntern, not Stripe, and not an app user account.
+- Login help explains that `OPERATOR_DIAGNOSTICS_TOKEN` is the temporary PayGate admin/bootstrap token in Vercel.
+- Settings view separates three identities: PayGate Operator Identity, App User Identity, and Provider Identity.
+- Future target is documented as named operator accounts, roles, and audit trail.
+
+Validation:
+
+- Admin shell unit test now locks the identity UX wording and still confirms the real operator token value is not embedded in HTML.
+
+Safety boundary:
+
+Track 1H does not change authentication authority yet. It clarifies the UX and documentation while preserving the existing protected session-cookie flow.

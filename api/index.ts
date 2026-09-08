@@ -595,6 +595,8 @@ const ADMIN_HTML = `<!doctype html>
     .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 130px; gap: 10px; align-items:end; }
     .empty { border: 1px dashed #cbd5e1; border-radius: 16px; padding: 18px; text-align: center; color: var(--muted); background: #fff; }
     .debug { white-space: pre-wrap; overflow: auto; max-height: 520px; background: #0b1220; color: #d0d5dd; border-radius: 16px; padding: 14px; font-size: 12px; }
+    .identity-help { margin-top: 14px; display: grid; gap: 5px; border: 1px solid #b2ccff; background: var(--brand-soft); border-radius: 16px; padding: 12px; color: #1849a9; }
+    .identity-help span { color: #194185; font-size: 13px; line-height: 1.45; }
     @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar { grid-template-columns: 1fr; display: grid; min-width: 0; } }
   </style>
 </head>
@@ -603,15 +605,15 @@ const ADMIN_HTML = `<!doctype html>
     <section class="login-card">
       <div class="login-badge">Protected operator area</div>
       <h1>PayGate Operator Login</h1>
-      <p>Sign in once to manage the gateway view. Your operator token is exchanged for a protected server-side session cookie and is not stored in page source.</p>
+      <p>Sign in to the PayGate operator console. This credential belongs to PayGate, not AIntern, not Stripe, and not an app user account.</p>
       <form id="loginForm">
-        <label>Operator access name or token
+        <label>PayGate operator access token
           <input id="operatorToken" type="password" autocomplete="current-password" placeholder="Paste operator token" />
         </label>
         <div style="height:12px"></div>
         <button class="primary" type="submit" style="width:100%">Load Console</button>
       </form>
-      <p id="loginStatus" class="meta">Use the protected operator token configured in Vercel as OPERATOR_DIAGNOSTICS_TOKEN.</p>
+      <div class="identity-help"><strong>What is this?</strong><span>Temporary PayGate admin access from <code>OPERATOR_DIAGNOSTICS_TOKEN</code> in Vercel. After login, PayGate creates a secure admin session cookie.</span></div><p id="loginStatus" class="meta">Future target: named operator login with roles; this token remains the emergency bootstrap credential.</p>
     </section>
   </main>
 
@@ -800,7 +802,7 @@ const ADMIN_HTML = `<!doctype html>
     el('view-reconciliation').innerHTML = '<div class="view-header"><div><h2>Reconciliation</h2><p>Evidence from explicit reconciliation runs. Warnings here are operator review items, not automatic browser-granted access.</p></div></div><div class="list">' + (runs().map(function(r){ return row(r.status, (r.app_id || 'unknown app') + ' / ' + (r.user_ref || 'all users'), r.provider_account + ' - ' + fmtDate(r.completed_at)); }).join('') || empty('No reconciliation runs loaded.')) + '</div>';
   }
   function renderSettings(){
-    el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="two-col">' + panel('Access Model', '<p>Operator login uses a protected session cookie created from <code>OPERATOR_DIAGNOSTICS_TOKEN</code>.</p><p>App users use their app JWT, not this operator session.</p>') + panel('Current Scope', '<p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p>') + '</div>';
+    el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="three-col">' + panel('PayGate Operator Identity', '<p><strong>Belongs to PayGate.</strong></p><p>Current login uses <code>OPERATOR_DIAGNOSTICS_TOKEN</code> only to create a protected admin session cookie.</p><p>Future UX: named operator accounts, roles, and audit trail.</p>') + panel('App User Identity', '<p><strong>Belongs to each app.</strong></p><p>AIntern users authenticate with their app JWT. App JWTs can create checkout/portal for that same user only.</p>') + panel('Provider Identity', '<p><strong>Belongs to Stripe/company accounts.</strong></p><p>Provider account aliases such as <code>nhl_global_solution</code> route money and webhooks. Secrets stay server-side.</p>') + '</div><div class="panel"><h3>Current Scope</h3><p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p></div>';
   }
   function renderSupport(){
     var safe = { loaded_at: state.loadedAt, environment: state.environment, selected_app_id: state.selectedAppId, monitoring: state.monitoring, summary: state.summary };

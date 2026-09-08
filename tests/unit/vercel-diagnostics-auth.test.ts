@@ -157,6 +157,9 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.equal(response.headers["content-type"], "text/html; charset=utf-8");
     assert.match(String(response.body), /PayGate Operator Console/);
     assert.match(String(response.body), /PayGate Operator Login/);
+    assert.match(String(response.body), /PayGate operator access token/);
+    assert.match(String(response.body), /This credential belongs to PayGate/);
+    assert.match(String(response.body), /OPERATOR_DIAGNOSTICS_TOKEN/);
     assert.match(String(response.body), /Dashboard/);
     assert.match(String(response.body), /Apps Directory/);
     assert.match(String(response.body), /App Workspace/);

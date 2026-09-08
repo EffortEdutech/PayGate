@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1G admin shell rebuild implemented locally pending deployment review.
+Status: started; Track 1H operator identity UX implemented locally pending deployment review.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -133,7 +133,36 @@ Checklist:
 
 Next gate:
 
-- [ ] Deploy and visually review `/admin` with the operator before continuing Track 1H.
+- [x] Operator requested identity UX correction before workspace tabs.
+- [x] Clarify PayGate operator token versus app user JWT versus Stripe/provider account identity.
+## Track 1H - Operator Identity UX
+
+Goal: remove confusion around the console login by making identity ownership explicit before adding deeper app workspace features.
+
+Identity model:
+
+- PayGate operator identity belongs to PayGate. It opens admin, diagnostics, monitoring, evidence, and future setup workflows.
+- App user identity belongs to each connected app. For AIntern, the app user uses the AIntern/Supabase JWT and can only act for their own `user_ref`.
+- Provider identity belongs to the company payment account. For Stripe, PayGate routes through company-scoped aliases such as `nhl_global_solution`; provider secrets stay server-side.
+- `OPERATOR_DIAGNOSTICS_TOKEN` is a temporary PayGate bootstrap/admin token, not an AIntern token and not a Stripe token.
+
+Implemented scope:
+
+- [x] Rename login field to `PayGate operator access token`.
+- [x] Add plain-language explanation that the token belongs to PayGate, not AIntern, Stripe, or an app user.
+- [x] Explain that the token is exchanged for a protected admin session cookie.
+- [x] Add Settings identity cards for PayGate operator identity, app user identity, and provider identity.
+- [x] Keep named operator accounts/roles as future target, not an unplanned auth migration in this slice.
+- [x] Preserve read-only console behavior.
+
+Future target:
+
+- Replace token-first login with named operator accounts, roles, and audit trail.
+- Keep `OPERATOR_DIAGNOSTICS_TOKEN` as an emergency/bootstrap fallback only.
+
+Next gate:
+
+- [ ] Deploy and visually review `/admin` identity wording with the operator before workspace tab work resumes.
 ## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.
