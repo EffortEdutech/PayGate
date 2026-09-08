@@ -124,7 +124,7 @@ export class StripeSandboxAdapter implements PaymentProviderAdapter {
       ]);
       const subscription = preferredSubscription(subscriptions.data);
       const evidence = buildStripeReconciliationEvidence(command, customer, subscriptions.data, checkoutSessions.data, invoices.data);
-      if (!subscription) return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: "none", observedAt: new Date(), state: "none", evidence };
+    if (!subscription) return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: "none", observedAt: new Date(), state: "none", evidence };
       const item = subscription.items.data[0];
       const price = item?.price;
       const currentPeriodEnd = item?.current_period_end;
@@ -179,8 +179,35 @@ export class StripeLiveCheckoutAdapter implements PaymentProviderAdapter {
     }
   }
 
-  async createPortalSession(_command: ResolvedPortalCommand): Promise<PortalResult> { throw new StripeAdapterNotConfiguredError(); }
-  async reconcileCustomer(_command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> { throw new StripeAdapterNotConfiguredError(); }
+  async createPortalSession(command: ResolvedPortalCommand): Promise<PortalResult> {
+    if (command.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe checkout adapter accepts only live portal commands");
+    try {
+      const session = await this.#stripe.billingPortal.sessions.create({ customer: command.providerCustomerRef, return_url: command.returnUrl.href }, { idempotencyKey: `cph_portal:${command.requestId}` });
+      return { portalSessionId: session.id, redirectUrl: new URL(session.url) };
+    } catch (error) {
+      throw translateStripeError(error);
+    }
+  }
+  async reconcileCustomer(command: ResolvedReconciliationCommand): Promise<ProviderSubscriptionSnapshot> {
+    if (command.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe checkout adapter accepts only live reconciliation commands");
+    try {
+      const [customer, subscriptions, checkoutSessions, invoices] = await Promise.all([
+        this.#stripe.customers.retrieve(command.providerCustomerRef),
+        this.#stripe.subscriptions.list({ customer: command.providerCustomerRef, status: "all", limit: 3, expand: ["data.items.data.price", "data.latest_invoice"] }),
+        this.#stripe.checkout.sessions.list({ customer: command.providerCustomerRef, limit: 3, expand: ["data.subscription", "data.payment_intent"] }),
+        this.#stripe.invoices.list({ customer: command.providerCustomerRef, limit: 3, expand: ["data.payment_intent", "data.subscription"] }),
+      ]);
+      const subscription = preferredSubscription(subscriptions.data);
+      const evidence = buildStripeReconciliationEvidence(command, customer, subscriptions.data, checkoutSessions.data, invoices.data);
+      if (!subscription) return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: "none", observedAt: new Date(), state: "none", evidence };
+      const item = subscription.items.data[0];
+      const price = item?.price;
+      const currentPeriodEnd = item?.current_period_end;
+      return { providerId: this.providerId, providerAccount: command.providerAccount, environment: command.environment, providerCustomerRef: command.providerCustomerRef, providerSubscriptionRef: subscription.id, observedAt: new Date(), state: mapStripeSubscriptionState(subscription.status), ...(subscription.metadata.cph_plan_key ? { planKey: subscription.metadata.cph_plan_key } : price?.lookup_key ? { planKey: price.lookup_key } : {}), ...(currentPeriodEnd ? { currentPeriodEnd: new Date(currentPeriodEnd * 1000) } : {}), evidence };
+    } catch (error) {
+      throw translateStripeError(error);
+    }
+  }
 
   async verifyWebhook(input: { readonly rawBody: Uint8Array; readonly signature: string; readonly account: string; readonly environment: Environment }): Promise<VerifiedProviderEvent> {
     if (input.environment !== "live") throw new StripeAdapterRuntimeError("PROVIDER_ENVIRONMENT_MISMATCH", "Live Stripe checkout adapter accepts only live webhook events");

@@ -161,7 +161,7 @@ test("current Stripe adapter blocks live credentials until an explicit live-mode
     /sandbox secret key/,
   );
 });
-test("live Stripe boundary accepts only live keys and enables checkout only", async () => {
+test("live Stripe boundary accepts only live keys and enables pilot operations", async () => {
   const adapter = new StripeLiveCheckoutAdapter({ environment: "live", secretKey: "sk_live_boundary_only", webhookSecret: "whsec_live_placeholder", apiVersion: "2026-07-29.dahlia" });
   assert.equal(adapter.providerId, "stripe");
   assert.throws(
@@ -169,12 +169,12 @@ test("live Stripe boundary accepts only live keys and enables checkout only", as
     /live secret key/,
   );
   await assert.rejects(
-    () => adapter.createPortalSession({} as never),
-    /Stripe runtime operations are not configured/,
+    () => adapter.createPortalSession({ environment: "test" } as never),
+    /live portal commands/,
   );
   await assert.rejects(
-    () => adapter.reconcileCustomer({} as never),
-    /Stripe runtime operations are not configured/,
+    () => adapter.reconcileCustomer({ environment: "test" } as never),
+    /live reconciliation commands/,
   );
 });
 test("live stripe account credentials are parsed from live-only env names", () => {

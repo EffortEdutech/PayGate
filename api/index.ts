@@ -217,7 +217,7 @@ async function readinessDiagnostics(requestId: string): Promise<unknown> {
   try {
     const runtimeModule = await import("../payment-hub/src/runtime/runtime.js");
     const runtime = await runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd());
-    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, live_webhook_boundary: runtime.config.stripeLiveAccounts.length > 0 ? "live_checkout_and_webhook" : "not_configured", live_checkout_enabled: runtime.config.stripeLiveAccounts.length > 0, live_portal_enabled: false, live_reconciliation_enabled: false, phase6_approval_required: true, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
+    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, live_webhook_boundary: runtime.config.stripeLiveAccounts.length > 0 ? "live_checkout_and_webhook" : "not_configured", live_checkout_enabled: runtime.config.stripeLiveAccounts.length > 0, live_portal_enabled: runtime.config.stripeLiveAccounts.length > 0, live_reconciliation_enabled: runtime.config.stripeLiveAccounts.length > 0, phase6_approval_required: true, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
   } catch (error) {
     checks.push(safeErrorCheck("RUNTIME_CREATE", error));
   }
@@ -306,8 +306,8 @@ function liveReadinessSummary(accounts: string[], liveAccounts: string[]): unkno
     shared_provider_accounts: sharedAccounts,
     live_webhook_ready_accounts: liveWebhookReady,
     live_checkout_enabled: liveWebhookReady.length === liveSet.size && liveSet.size > 0,
-    live_portal_enabled: false,
-    live_reconciliation_enabled: false,
+    live_portal_enabled: liveWebhookReady.length === liveSet.size && liveSet.size > 0,
+    live_reconciliation_enabled: liveWebhookReady.length === liveSet.size && liveSet.size > 0,
     phase6_approval_required: true,
   };
 }

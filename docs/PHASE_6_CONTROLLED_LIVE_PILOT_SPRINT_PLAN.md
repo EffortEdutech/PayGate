@@ -94,6 +94,9 @@ Goal: prove operator/customer recovery paths work in live mode.
 
 Checklist:
 
+- [x] Enable live portal adapter path for approved Phase 6 pilot.
+- [x] Enable live reconciliation adapter path for approved Phase 6 pilot.
+- [ ] Deploy live portal/reconciliation adapter path to PayGate.
 - [ ] Create billing portal session for the same app/user.
 - [ ] Confirm portal belongs to the correct Stripe account/company.
 - [ ] Run live reconciliation only if needed or approved in the test window.
