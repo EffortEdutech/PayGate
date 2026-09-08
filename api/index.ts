@@ -544,11 +544,12 @@ const ADMIN_HTML = `<!doctype html>
     input, select { width: 100%; background: white; color: var(--ink); }
     button { cursor: pointer; background: var(--brand); color: white; border-color: var(--brand); font-weight: 800; min-height: 42px; }
     button.ghost { background: white; color: var(--ink); border-color: #cbd5e1; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
     section { background: white; border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
     .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 14px; }
     .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
     .safety { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .toolbar { display: grid; grid-template-columns: minmax(320px, 1.8fr) minmax(180px, .9fr) minmax(140px, .6fr) 130px; gap: 12px; align-items: end; }
+    .toolbar { display: grid; grid-template-columns: minmax(260px, 1.3fr) minmax(220px, 1fr) minmax(220px, 1fr) minmax(130px, .55fr) 180px; gap: 12px; align-items: end; }
     label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); font-weight: 700; }
     .status-line { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .console-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 14px; align-items: start; }
@@ -611,7 +612,8 @@ const ADMIN_HTML = `<!doctype html>
     <section>
       <div class="toolbar">
         <label>Operator login<input id="token" type="password" placeholder="Paste token once to sign in" autocomplete="off" /></label>
-        <label>Search apps<input id="appSearch" placeholder="Search app name, ID, provider" /></label>
+        <label>Choose app<select id="appSelect"><option value="">All apps</option></select></label>
+        <label>Filter loaded apps<input id="appSearch" placeholder="Optional search" /></label>
         <label>Environment<select id="environment"><option value="live">live</option><option value="test">test</option><option value="">all</option></select></label>
         <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><button id="refresh">Load Console</button><button id="logout" class="ghost" type="button">Logout</button></div>
       </div>
@@ -636,9 +638,9 @@ const ADMIN_HTML = `<!doctype html>
       <aside class="sidebar">
         <section>
           <h2>App Directory</h2>
-          <p class="section-kicker">Select an app. No hardcoded app workflow.</p>
+          <p class="section-kicker">Select from registered PayGate apps. Search only filters the loaded list.</p>
           <div class="tabs"><button id="allAppsTab" class="tab active">All apps</button><button id="selectedAppTab" class="tab">Selected app</button></div>
-          <div id="appDirectory" class="app-list"><div class="empty">Load apps first.</div></div>
+          <button id="addApp" class="app-button" type="button" disabled><div class="app-button-title"><span>+ Add New App</span><span class="badge warn">Track 1F</span></div><div class="app-button-meta">Draft setup wizard coming next. No direct registry edits here.</div></button><div id="appDirectory" class="app-list"><div class="empty">Load apps first.</div></div>
         </section>
       </aside>
 
@@ -773,6 +775,14 @@ function renderDashboard(summary, monitoring) {
   ].join('');
   renderActionPanel(summary, monitoring);
 }
+function renderAppSelect() {
+  var select = $("appSelect");
+  var apps = state.summary && state.summary.apps || [];
+  var previous = select.value;
+  select.innerHTML = '<option value="">All apps</option>' + apps.map(function (app) { return '<option value="' + esc(app.app_id) + '">' + esc(app.name || app.app_id) + ' — ' + esc(app.app_id) + '</option>'; }).join('');
+  select.value = state.scope === 'selected' && state.selectedAppId ? state.selectedAppId : '';
+  if (previous && apps.some(function (app) { return app.app_id === previous; }) && !state.selectedAppId) select.value = previous;
+}
 function renderAppDirectory() {
   var apps = filteredApps();
   renderList('appDirectory', apps, 'No apps match this search.', function (app) {
@@ -845,14 +855,16 @@ async function refresh() {
   state.summary = summaryResult.body || {};
   state.monitoring = monitoringResult.ok ? monitoringResult.body : { status: 'attention_required', alerts: [{ severity: 'warning', code: 'MONITORING_UNAVAILABLE' }], checks: {} };
   var apps = state.summary.apps || [];
-  if (!state.selectedAppId && apps.length) state.selectedAppId = apps[0].app_id;
+  if (apps.length === 1) { state.selectedAppId = apps[0].app_id; state.scope = 'selected'; } else if (state.selectedAppId && !apps.some(function (app) { return app.app_id === state.selectedAppId; })) { state.selectedAppId = ''; state.scope = 'all'; }
   $("status").textContent = 'Loaded ' + state.summary.generated_at + ' · apps=' + apps.length + ' · env=' + ($("environment").value || 'all');
   renderAll();
-}renderOnboarding();
+}
+renderOnboarding();
 $("refresh").addEventListener("click", function () { refresh().catch(function (error) { $("status").textContent = error.message; }); });
 $("logout").addEventListener("click", function () { logout().catch(function (error) { $("status").textContent = error.message; }); });
 $("appSearch").addEventListener("input", renderAppDirectory);
-$("allAppsTab").addEventListener("click", function () { state.scope = 'all'; renderAll(); });
+$("appSelect").addEventListener("change", function () { state.selectedAppId = $("appSelect").value; state.scope = state.selectedAppId ? 'selected' : 'all'; renderAll(); });
+$("allAppsTab").addEventListener("click", function () { state.scope = 'all'; state.selectedAppId = ''; renderAll(); });
 $("selectedAppTab").addEventListener("click", function () { state.scope = 'selected'; renderAll(); });
 </script>
 </body>

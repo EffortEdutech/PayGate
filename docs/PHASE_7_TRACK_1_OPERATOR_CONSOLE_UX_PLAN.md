@@ -326,3 +326,51 @@ Validation:
 - [x] Unit tests passed.
 - [x] Added test that login creates an HttpOnly/Secure admin session cookie.
 - [x] Added test that the session cookie can access admin session status.
+## Track 1E Implementation Evidence - App Selection UX Polish
+
+Date: 2026-09-09.
+
+Implemented the corrected app selection workflow after operator review.
+
+Previous issue:
+
+- The UI still made the operator feel like they had to search/type an app manually.
+- It did not clearly show that PayGate can load the registered app list from the registry after login.
+- The app switcher existed, but the top workflow did not guide selection well.
+
+Correction applied:
+
+- Renamed the primary action to `Load Console`.
+- Added an app dropdown populated from registered PayGate apps after login.
+- Kept search as secondary `Filter loaded apps`, not the main workflow.
+- Added `All apps` as the global default when multiple apps exist.
+- Auto-selects the only app when there is exactly one app.
+- Added a visible disabled `Add New App` entry point for the next draft wizard track.
+- App directory and selected app workspace remain read-only.
+
+Operator workflow after Track 1E:
+
+```text
+Open /admin
+-> sign in once
+-> Load Console
+-> app dropdown is populated from PayGate registry
+-> choose All apps or a specific app
+-> optionally filter the loaded app list
+-> inspect selected app workspace and evidence
+```
+
+Boundary decisions:
+
+- Search is not the source of truth; loaded registry apps are.
+- App dropdown/sidebar are read-only selectors.
+- `Add New App` is shown as a planned workflow but disabled until Track 1F.
+- No app edit/update mutation is implemented yet.
+
+Validation:
+
+- [x] Registry validation passed.
+- [x] Typecheck passed.
+- [x] Unit tests passed.
+- [x] Admin shell test asserts app dropdown, all-apps option, filter, app directory, selected workspace, add-new entry, and load-console action.
+- [x] Secret scan passed.
