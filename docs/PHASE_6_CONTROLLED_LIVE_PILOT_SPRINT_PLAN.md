@@ -64,6 +64,9 @@ Checklist:
 - [x] Enable live checkout adapter path for approved Phase 6 pilot.
 - [ ] Deploy live checkout adapter path to PayGate.
 - [ ] Create checkout from the production app for the approved user.
+- [x] Record live return URL correction from unreachable `https://aintern.effortedutech.com` to actual AIntern URL `https://a-intern.vercel.app`.
+- [ ] Redeploy PayGate after live return URL correction.
+- [ ] Create a replacement checkout only if required, using a new explicit correction note.
 - [ ] Confirm Stripe checkout shows the approved company/account branding.
 - [ ] Confirm amount and currency match approval exactly.
 - [ ] Complete payment using approved payment method.

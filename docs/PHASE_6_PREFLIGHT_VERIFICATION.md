@@ -12,7 +12,7 @@ This document records the Phase 6 preflight evidence before any live checkout, r
 | PayGate URL | `https://pay-gate-beta.vercel.app` |
 | Local repository commit checked | `166ff94` |
 | App ID | `aintern` |
-| App live URL from registry | `https://aintern.effortedutech.com` |
+| App live URL from registry | `https://a-intern.vercel.app` |
 | Provider account alias | `nhl_global_solution` |
 | Stripe account ID | `acct_1U4N6cRgCMXjT1y6` |
 | Environment | `live` |
@@ -34,7 +34,7 @@ This document records the Phase 6 preflight evidence before any live checkout, r
 | Local worktree clean before preflight | Pass | `git status --short` returned no changes. |
 | Local commit identified | Pass | `166ff94 Complete Phase 6 approval draft scope`. |
 | Registry app mapping reviewed | Pass | AIntern maps to `stripe:nhl_global_solution`. |
-| Registry live URL reviewed | Pass | `https://aintern.effortedutech.com`. |
+| Registry live URL reviewed | Pass | `https://a-intern.vercel.app`. |
 | Registry plan reviewed | Pass | `pass_3m`, MYR 39.00, one-time, lookup key `aintern_pass_3m`. |
 | PayGate public health | Pass | `https://pay-gate-beta.vercel.app/health` returned `status=ok`, `runtime=vercel`. |
 | Diagnostics anonymous protection | Pass | `https://pay-gate-beta.vercel.app/diagnostics/ready` returned HTTP 401 without token. |

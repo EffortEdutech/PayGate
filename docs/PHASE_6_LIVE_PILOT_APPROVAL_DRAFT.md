@@ -12,7 +12,7 @@ This draft pre-fills the information PayGate already knows. Do not add secret ke
 | PayGate deployment URL | `https://pay-gate-beta.vercel.app` | Vercel project dashboard for PayGate, or open the deployed `/health` URL. |
 | PayGate deployment commit SHA | `13e6b86` | GitHub commit history or Vercel deployment details. Must match the deployed commit before live test. |
 | App ID | `aintern` | PayGate registry: `registry/apps/aintern/app.yaml`. |
-| App production URL | `https://aintern.effortedutech.com` | PayGate registry live URL. Confirm the domain is deployed and points to the real production app before testing. |
+| App production URL | `https://a-intern.vercel.app` | PayGate registry live URL. Confirm the domain is deployed and points to the real production app before testing. |
 | Company / Stripe account owner | `NHL Global Solution` / account login previously identified as `nhl.global.solution@gmail.com` | Stripe Dashboard account/profile/business settings. Confirm legal entity before live payment. |
 | Stripe account ID | `acct_1U4N6cRgCMXjT1y6` | Provided by operator; confirm in Stripe live dashboard before payment. |
 | Provider account alias | `nhl_global_solution` | PayGate registry provider account alias and Vercel env var naming convention. |

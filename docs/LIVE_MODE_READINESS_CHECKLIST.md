@@ -44,7 +44,7 @@ Do not reuse sandbox variable names for live credentials.
 Required before live testing:
 
 - [ ] Confirm PayGate production domain, for example `https://payments.effortedutech.com`.
-- [ ] Confirm AIntern production domain, for example `https://aintern.effortedutech.com`.
+- [ ] Confirm AIntern production domain, for example `https://a-intern.vercel.app`.
 - [ ] Confirm registry `application_urls.live` values are final.
 - [ ] Confirm all live return contexts are allowlisted in registry.
 - [ ] Confirm browser redirects remain UX hints only and do not grant entitlements.

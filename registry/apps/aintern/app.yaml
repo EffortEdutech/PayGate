@@ -9,6 +9,6 @@ billing:
   enabled: true
 application_urls:
   test: https://a-intern.vercel.app
-  live: https://aintern.effortedutech.com
+  live: https://a-intern.vercel.app
 identity:
   user_reference: supabase_user_id
