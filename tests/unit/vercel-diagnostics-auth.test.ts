@@ -138,6 +138,10 @@ test("Vercel admin console shell does not embed operator token", async () => {
     const response = await invoke("/admin", { "x-request-id": "req_admin_shell" });
     assert.equal(response.status, 200);
     assert.equal(response.headers["content-type"], "text/html; charset=utf-8");
+    assert.match(String(response.body), /PayGate Operator Console/);
+    assert.match(String(response.body), /Next Safe Action/);
+    assert.match(String(response.body), /App Onboarding Checklist/);
+    assert.match(String(response.body), /Provider Accounts/);
     assert.doesNotMatch(String(response.body), /operator-secret/);
   });
 });

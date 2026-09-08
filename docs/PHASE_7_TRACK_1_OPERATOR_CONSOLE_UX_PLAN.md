@@ -1,6 +1,6 @@
 # Phase 7 Track 1 - Operator Console UX Plan
 
-Status: documented; ready for wireframe/implementation decision.
+Status: Track 1A first implementation slice built.
 Parent sprint: `docs/PHASE_7_MULTI_APP_SCALE_OUT_SPRINT_PLAN.md`.
 Date: 2026-09-08.
 
@@ -180,7 +180,7 @@ Track 1 can close when:
 - [x] Recommended first implementation slice is documented.
 - [x] Product roadmap graph is regenerated.
 - [x] Project validation passes.
-- [ ] Changes are committed and pushed.
+- [x] Changes are committed and pushed.
 
 ## Next Track After Close
 
@@ -190,3 +190,37 @@ Proceed to Phase 7 Track 1A or Track 2 depending on operator choice:
 - Track 2: Start app #2 intake and classification.
 
 Recommended next action: Track 1A, because the operator UI will reduce friction and mistakes before app #2 onboarding.
+## Track 1A Implementation Evidence
+
+Date: 2026-09-08.
+
+Implemented first read-only operator dashboard slice in `api/index.ts` for the deployed `/admin` route.
+
+Included UI sections:
+
+- Dashboard summary cards.
+- Next Safe Action guidance.
+- Apps and plans.
+- Provider accounts.
+- Customers and entitlements.
+- Checkout sessions.
+- Webhooks.
+- Reconciliation.
+- App onboarding checklist.
+- Collapsed raw summary for support evidence.
+
+Safety boundaries preserved:
+
+- No Stripe secret, webhook secret, JWT secret, database password, or operator token is embedded in the console source.
+- Operator token remains browser-tab memory only.
+- Refund execution remains deferred and is not exposed as an action.
+- The dashboard is read-only; it calls protected summary and monitoring endpoints only.
+- Apps still remain PayGate consumers, not payment authorities.
+
+Track 1A validation:
+
+- [x] Registry validation passed.
+- [x] Typecheck passed.
+- [x] Unit tests passed.
+- [x] Admin console shell test asserts operator UI sections exist.
+- [x] Secret scan passed.
