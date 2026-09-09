@@ -786,7 +786,9 @@ const ADMIN_HTML = `<!doctype html>
         panel('Attention Queue', alerts.length ? alerts.map(function(a){ return row(a.code, a.message || a.severity, a.severity); }).join('') : empty('No operator action is currently required.')) +
         panel('Recent Activity', recentActivity()) +
       '</div>' +
-      '<div class="panel"><h3>Current app focus</h3><p><strong>' + esc(selected || 'none') + '</strong> is selected for workspace actions. Use Apps Directory to change app.</p><button class="secondary" type="button" onclick="window.paygateSwitchView(\'workspace\')">Open App Workspace</button></div>';
+      '<div class="panel"><h3>Current app focus</h3><p><strong>' + esc(selected || 'none') + '</strong> is selected for workspace actions. Use Apps Directory to change app.</p><button id="openWorkspaceBtn" class="secondary" type="button">Open App Workspace</button></div>';
+    var openWorkspaceBtn = el('openWorkspaceBtn');
+    if(openWorkspaceBtn) openWorkspaceBtn.addEventListener('click', function(){ switchView('workspace'); });
   }
   function renderApps(){
     var cards = filteredApps().map(function(app){
