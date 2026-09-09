@@ -602,6 +602,9 @@ const ADMIN_HTML = `<!doctype html>
     .workspace-tab { background: white; color: var(--ink); border: 1px solid #d0d5dd; padding: 9px 12px; min-height: 38px; }
     .workspace-tab.active { background: var(--brand); color: white; border-color: var(--brand); }
     .workspace-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .wizard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .wizard-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    textarea { width: 100%; min-height: 120px; border: 1px solid #d0d5dd; border-radius: 12px; padding: 11px 12px; font: inherit; resize: vertical; }
     .identity-help { margin-top: 14px; display: grid; gap: 5px; border: 1px solid #b2ccff; background: var(--brand-soft); border-radius: 16px; padding: 12px; color: #1849a9; }
     .identity-help span { color: #194185; font-size: 13px; line-height: 1.45; }
     @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar { grid-template-columns: 1fr; display: grid; min-width: 0; } }
@@ -639,7 +642,7 @@ const ADMIN_HTML = `<!doctype html>
         <button data-view="reconciliation">Reconciliation</button>
         <button data-view="settings">Settings</button>
         <button data-view="support">Support / Debug</button>
-        <button class="future" disabled>Add App - planned</button>
+        <button data-view="addapp">Draft Add App</button>
       </nav>
       <div class="sidebar-footer">
         <label>Environment
@@ -678,6 +681,7 @@ const ADMIN_HTML = `<!doctype html>
       <div id="view-reconciliation" class="view hidden"></div>
       <div id="view-settings" class="view hidden"></div>
       <div id="view-support" class="view hidden"></div>
+      <div id="view-addapp" class="view hidden"></div>
     </main>
   </section>
 
@@ -761,11 +765,11 @@ const ADMIN_HTML = `<!doctype html>
     document.querySelectorAll('.nav button[data-view]').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.view === view); });
     document.querySelectorAll('.view').forEach(function(node){ node.classList.add('hidden'); });
     el('view-' + view).classList.remove('hidden');
-    var subtitles = { dashboard:'Monitor gateway health first, then open an app workspace when action is needed.', apps:'Find and select the app you want to operate.', workspace:'Work on one app at a time: plans, customers, webhooks, entitlements, evidence.', providers:'Check which Stripe accounts serve which apps without exposing secrets.', webhooks:'Review recent provider events and processing status.', reconciliation:'Review reconciliation outcomes and attention items.', settings:'Review safe operating boundaries and current environment.', support:'Raw safe JSON for troubleshooting only.' };
+    var subtitles = { dashboard:'Monitor gateway health first, then open an app workspace when action is needed.', apps:'Find and select the app you want to operate.', workspace:'Work on one app at a time: plans, customers, webhooks, entitlements, evidence.', providers:'Check which Stripe accounts serve which apps without exposing secrets.', webhooks:'Review recent provider events and processing status.', reconciliation:'Review reconciliation outcomes and attention items.', settings:'Review safe operating boundaries and current environment.', support:'Raw safe JSON for troubleshooting only.', addapp:'Prepare a draft app registry package without applying changes.' };
     el('pageSubtitle').textContent = subtitles[view] || '';
     render();
   }
-  function render(){ if(!state.summary) return; renderDashboard(); renderApps(); renderWorkspace(); renderProviders(); renderWebhooks(); renderReconciliation(); renderSettings(); renderSupport(); }
+  function render(){ if(!state.summary) return; renderDashboard(); renderApps(); renderWorkspace(); renderProviders(); renderWebhooks(); renderReconciliation(); renderSettings(); renderSupport(); renderAddApp(); }
   function renderDashboard(){
     var mon = state.monitoring || {};
     var alerts = arr(mon.alerts);
@@ -842,6 +846,51 @@ const ADMIN_HTML = `<!doctype html>
   }
   function renderSettings(){
     el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="three-col">' + panel('PayGate Operator Identity', '<p><strong>Belongs to PayGate.</strong></p><p>Current login uses <code>OPERATOR_DIAGNOSTICS_TOKEN</code> only to create a protected admin session cookie.</p><p>Future UX: named operator accounts, roles, and audit trail.</p>') + panel('App User Identity', '<p><strong>Belongs to each app.</strong></p><p>AIntern users authenticate with their app JWT. App JWTs can create checkout/portal for that same user only.</p>') + panel('Provider Identity', '<p><strong>Belongs to Stripe/company accounts.</strong></p><p>Provider account aliases such as <code>nhl_global_solution</code> route money and webhooks. Secrets stay server-side.</p>') + '</div><div class="panel"><h3>Current Scope</h3><p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p></div>';
+  }
+  function renderAddApp(){
+    el('view-addapp').innerHTML = '<div class="view-header"><div><h2>Draft Add App Wizard</h2><p>Create a reviewable registry draft for app #2. This does not save, deploy, or mutate PayGate.</p></div><span class="status warn">draft only</span></div>' +
+      '<div class="panel"><h3>App identity</h3><div class="wizard-grid">' +
+        wizardInput('draftAppId','App ID','example_app') + wizardInput('draftAppName','Display name','Example App') +
+        wizardInput('draftProvider','Provider account alias','nhl_global_solution') + wizardInput('draftAuth','Auth model','supabase_jwt') +
+        wizardInput('draftTestOrigin','Test origin','https://example-app-test.vercel.app/') + wizardInput('draftLiveOrigin','Live origin','https://example-app.com/') +
+      '</div></div>' +
+      '<div class="panel"><h3>First plan</h3><div class="wizard-grid">' +
+        wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') +
+        wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') +
+        wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') +
+      '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label><div class="wizard-actions"><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button></div></div>' +
+      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">Fill the wizard and click Generate Draft Preview.</pre></div>' +
+      '<div class="panel"><h3>Safety checklist</h3><div class="list">' +
+        row('No secrets', 'Do not paste Stripe secret keys, webhook secrets, JWT secrets, or database URLs into this wizard.', 'server-side env vars only') +
+        row('Commercial authority', 'Apps submit logical plan keys only. PayGate owns amount, currency, lookup key, return URLs, and entitlements.', 'registry validation required') +
+        row('Draft-first workflow', 'This screen creates a copyable preview only. It does not update production configuration.', 'operator approval required') +
+      '</div></div>';
+    var generate = el('generateDraftBtn');
+    var copy = el('copyDraftBtn');
+    if(generate) generate.addEventListener('click', generateDraftPreview);
+    if(copy) copy.addEventListener('click', copyDraftPreview);
+  }
+  function wizardInput(id, label, placeholder){ return '<label>' + esc(label) + '<input id="' + id + '" placeholder="' + esc(placeholder) + '" /></label>'; }
+  function draftValue(id){ var node = el(id); return node ? node.value.trim() : ''; }
+  function generateDraftPreview(){
+    var appId = draftValue('draftAppId') || 'example_app';
+    var planKey = draftValue('draftPlanKey') || 'starter_monthly';
+    var entitlements = (draftValue('draftEntitlements') || appId + '.feature').split(/\n+/).map(function(item){ return item.trim(); }).filter(Boolean);
+    var draft = {
+      package_path: 'registry/apps/' + appId,
+      status: 'draft_preview_only',
+      app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', provider_id: 'stripe', provider_account: draftValue('draftProvider') || 'nhl_global_solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
+      origins: { test: draftValue('draftTestOrigin') || 'https://example-app-test.vercel.app/', live: draftValue('draftLiveOrigin') || 'https://example-app.com/' },
+      return_contexts: ['billing'],
+      plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: Number(draftValue('draftAmount') || 3900), currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: entitlements }],
+      required_next_steps: ['Operator review', 'Create registry package files', 'Configure Stripe Product/Price lookup key', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
+    };
+    el('draftPreview').textContent = JSON.stringify(draft, null, 2);
+  }
+  async function copyDraftPreview(){
+    var text = el('draftPreview').textContent || '';
+    try { await navigator.clipboard.writeText(text); }
+    catch(e) {}
   }
   function renderSupport(){
     var safe = { loaded_at: state.loadedAt, environment: state.environment, selected_app_id: state.selectedAppId, monitoring: state.monitoring, summary: state.summary };

@@ -405,7 +405,7 @@ Track 1F does not implement this wizard. It only defines the entry point and exp
 ### Track 1I - Workspace Tabs
 
 - Add app workspace tabs: Overview, Plans, Provider, URLs, Auth, Customers, Webhooks, Reconciliation, Evidence.
-- Keep edit buttons disabled or labelled future until draft workflow exists.
+- Keep edit/apply buttons disabled or labelled future until validated mutation workflow exists.
 
 ### Track 1J - Draft Add/Edit App Wizard
 
@@ -425,7 +425,7 @@ Track 1F does not implement this wizard. It only defines the entry point and exp
 - [x] Raw/debug JSON moved out of main workflow.
 - [x] Operator accepted blueprint on 2026-09-09.
 - [x] Track 1G rebuilt `/admin` around the accepted dashboard/sidebar/workspace shell.
-- [x] Admin shell remains read-only; Add App/edit/refund/live mutation actions remain future controlled tracks.
+- [x] Admin shell remains safe; Track 1J adds draft preview only while edit/apply/refund/live mutation actions remain future controlled tracks.
 
 ## Operator Acceptance Gate
 
@@ -494,3 +494,24 @@ Validation:
 Safety boundary:
 
 Track 1I is still read-only. It improves operator comprehension but does not add edit, refund, registry mutation, or live-operation buttons.
+## Track 1J Implementation Evidence
+
+Date: 2026-09-10
+
+Implemented in `api/index.ts`:
+
+- Sidebar entry changed from disabled future label to active `Draft Add App` view.
+- Draft wizard captures app identity: app ID, display name, provider account alias, auth model, test origin, and live origin.
+- Draft wizard captures first plan: plan key, plan name, integer minor-unit amount, uppercase currency, mode, Stripe lookup key, and entitlement keys.
+- Wizard generates a copyable JSON registry draft preview with required next steps.
+- Safety checklist is shown beside the preview: no secrets, PayGate commercial authority, and draft-first workflow.
+
+Validation:
+
+- Admin shell unit test now locks the Draft Add App labels and preview controls.
+- Browser script syntax is checked from the embedded admin HTML before release.
+- Full repository check must pass before deployment.
+
+Safety boundary:
+
+Track 1J is non-mutating. It does not write registry files, save secrets, create Stripe products/prices, deploy, refund, or perform live operations. It only helps the operator prepare a clean registry draft for review.

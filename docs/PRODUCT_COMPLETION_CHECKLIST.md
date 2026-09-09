@@ -99,7 +99,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; Track 1I workspace tabs and app detail cards implemented locally pending deployment review.
+Status: started; Track 1J draft add/edit app wizard implemented locally pending deployment review.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
@@ -110,6 +110,8 @@ Status: started; Track 1I workspace tabs and app detail cards implemented locall
 - [x] Operator console rebuilt around dashboard/sidebar/workspace blueprint.
 - [x] Operator identity UX clarifies PayGate operator token vs app user JWT vs Stripe provider account.
 - [x] App Workspace tabs and better app detail cards implemented.
+- [x] Draft Add/Edit App Wizard preview implemented without registry mutation.
+- [ ] Operator visually approves Draft Add App workflow in deployed admin console.
 - [ ] Operator approves app #2 intake.
 - [ ] App #2 registry package created.
 - [ ] App #2 provider account and Stripe sandbox setup complete.

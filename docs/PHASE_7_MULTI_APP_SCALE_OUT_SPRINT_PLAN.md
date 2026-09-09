@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1I workspace tabs and app detail cards implemented locally pending deployment review.
+Status: started; Track 1J draft add/edit app wizard implemented locally pending deployment review.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -190,6 +190,35 @@ Safety boundary:
 Next gate:
 
 - [ ] Deploy and visually review `/admin` workspace tabs with the operator.
+- [x] Operator proceeded to Track 1J draft add/edit app wizard.
+
+## Track 1J - Draft Add/Edit App Wizard
+
+Goal: let the operator prepare a reviewable registry draft for the next app without turning the browser into a production configuration editor.
+
+Implemented scope:
+
+- [x] Add active sidebar entry: Draft Add App.
+- [x] Add app identity fields: app ID, display name, provider account alias, auth model, test origin, live origin.
+- [x] Add first-plan fields: plan key, plan name, amount in minor units, currency, mode, Stripe lookup key.
+- [x] Add entitlement list as one entitlement key per line.
+- [x] Generate a copyable JSON draft preview for operator review.
+- [x] Include required next steps in the preview: operator review, registry package creation, Stripe Product/Price lookup key setup, registry validation, full check, commit/deploy approval.
+- [x] Add safety checklist: no secrets, PayGate owns commercial authority, draft-first workflow.
+- [x] Keep the wizard non-mutating: no registry writes, no Stripe calls, no deployment actions, no live operations.
+
+Safety boundary:
+
+- This is a draft helper only.
+- It does not create or edit registry files.
+- It does not save secrets.
+- It does not create Stripe products/prices.
+- It does not deploy or mutate live state.
+
+Next gate:
+
+- [ ] Deploy and visually review `/admin` Draft Add App with the operator.
+- [ ] Operator approves whether Track 1K should turn the draft preview into a validated registry-package generator or proceed directly to app #2 intake.
 ## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.
