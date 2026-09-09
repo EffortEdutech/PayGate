@@ -550,6 +550,9 @@ const ADMIN_HTML = `<!doctype html>
     .login-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
     .login-card { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 26px; box-shadow: var(--shadow); }
     .login-badge { display: inline-flex; border: 1px solid #b2ccff; color: #1849a9; background: var(--brand-soft); border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 900; margin-bottom: 14px; }
+    .login-message { margin-top: 12px; border-radius: 14px; padding: 11px 12px; background: #f9fafb; border: 1px solid #eaecf0; color: #475467; font-size: 13px; line-height: 1.45; }
+    .login-message.ok { background: #ecfdf3; border-color: #abefc6; color: #05603a; }
+    .login-message.error { background: #fef3f2; border-color: #fecdca; color: #b42318; }
     .primary { background: var(--brand); color: white; padding: 11px 14px; min-height: 44px; }
     .secondary { background: white; color: var(--ink); border: 1px solid #d0d5dd; padding: 10px 12px; min-height: 42px; }
     .danger { background: #fff1f3; color: var(--danger); border: 1px solid #fecdd6; padding: 10px 12px; }
@@ -617,7 +620,7 @@ const ADMIN_HTML = `<!doctype html>
         <div style="height:12px"></div>
         <button class="primary" type="submit" style="width:100%">Load Console</button>
       </form>
-      <div class="identity-help"><strong>What is this?</strong><span>Temporary PayGate admin access from <code>OPERATOR_DIAGNOSTICS_TOKEN</code> in Vercel. After login, PayGate creates a secure admin session cookie.</span></div><p id="loginStatus" class="meta">Future target: named operator login with roles; this token remains the emergency bootstrap credential.</p>
+      <div class="identity-help"><strong>What is this?</strong><span>Temporary PayGate admin access from <code>OPERATOR_DIAGNOSTICS_TOKEN</code> in Vercel. After login, PayGate creates a secure admin session cookie.</span></div><div id="loginStatus" class="login-message">Future target: named operator login with roles; this token remains the emergency bootstrap credential.</div><noscript><div class="login-message error">JavaScript is required for the operator console login.</div></noscript>
     </section>
   </main>
 
@@ -713,12 +716,23 @@ const ADMIN_HTML = `<!doctype html>
   }
   function showLogin(){ el('loginScreen').classList.remove('hidden'); el('appShell').classList.add('hidden'); }
   function showShell(){ el('loginScreen').classList.add('hidden'); el('appShell').classList.remove('hidden'); }
+  function setLoginMessage(kind, text){ var node = el('loginStatus'); node.className = 'login-message ' + (kind || ''); node.textContent = text; }
   async function login(token){
-    el('loginStatus').textContent = 'Checking operator session...';
-    await jsonFetch('/admin/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: token }) });
-    el('operatorToken').value = '';
-    showShell();
-    await refresh();
+    var submit = document.querySelector('#loginForm button[type="submit"]');
+    if(submit) submit.disabled = true;
+    setLoginMessage('', 'Signing in to PayGate operator console...');
+    try {
+      await jsonFetch('/admin/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: token }) });
+      el('operatorToken').value = '';
+      setLoginMessage('ok', 'Login accepted. Loading dashboard...');
+      showShell();
+      await refresh();
+    } catch(e) {
+      setLoginMessage('error', 'Login failed: ' + (e.body && e.body.error ? e.body.error.code + ' - ' + e.body.error.message : e.message));
+      showLogin();
+    } finally {
+      if(submit) submit.disabled = false;
+    }
   }
   async function logout(){ await jsonFetch('/admin/session/logout', { method: 'POST' }).catch(function(){}); state.summary = null; state.monitoring = null; showLogin(); }
   async function refresh(){
@@ -846,7 +860,7 @@ const ADMIN_HTML = `<!doctype html>
     runs().slice(0, 3).forEach(function(r){ items.push(row('Reconciliation: ' + r.status, r.app_id || 'unknown app', fmtDate(r.completed_at))); });
     return items.join('') || empty('No recent activity loaded.');
   }
-  el('loginForm').addEventListener('submit', function(event){ event.preventDefault(); var token = el('operatorToken').value.trim(); if(!token){ el('loginStatus').textContent = 'Enter the operator access token first.'; return; } login(token).catch(function(e){ el('loginStatus').textContent = 'Login failed: ' + (e.body && e.body.error ? e.body.error.message : e.message); }); });
+  el('loginForm').addEventListener('submit', function(event){ event.preventDefault(); var token = el('operatorToken').value.trim(); if(!token){ setLoginMessage('error', 'Enter the PayGate operator access token first.'); return; } login(token); });
   el('logoutBtn').addEventListener('click', logout);
   el('refreshBtn').addEventListener('click', refresh);
   el('environmentFilter').addEventListener('change', refresh);
