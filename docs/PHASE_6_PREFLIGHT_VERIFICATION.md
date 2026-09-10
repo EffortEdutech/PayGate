@@ -14,7 +14,7 @@ This document records the Phase 6 preflight evidence before any live checkout, r
 | App ID | `aintern` |
 | App live URL from registry | `https://a-intern.vercel.app` |
 | Provider account alias | `nhl_global_solution` |
-| Stripe account ID | `acct_1U4N6cRgCMXjT1y6` |
+| Stripe account ID | `acct_1U4N5nDzGAfRwUx9` |
 | Environment | `live` |
 | Plan key | `pass_3m` |
 | Amount | `MYR 39.00` |
@@ -101,3 +101,7 @@ Reason: Codex verified public/protection/registry checks, but operator-side chec
 ## Stop Rule
 
 Proceed to Phase 6 Track 3 only within the approved scope: one live checkout for AIntern `pass_3m`, MYR 39.00, user `b292ecfa-46c2-4d6c-bfef-8c32cd8c7bf7`, full refund scope, during the approved window. Stop if any detail differs.
+
+## 2026-09-10 account correction
+
+The operator confirmed Stripe dashboard test mode, sandbox, and live mode all show NHL Global Solution as account `acct_1U4N5nDzGAfRwUx9`. Any earlier reference to `acct_1U4N6cRgCMXjT1y6` is superseded historical evidence and should not be used as the active PayGate provider account record.

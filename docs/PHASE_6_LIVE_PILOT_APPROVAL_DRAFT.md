@@ -14,7 +14,7 @@ This draft pre-fills the information PayGate already knows. Do not add secret ke
 | App ID | `aintern` | PayGate registry: `registry/apps/aintern/app.yaml`. |
 | App production URL | `https://a-intern.vercel.app` | PayGate registry live URL. Confirm the domain is deployed and points to the real production app before testing. |
 | Company / Stripe account owner | `NHL Global Solution` / account login previously identified as `nhl.global.solution@gmail.com` | Stripe Dashboard account/profile/business settings. Confirm legal entity before live payment. |
-| Stripe account ID | `acct_1U4N6cRgCMXjT1y6` | Provided by operator; confirm in Stripe live dashboard before payment. |
+| Stripe account ID | `acct_1U4N5nDzGAfRwUx9` | Provided by operator; confirm in Stripe live dashboard before payment. |
 | Provider account alias | `nhl_global_solution` | PayGate registry provider account alias and Vercel env var naming convention. |
 | Environment | `live` | Fixed for Phase 6 controlled live pilot. |
 | Plan key option 1 | `pass_3m` | PayGate registry: AIntern 3-Month Pass. |
@@ -114,3 +114,7 @@ Stop before payment if:
 - live secret key or webhook secret appears in browser code, GitHub, docs, or screenshots;
 - the selected user_ref is not the approved AIntern user;
 - refund scope is undecided.
+
+## 2026-09-10 account correction
+
+The operator confirmed Stripe dashboard test mode, sandbox, and live mode all show NHL Global Solution as account `acct_1U4N5nDzGAfRwUx9`. Any earlier reference to `acct_1U4N6cRgCMXjT1y6` is superseded historical evidence and should not be used as the active PayGate provider account record.

@@ -99,7 +99,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; pageCast provider/Stripe setup created; provider account alias confirmation pending.
+Status: started; pageCast provider/Stripe setup created; provider account alias confirmed.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
@@ -117,7 +117,7 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] pageCast per-book checkout item/SKU contract decision recorded as future PayGate extension.
 - [x] pageCast provider/Stripe setup prep documented for `pagecast_cast_pass_monthly`.
 - [x] App #2 Stripe sandbox Product/Price created for `pagecast_cast_pass_monthly`.
-- [ ] App #2 provider account alias confirmed for Stripe account used by pageCast Product/Price.
+- [x] App #2 provider account alias confirmed for Stripe account used by pageCast Product/Price: `acct_1U4N5nDzGAfRwUx9`.
 - [ ] App #2 thin payment client integrated in pageCast reader app.
 - [ ] App #2 Supabase JWT auth boundary verified for project `zdlbcvscytujdomxzwei`.
 - [ ] App #2 Cast Pass sandbox E2E proof complete.

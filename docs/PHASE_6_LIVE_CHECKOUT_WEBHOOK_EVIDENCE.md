@@ -11,7 +11,7 @@ This document records safe, non-secret evidence for the controlled live checkout
 | --- | --- |
 | App ID | `aintern` |
 | Provider account | `stripe:nhl_global_solution` |
-| Stripe account ID | `acct_1U4N6cRgCMXjT1y6` |
+| Stripe account ID | `acct_1U4N5nDzGAfRwUx9` |
 | Environment | `live` |
 | Plan key | `pass_3m` |
 | Approved amount | `MYR 39.00` |
@@ -63,3 +63,7 @@ Phase 6 Track 4 is complete because the live signed webhook was processed and AI
 Proceed to Phase 6 Track 5: portal and reconciliation proof, unless intentionally deferred by operator decision.
 
 Refund remains approved as `full` for Track 6, but must not be performed until the Track 6 step is explicitly started.
+
+## 2026-09-10 account correction
+
+The operator confirmed Stripe dashboard test mode, sandbox, and live mode all show NHL Global Solution as account `acct_1U4N5nDzGAfRwUx9`. Any earlier reference to `acct_1U4N6cRgCMXjT1y6` is superseded historical evidence and should not be used as the active PayGate provider account record.

@@ -1,7 +1,7 @@
 # Phase 7 Track 4 - pageCast Provider Account and Stripe Setup Prep
 
 Date: 2026-09-10
-Status: sandbox Product/Price created; provider account alias confirmation pending.
+Status: sandbox Product/Price created; provider account alias confirmed.
 
 ## Purpose
 
@@ -101,7 +101,7 @@ The operator created a Stripe sandbox Product/Price:
 - Stripe Price ID: `price_1UE8vTDzGAfRwUx9N40687aK`
 - Stripe dashboard account shown in evidence: `acct_1U4N5nDzGAfRwUx9`
 
-Important boundary note: PayGate currently maps pageCast to provider alias `stripe:nhl_global_solution`. Earlier AIntern live/sandbox evidence used Stripe account ID `acct_1U4N6cRgCMXjT1y6`. Before activating the pageCast registry plan, the operator must confirm whether `acct_1U4N5nDzGAfRwUx9` is the intended Stripe account for pageCast or whether the Product/Price must be recreated under the existing `nhl_global_solution` account.
+Important boundary note: PayGate maps pageCast to provider alias `stripe:nhl_global_solution`. The operator confirmed on 2026-09-10 that test mode, sandbox, and live mode all show NHL Global Solution as Stripe account `acct_1U4N5nDzGAfRwUx9`. Earlier references to `acct_1U4N6cRgCMXjT1y6` are treated as superseded historical evidence, not the active provider account record.
 
 ## PayGate Auth Prep
 
@@ -142,7 +142,7 @@ When ready, the safe app-code slice is:
 - [x] Keep `single_cast_unlock` blocked pending item/SKU contract.
 - [x] Operator creates Stripe sandbox Product/Price for `pagecast_cast_pass_monthly`.
 - [x] Operator confirms final Cast Pass launch price: USD 19.00/month.
-- [ ] Operator confirms Stripe account ID/provider alias alignment for pageCast.
+- [x] Operator confirms Stripe account ID/provider alias alignment for pageCast: `acct_1U4N5nDzGAfRwUx9`.
 - [ ] PayGate registry marks `cast_pass_monthly` active after lookup key exists.
 - [ ] PayGate auth config supports pageCast Supabase JWTs.
 - [ ] PayGate deployment/admin confirms pageCast catalog visibility.
