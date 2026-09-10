@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1K draft wizard validation and export implemented locally pending deployment review.
+Status: started; Track 2 sample app intake rehearsal complete; real app #2 pending operator selection.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -254,7 +254,7 @@ Goal: decide whether an app is ready to onboard.
 
 Checklist:
 
-- [ ] Identify app #2 name and repository/location.
+- [x] Review exported sample draft artifact from Track 1K.`r`n- [x] Classify `example_app` as sample rehearsal only, not real app #2.`r`n- [ ] Identify app #2 name and repository/location.
 - [ ] Confirm app owner/operator.
 - [ ] Confirm production and sandbox URLs.
 - [ ] Confirm user identity provider and JWT/session strategy.
