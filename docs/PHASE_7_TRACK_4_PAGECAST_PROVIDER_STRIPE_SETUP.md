@@ -150,3 +150,7 @@ When ready, the safe app-code slice is:
 ## Safety Boundary
 
 No Stripe object was created by this documentation update. No Vercel environment variable was changed. No pageCast app file was edited. No checkout was run. No entitlement was granted.
+
+## Phase 7 Track 4C evidence
+
+pageCast Supabase JWT auth boundary was verified on deployed PayGate on 2026-09-11. See docs/PHASE_7_TRACK_4C_PAGECAST_SUPABASE_JWT_EVIDENCE.md.

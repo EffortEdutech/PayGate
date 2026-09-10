@@ -51,7 +51,7 @@ Required future PayGate extension before per-book purchase activation:
 - [x] Confirmed Stripe account `acct_1U4N5nDzGAfRwUx9` maps to PayGate alias `stripe:nhl_global_solution` for pageCast.
 - [x] PayGate registry marks `cast_pass_monthly` active.
 - [ ] Optional: Stripe sandbox Product/Price exists for `pagecast_single_cast_unlock`, but keep inactive until item-specific contract exists.
-- [ ] PayGate Vercel auth env vars configured for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
+- [x] PayGate Vercel auth env vars configured and verified for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
 - [ ] pageCast reader app removes direct Stripe checkout as the primary payment path.
 - [ ] pageCast uses PayGate checkout and entitlements.
 - [ ] Sandbox E2E proof completed.
