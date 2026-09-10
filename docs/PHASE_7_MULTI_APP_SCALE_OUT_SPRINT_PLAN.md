@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 1J draft add/edit app wizard implemented locally pending deployment review.
+Status: started; Track 1K draft wizard validation and export implemented locally pending deployment review.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -219,6 +219,35 @@ Next gate:
 
 - [ ] Deploy and visually review `/admin` Draft Add App with the operator.
 - [ ] Operator approves whether Track 1K should turn the draft preview into a validated registry-package generator or proceed directly to app #2 intake.
+## Track 1K - Draft Wizard Validation and Export
+
+Goal: make the draft app wizard safer before it is used for a real app onboarding package.
+
+Implemented scope:
+
+- [x] Add `Validate Draft` action.
+- [x] Add validation summary panel.
+- [x] Validate app ID and plan key format.
+- [x] Validate test/live origins as HTTPS URLs.
+- [x] Validate amount as a positive integer minor-unit value.
+- [x] Validate uppercase 3-letter currency.
+- [x] Validate plan mode as `payment` or `subscription`.
+- [x] Reject Stripe provider price IDs in the lookup-key field.
+- [x] Validate app-scoped dotted entitlement keys.
+- [x] Warn when provider account alias is not currently known from loaded registry apps.
+- [x] Add `Download JSON` export for valid drafts only.
+- [x] Keep wizard non-mutating: no registry writes, no Stripe calls, no deployment actions, no live operations.
+
+Safety boundary:
+
+- Exported JSON is evidence/preparation only.
+- Registry package creation remains a separate reviewed engineering step.
+- Validation here is a UX guardrail; `npm run validate:registry` remains the authority before commit/deploy.
+
+Next gate:
+
+- [ ] Deploy and visually review Track 1K validation/export in `/admin`.
+- [ ] Operator approves whether to start Track 2 app #2 intake.
 ## Track 2 - App #2 Intake and Classification
 
 Goal: decide whether an app is ready to onboard.

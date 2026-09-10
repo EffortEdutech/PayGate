@@ -515,3 +515,23 @@ Validation:
 Safety boundary:
 
 Track 1J is non-mutating. It does not write registry files, save secrets, create Stripe products/prices, deploy, refund, or perform live operations. It only helps the operator prepare a clean registry draft for review.
+## Track 1K Implementation Evidence
+
+Date: 2026-09-10
+
+Implemented in `api/index.ts`:
+
+- Draft Add App wizard now includes `Validate Draft`, `Generate Draft Preview`, `Copy Preview`, and `Download JSON` actions.
+- Validation checks app ID, plan key, HTTPS origins, positive minor-unit amount, uppercase currency, mode, lookup key safety, and app-scoped entitlement keys.
+- Provider account alias is compared against the currently loaded registry apps and shown as a warning when unknown.
+- JSON download is allowed only after blocking validation errors pass.
+
+Validation:
+
+- Admin shell unit test locks the Track 1K validation/export labels.
+- Embedded browser script syntax is checked from rendered admin HTML before release.
+- Full repository check must pass before deployment.
+
+Safety boundary:
+
+Track 1K remains non-mutating. It does not create registry files, save secrets, create Stripe products/prices, deploy, refund, or perform live operations. Exported JSON is preparation evidence only; registry validation remains authoritative.

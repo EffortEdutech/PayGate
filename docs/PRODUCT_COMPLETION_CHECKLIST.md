@@ -99,7 +99,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; Track 1J draft add/edit app wizard implemented locally pending deployment review.
+Status: started; Track 1K draft wizard validation and export implemented locally pending deployment review.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.

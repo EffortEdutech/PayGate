@@ -848,7 +848,7 @@ const ADMIN_HTML = `<!doctype html>
     el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="three-col">' + panel('PayGate Operator Identity', '<p><strong>Belongs to PayGate.</strong></p><p>Current login uses <code>OPERATOR_DIAGNOSTICS_TOKEN</code> only to create a protected admin session cookie.</p><p>Future UX: named operator accounts, roles, and audit trail.</p>') + panel('App User Identity', '<p><strong>Belongs to each app.</strong></p><p>AIntern users authenticate with their app JWT. App JWTs can create checkout/portal for that same user only.</p>') + panel('Provider Identity', '<p><strong>Belongs to Stripe/company accounts.</strong></p><p>Provider account aliases such as <code>nhl_global_solution</code> route money and webhooks. Secrets stay server-side.</p>') + '</div><div class="panel"><h3>Current Scope</h3><p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p></div>';
   }
   function renderAddApp(){
-    el('view-addapp').innerHTML = '<div class="view-header"><div><h2>Draft Add App Wizard</h2><p>Create a reviewable registry draft for app #2. This does not save, deploy, or mutate PayGate.</p></div><span class="status warn">draft only</span></div>' +
+    el('view-addapp').innerHTML = '<div class="view-header"><div><h2>Draft Add App Wizard</h2><p>Create a validated registry draft for app #2. This does not save, deploy, or mutate PayGate.</p></div><span class="status warn">draft export only</span></div>' +
       '<div class="panel"><h3>App identity</h3><div class="wizard-grid">' +
         wizardInput('draftAppId','App ID','example_app') + wizardInput('draftAppName','Display name','Example App') +
         wizardInput('draftProvider','Provider account alias','nhl_global_solution') + wizardInput('draftAuth','Auth model','supabase_jwt') +
@@ -858,33 +858,75 @@ const ADMIN_HTML = `<!doctype html>
         wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') +
         wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') +
         wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') +
-      '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label><div class="wizard-actions"><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button></div></div>' +
-      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">Fill the wizard and click Generate Draft Preview.</pre></div>' +
+      '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label><div class="wizard-actions"><button id="validateDraftBtn" class="secondary" type="button">Validate Draft</button><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button><button id="downloadDraftBtn" class="secondary" type="button">Download JSON</button></div></div>' +
+      '<div class="panel"><h3>Validation summary</h3><div id="draftValidation" class="list">' + empty('Not validated yet. Click Validate Draft or Generate Draft Preview.') + '</div></div>' +
+      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review/export only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">Fill the wizard and click Generate Draft Preview.</pre></div>' +
       '<div class="panel"><h3>Safety checklist</h3><div class="list">' +
         row('No secrets', 'Do not paste Stripe secret keys, webhook secrets, JWT secrets, or database URLs into this wizard.', 'server-side env vars only') +
         row('Commercial authority', 'Apps submit logical plan keys only. PayGate owns amount, currency, lookup key, return URLs, and entitlements.', 'registry validation required') +
-        row('Draft-first workflow', 'This screen creates a copyable preview only. It does not update production configuration.', 'operator approval required') +
+        row('Draft-first workflow', 'This screen creates a copyable/downloadable preview only. It does not update production configuration.', 'operator approval required') +
       '</div></div>';
+    var validate = el('validateDraftBtn');
     var generate = el('generateDraftBtn');
     var copy = el('copyDraftBtn');
+    var download = el('downloadDraftBtn');
+    if(validate) validate.addEventListener('click', function(){ renderDraftValidation(buildDraftPackage()); });
     if(generate) generate.addEventListener('click', generateDraftPreview);
     if(copy) copy.addEventListener('click', copyDraftPreview);
+    if(download) download.addEventListener('click', downloadDraftPreview);
   }
   function wizardInput(id, label, placeholder){ return '<label>' + esc(label) + '<input id="' + id + '" placeholder="' + esc(placeholder) + '" /></label>'; }
   function draftValue(id){ var node = el(id); return node ? node.value.trim() : ''; }
-  function generateDraftPreview(){
+  function knownProviderAccounts(){ var values = {}; apps().forEach(function(app){ if(app.provider_account) values[app.provider_account] = true; }); return values; }
+  function isSafeIdentifier(value){ return /^[a-z][a-z0-9_]*$/.test(value); }
+  function isSafeUrl(value){ try { var parsed = new URL(value); return parsed.protocol === 'https:' && Boolean(parsed.hostname); } catch(e) { return false; } }
+  function draftEntitlementList(appId){ return (draftValue('draftEntitlements') || appId + '.feature').split(/\\n+/).map(function(item){ return item.trim(); }).filter(Boolean); }
+  function buildDraftPackage(){
     var appId = draftValue('draftAppId') || 'example_app';
     var planKey = draftValue('draftPlanKey') || 'starter_monthly';
-    var entitlements = (draftValue('draftEntitlements') || appId + '.feature').split(/\\n+/).map(function(item){ return item.trim(); }).filter(Boolean);
-    var draft = {
+    var amount = Number(draftValue('draftAmount') || 3900);
+    return {
       package_path: 'registry/apps/' + appId,
       status: 'draft_preview_only',
       app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', provider_id: 'stripe', provider_account: draftValue('draftProvider') || 'nhl_global_solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
       origins: { test: draftValue('draftTestOrigin') || 'https://example-app-test.vercel.app/', live: draftValue('draftLiveOrigin') || 'https://example-app.com/' },
       return_contexts: ['billing'],
-      plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: Number(draftValue('draftAmount') || 3900), currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: entitlements }],
+      plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: amount, currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: draftEntitlementList(appId) }],
       required_next_steps: ['Operator review', 'Create registry package files', 'Configure Stripe Product/Price lookup key', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
     };
+  }
+  function validateDraftPackage(draft){
+    var errors = [];
+    var warnings = [];
+    var app = draft.app || {};
+    var plan = draft.plans && draft.plans[0] ? draft.plans[0] : {};
+    if(!isSafeIdentifier(app.app_id)) errors.push('App ID must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
+    if(!app.name || app.name === 'Example App') warnings.push('Display name still looks like a placeholder.');
+    if(!knownProviderAccounts()[app.provider_account]) warnings.push('Provider account alias is not in the currently loaded app registry view. Confirm it before creating registry files.');
+    if(app.auth_model !== 'supabase_jwt') warnings.push('Auth model is not supabase_jwt. Confirm the app auth boundary before onboarding.');
+    if(!isSafeUrl(draft.origins.test)) errors.push('Test origin must be a valid https URL.');
+    if(!isSafeUrl(draft.origins.live)) errors.push('Live origin must be a valid https URL.');
+    if(!isSafeIdentifier(plan.plan_key)) errors.push('Plan key must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
+    if(!Number.isInteger(plan.amount_minor) || plan.amount_minor <= 0) errors.push('Amount must be a positive integer in minor units, for example 3900 for MYR 39.00.');
+    if(!/^[A-Z]{3}$/.test(plan.currency || '')) errors.push('Currency must be a 3-letter uppercase ISO code, for example MYR.');
+    if(['payment','subscription'].indexOf(plan.mode) === -1) errors.push('Mode must be payment or subscription.');
+    if(!isSafeIdentifier(plan.provider_lookup_key)) errors.push('Stripe lookup key must use lowercase letters, numbers, and underscores. Do not paste a Stripe price ID.');
+    if(String(plan.provider_lookup_key || '').indexOf('price_') === 0) errors.push('Use a Stripe lookup key, not a provider price ID.');
+    if(!Array.isArray(plan.entitlements) || plan.entitlements.length === 0) errors.push('At least one entitlement key is required.');
+    plan.entitlements.forEach(function(key){ if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(key)) errors.push('Entitlement key must be app-scoped dotted lowercase text: ' + key); });
+    return { ok: errors.length === 0, errors: errors, warnings: warnings };
+  }
+  function renderDraftValidation(draft){
+    var result = validateDraftPackage(draft);
+    var html = row(result.ok ? 'Validation passed' : 'Validation failed', result.ok ? 'Draft is ready for operator review/export.' : 'Fix the blocking errors before using this draft.', result.ok ? 'safe to export' : 'draft blocked');
+    result.errors.forEach(function(message){ html += row('Error', message, 'must fix'); });
+    result.warnings.forEach(function(message){ html += row('Warning', message, 'review before registry creation'); });
+    el('draftValidation').innerHTML = html;
+    return result;
+  }
+  function generateDraftPreview(){
+    var draft = buildDraftPackage();
+    renderDraftValidation(draft);
     el('draftPreview').textContent = JSON.stringify(draft, null, 2);
   }
   async function copyDraftPreview(){
@@ -892,7 +934,20 @@ const ADMIN_HTML = `<!doctype html>
     try { await navigator.clipboard.writeText(text); }
     catch(e) {}
   }
-  function renderSupport(){
+  function downloadDraftPreview(){
+    var draft = buildDraftPackage();
+    var result = renderDraftValidation(draft);
+    if(!result.ok){ return; }
+    el('draftPreview').textContent = JSON.stringify(draft, null, 2);
+    var blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = draft.app.app_id + '-paygate-registry-draft.json';
+    document.body.appendChild(link);
+    link.click();
+    URL.revokeObjectURL(link.href);
+    link.remove();
+  }  function renderSupport(){
     var safe = { loaded_at: state.loadedAt, environment: state.environment, selected_app_id: state.selectedAppId, monitoring: state.monitoring, summary: state.summary };
     el('view-support').innerHTML = '<div class="view-header"><div><h2>Support / Debug</h2><p>Raw safe JSON is hidden here so normal operators do not start the day inside diagnostics output.</p></div></div><pre class="debug">' + esc(JSON.stringify(safe, null, 2)) + '</pre>';
   }
