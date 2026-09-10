@@ -1,7 +1,7 @@
 # Phase 7 Track 4 - pageCast Provider Account and Stripe Setup Prep
 
 Date: 2026-09-10
-Status: prepared; Stripe dashboard action pending operator.
+Status: sandbox Product/Price created; provider account alias confirmation pending.
 
 ## Purpose
 
@@ -64,6 +64,7 @@ Reason for hold: pageCast per-book checkout needs a verified `book_id` entitleme
 ## Stripe Dashboard Steps
 
 1. Open Stripe dashboard in test/sandbox mode for the selected company account.
+
 2. Go to Product catalog.
 3. Create product `pageCast Cast Pass`.
 4. Add recurring monthly price:
@@ -87,6 +88,20 @@ After the Stripe sandbox lookup key exists:
 - run `npm run check`;
 - deploy PayGate;
 - confirm `/admin` shows pageCast and the Cast Pass plan.
+
+## Operator Evidence Received
+
+Date: 2026-09-10
+
+The operator created a Stripe sandbox Product/Price:
+
+- Product: `pageCast Cast Pass`
+- Product status: active
+- Price: USD 19.00/month
+- Stripe Price ID: `price_1UE8vTDzGAfRwUx9N40687aK`
+- Stripe dashboard account shown in evidence: `acct_1U4N5nDzGAfRwUx9`
+
+Important boundary note: PayGate currently maps pageCast to provider alias `stripe:nhl_global_solution`. Earlier AIntern live/sandbox evidence used Stripe account ID `acct_1U4N6cRgCMXjT1y6`. Before activating the pageCast registry plan, the operator must confirm whether `acct_1U4N5nDzGAfRwUx9` is the intended Stripe account for pageCast or whether the Product/Price must be recreated under the existing `nhl_global_solution` account.
 
 ## PayGate Auth Prep
 
@@ -125,8 +140,9 @@ When ready, the safe app-code slice is:
 - [x] Select draft provider account alias: `nhl_global_solution`.
 - [x] Prepare Stripe sandbox product/price instructions for `pagecast_cast_pass_monthly`.
 - [x] Keep `single_cast_unlock` blocked pending item/SKU contract.
-- [ ] Operator creates Stripe sandbox Product/Price for `pagecast_cast_pass_monthly`.
-- [ ] Operator confirms final Cast Pass launch price.
+- [x] Operator creates Stripe sandbox Product/Price for `pagecast_cast_pass_monthly`.
+- [x] Operator confirms final Cast Pass launch price: USD 19.00/month.
+- [ ] Operator confirms Stripe account ID/provider alias alignment for pageCast.
 - [ ] PayGate registry marks `cast_pass_monthly` active after lookup key exists.
 - [ ] PayGate auth config supports pageCast Supabase JWTs.
 - [ ] PayGate deployment/admin confirms pageCast catalog visibility.
