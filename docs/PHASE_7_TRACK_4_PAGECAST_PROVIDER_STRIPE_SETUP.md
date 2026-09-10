@@ -38,7 +38,7 @@ Create in Stripe sandbox under the selected provider account:
 - Amount: `1900` minor units, shown as USD 19.00/month
 - Lookup key: `pagecast_cast_pass_monthly`
 - PayGate plan key: `cast_pass_monthly`
-- Registry status today: `draft`
+- Registry status today: `active`
 
 This is the safe first PayGate checkout slice because it maps to app-wide entitlements:
 
@@ -143,7 +143,7 @@ When ready, the safe app-code slice is:
 - [x] Operator creates Stripe sandbox Product/Price for `pagecast_cast_pass_monthly`.
 - [x] Operator confirms final Cast Pass launch price: USD 19.00/month.
 - [x] Operator confirms Stripe account ID/provider alias alignment for pageCast: `acct_1U4N5nDzGAfRwUx9`.
-- [ ] PayGate registry marks `cast_pass_monthly` active after lookup key exists.
+- [x] PayGate registry marks `cast_pass_monthly` active after lookup key exists.
 - [ ] PayGate auth config supports pageCast Supabase JWTs.
 - [ ] PayGate deployment/admin confirms pageCast catalog visibility.
 

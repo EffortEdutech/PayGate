@@ -13,7 +13,7 @@ plans:
     entitlement_bundle:
       - pagecast.cast_pass
       - pagecast.premium_casts
-    status: draft
+    status: active
   - plan_key: single_cast_unlock
     name: pageCast Single Cast Unlock
     type: one_time

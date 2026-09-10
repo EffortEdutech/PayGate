@@ -1,6 +1,6 @@
 # pageCast PayGate Integration Status
 
-Status: draft registry package created; Stripe sandbox Product/Price created; provider account alias confirmed.
+Status: Cast Pass registry active; Single Cast remains draft pending item/SKU contract.
 
 
 ## Pricing page review
@@ -28,7 +28,7 @@ The first safe pageCast PayGate slice is app-wide Cast Pass billing:
 
 - `plan_key`: `cast_pass_monthly`
 - `mode`: subscription
-- `amount`: USD 19.00/month draft
+- `amount`: USD 19.00/month active
 - `entitlements`: `pagecast.cast_pass`, `pagecast.premium_casts`
 
 This can be integrated with current PayGate checkout/portal/entitlement APIs after Stripe sandbox lookup key creation and pageCast JWT verification setup.
@@ -49,6 +49,7 @@ Required future PayGate extension before per-book purchase activation:
 - [x] Operator confirms final pageCast pricing; confirmed prepared Cast Pass value is USD 19.00/month, matching the top of the published `$9-$19` range.
 - [x] Stripe sandbox Product/Price exists for `pagecast_cast_pass_monthly` with fixed USD 19.00/month.
 - [x] Confirmed Stripe account `acct_1U4N5nDzGAfRwUx9` maps to PayGate alias `stripe:nhl_global_solution` for pageCast.
+- [x] PayGate registry marks `cast_pass_monthly` active.
 - [ ] Optional: Stripe sandbox Product/Price exists for `pagecast_single_cast_unlock`, but keep inactive until item-specific contract exists.
 - [ ] PayGate Vercel auth env vars configured for pageCast Supabase JWTs.
 - [ ] pageCast reader app removes direct Stripe checkout as the primary payment path.
