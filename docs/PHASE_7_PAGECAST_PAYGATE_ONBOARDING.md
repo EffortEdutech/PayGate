@@ -61,7 +61,7 @@ Files:
 
 | Plan key | Type | Amount | Status | Notes |
 | --- | --- | ---: | --- | --- |
-| `cast_pass_monthly` | subscription | USD 9.00/month | draft | Safe first PayGate integration slice. |
+| `cast_pass_monthly` | subscription | USD 19.00/month | draft | Safe first PayGate integration slice. |
 | `single_cast_unlock` | one-time | USD 3.99 | draft | Placeholder only; blocked until item-specific PayGate contract exists. |
 
 ## Draft Entitlements
@@ -89,7 +89,7 @@ In the selected Stripe sandbox account, create a Product/Price for:
 
 - Product: pageCast Cast Pass
 - Price lookup key: `pagecast_cast_pass_monthly`
-- Price: USD 9.00/month
+- Price: USD 19.00/month
 - Mode: subscription
 
 Do not activate `single_cast_unlock` for production proof until item-specific PayGate support exists.
@@ -114,7 +114,7 @@ The pageCast reader app must stop using direct Stripe as the primary path and us
 ## Open Decisions
 
 - [ ] Confirm provider account alias: keep `nhl_global_solution` or create a pageCast-specific company alias.
-- [ ] Confirm Cast Pass price: currently draft USD 9.00/month.
+- [ ] Confirm Cast Pass price: currently draft USD 19.00/month.
 - [ ] Confirm whether live URL should remain `https://pagecast-nine.vercel.app` or move to a custom domain.
 - [ ] Confirm whether pageCast per-book checkout should wait for PayGate item/SKU contract.
 - [ ] Confirm support/refund owner.

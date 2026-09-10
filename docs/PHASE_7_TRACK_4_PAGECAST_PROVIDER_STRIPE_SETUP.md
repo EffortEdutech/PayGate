@@ -35,7 +35,7 @@ Create in Stripe sandbox under the selected provider account:
 - Price type: recurring
 - Billing period: monthly
 - Currency: `USD`
-- Amount: `900` minor units, shown as USD 9.00/month
+- Amount: `1900` minor units, shown as USD 19.00/month
 - Lookup key: `pagecast_cast_pass_monthly`
 - PayGate plan key: `cast_pass_monthly`
 - Registry status today: `draft`
@@ -67,7 +67,7 @@ Reason for hold: pageCast per-book checkout needs a verified `book_id` entitleme
 2. Go to Product catalog.
 3. Create product `pageCast Cast Pass`.
 4. Add recurring monthly price:
-   - USD 9.00
+   - USD 19.00
    - lookup key `pagecast_cast_pass_monthly`
 5. Do not create or activate per-book lookup keys unless operator explicitly approves the future item/SKU contract work.
 6. Record evidence:
