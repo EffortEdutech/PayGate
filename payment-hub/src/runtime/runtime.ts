@@ -49,7 +49,7 @@ export async function createPostgresPaymentHubRuntime(env: NodeJS.ProcessEnv, re
 
 function createAuthenticator(config: HubConfig): AppAuthenticator {
   const authenticators: AppAuthenticator[] = [new StaticTokenAppAuthenticator(config.appAuthTokens)];
-  if (config.supabaseJwtAuth) authenticators.push(new SupabaseHs256JwtAppAuthenticator(config.supabaseJwtAuth));
+  for (const supabaseConfig of config.supabaseJwtAuths) authenticators.push(new SupabaseHs256JwtAppAuthenticator(supabaseConfig));
   return new CompositeAppAuthenticator(authenticators);
 }
 

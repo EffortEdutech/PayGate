@@ -285,11 +285,8 @@ function runtimeDiagnostics(requestId: string): unknown {
   const checks = [
     checkPlainUrl("APP_AUTH_ISSUER", process.env.APP_AUTH_ISSUER, true),
     checkPlainUrl("PAYMENT_HUB_CORS_ALLOW_ORIGIN", process.env.PAYMENT_HUB_CORS_ALLOW_ORIGIN, false),
-    checkPlainUrl("SUPABASE_JWKS_URL", process.env.SUPABASE_JWKS_URL, true),
-    checkPlainUrl("SUPABASE_JWT_ISSUER", process.env.SUPABASE_JWT_ISSUER, true),
     checkRequired("APP_AUTH_AUDIENCE", process.env.APP_AUTH_AUDIENCE),
-    checkRequired("SUPABASE_JWT_APP_ID", process.env.SUPABASE_JWT_APP_ID),
-    checkRequired("SUPABASE_JWT_AUDIENCE", process.env.SUPABASE_JWT_AUDIENCE),
+    checkSupabaseJwtAuth(),
     checkStripeAccounts(accounts),
     checkStripeLiveAccounts(liveAccounts),
     checkDatabaseUrl(process.env.DATABASE_URL),
@@ -331,7 +328,7 @@ async function readinessDiagnostics(requestId: string): Promise<unknown> {
   try {
     const runtimeModule = await import("../payment-hub/src/runtime/runtime.js");
     const runtime = await runtimeModule.createPostgresPaymentHubRuntime(process.env, process.cwd());
-    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, live_webhook_boundary: runtime.config.stripeLiveAccounts.length > 0 ? "live_checkout_and_webhook" : "not_configured", live_checkout_enabled: runtime.config.stripeLiveAccounts.length > 0, live_portal_enabled: runtime.config.stripeLiveAccounts.length > 0, live_reconciliation_enabled: runtime.config.stripeLiveAccounts.length > 0, phase6_approval_required: true, supabase_jwks: Boolean(runtime.config.supabaseJwtAuth?.jwksUrl) });
+    checks.push({ name: "RUNTIME_CREATE", ok: true, stripe_accounts: runtime.config.stripeAccounts.map((account: { account: string }) => account.account), stripe_live_accounts: runtime.config.stripeLiveAccounts.map((account: { account: string }) => account.account), live_config_present: runtime.config.stripeLiveAccounts.length > 0, live_webhook_boundary: runtime.config.stripeLiveAccounts.length > 0 ? "live_checkout_and_webhook" : "not_configured", live_checkout_enabled: runtime.config.stripeLiveAccounts.length > 0, live_portal_enabled: runtime.config.stripeLiveAccounts.length > 0, live_reconciliation_enabled: runtime.config.stripeLiveAccounts.length > 0, phase6_approval_required: true, supabase_jwks: runtime.config.supabaseJwtAuths.some((auth: { jwksUrl?: string }) => Boolean(auth.jwksUrl)), supabase_jwt_apps: runtime.config.supabaseJwtAuths.map((auth: { appId: string }) => auth.appId) });
   } catch (error) {
     checks.push(safeErrorCheck("RUNTIME_CREATE", error));
   }
@@ -365,6 +362,30 @@ function checkRequired(name: string, value: string | undefined): unknown {
   return { name, ok: Boolean(value?.trim()), present: Boolean(value?.trim()), ...(hasMarkdown(value) ? { issue: "Value looks like a Markdown link. Paste plain text only." } : {}) };
 }
 
+function checkSupabaseJwtAuth(): Record<string, unknown> {
+  const apps = splitCsv(process.env.SUPABASE_JWT_APPS);
+  if (apps.length === 0) {
+    const legacyChecks = [
+      checkPlainUrl("SUPABASE_JWKS_URL", process.env.SUPABASE_JWKS_URL, true),
+      checkPlainUrl("SUPABASE_JWT_ISSUER", process.env.SUPABASE_JWT_ISSUER, true),
+      checkRequired("SUPABASE_JWT_APP_ID", process.env.SUPABASE_JWT_APP_ID),
+      checkRequired("SUPABASE_JWT_AUDIENCE", process.env.SUPABASE_JWT_AUDIENCE),
+    ] as Array<Record<string, unknown>>;
+    return { name: "SUPABASE_JWT_AUTH", ok: legacyChecks.every((check) => check.ok), mode: "single_app", checks: legacyChecks };
+  }
+
+  const appChecks = apps.map((app) => {
+    const segment = app.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+    const jwksName = `SUPABASE_JWT_${segment}_JWKS_URL`;
+    const issuerName = `SUPABASE_JWT_${segment}_ISSUER`;
+    const audienceName = `SUPABASE_JWT_${segment}_AUDIENCE`;
+    const jwks = checkPlainUrl(jwksName, process.env[jwksName], true) as Record<string, unknown>;
+    const issuer = checkPlainUrl(issuerName, process.env[issuerName], true) as Record<string, unknown>;
+    const audience = checkRequired(audienceName, process.env[audienceName]) as Record<string, unknown>;
+    return { app, ok: Boolean(jwks.ok && issuer.ok && audience.ok), checks: [jwks, issuer, audience] };
+  });
+  return { name: "SUPABASE_JWT_AUTH", ok: appChecks.every((check) => check.ok), mode: "multi_app", apps, app_checks: appChecks };
+}
 function checkPlainUrl(name: string, value: string | undefined, required: boolean): unknown {
   if (!value?.trim()) return { name, ok: !required, present: false, ...(required ? { issue: "Missing required URL." } : {}) };
   if (hasMarkdown(value)) return { name, ok: false, present: true, issue: "Value looks like a Markdown link. Paste only the URL, without brackets or parentheses." };

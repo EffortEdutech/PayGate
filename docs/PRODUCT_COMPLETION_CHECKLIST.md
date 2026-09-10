@@ -120,7 +120,8 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] App #2 provider account alias confirmed for Stripe account used by pageCast Product/Price: `acct_1U4N5nDzGAfRwUx9`.
 - [x] App #2 Cast Pass registry plan activated for `cast_pass_monthly`.
 - [ ] App #2 thin payment client integrated in pageCast reader app.
-- [ ] App #2 Supabase JWT auth boundary verified for project `zdlbcvscytujdomxzwei`.
+- [x] App #2 Supabase JWT auth boundary implemented in PayGate for project `zdlbcvscytujdomxzwei`.
+- [ ] App #2 Supabase JWT Vercel env vars configured and verified on deployment.
 - [ ] App #2 Cast Pass sandbox E2E proof complete.
 - [ ] Multi-app admin/monitoring verified.
 - [ ] Onboarding runbook updated from app #2 evidence.

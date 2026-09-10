@@ -75,13 +75,13 @@ Files:
 PayGate must verify pageCast Supabase JWTs server-side before browser-origin checkout is allowed:
 
 ```ini
-SUPABASE_JWKS_URL=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1/.well-known/jwks.json
-SUPABASE_JWT_APP_ID=pagecast
-SUPABASE_JWT_ISSUER=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1
-SUPABASE_JWT_AUDIENCE=authenticated
+SUPABASE_JWT_APPS=pagecast
+SUPABASE_JWT_PAGECAST_JWKS_URL=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1/.well-known/jwks.json
+SUPABASE_JWT_PAGECAST_ISSUER=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1
+SUPABASE_JWT_PAGECAST_AUDIENCE=authenticated
 ```
 
-If PayGate needs to support more than one Supabase app simultaneously, the auth config must be upgraded from a single-app Supabase JWT config to a multi-app issuer/JWKS map before pageCast and AIntern can both run from browser JWTs in the same deployment.
+PayGate now supports multi-app Supabase JWT config, so pageCast can be added without replacing the existing AIntern JWT settings.
 
 ## Required Stripe Sandbox Setup Later
 

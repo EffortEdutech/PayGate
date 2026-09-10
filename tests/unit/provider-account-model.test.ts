@@ -196,3 +196,23 @@ test("live stripe account credentials are parsed from live-only env names", () =
   assert.deepEqual(config.stripeLiveAccounts.map((account) => account.account), ["nhl_global_solution"]);
   assert.equal(config.stripeLiveAccounts[0]?.secretKey, "sk_live_nhl");
 });
+test("multi-app Supabase JWT configs preserve AIntern while adding pageCast", () => {
+  const config = loadHubConfig({
+    NODE_ENV: "production",
+    PORT: "3017",
+    DATABASE_URL: "postgresql://postgres.project:secret%23value@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true",
+    APP_AUTH_ISSUER: "https://pay-gate-beta.vercel.app",
+    APP_AUTH_AUDIENCE: "payment-hub",
+    SUPABASE_JWT_APP_ID: "aintern",
+    SUPABASE_JWKS_URL: "https://wdhdjhvvngssnszqgiyk.supabase.co/auth/v1/.well-known/jwks.json",
+    SUPABASE_JWT_ISSUER: "https://wdhdjhvvngssnszqgiyk.supabase.co/auth/v1",
+    SUPABASE_JWT_AUDIENCE: "authenticated",
+    SUPABASE_JWT_APPS: "pagecast",
+    SUPABASE_JWT_PAGECAST_JWKS_URL: "https://zdlbcvscytujdomxzwei.supabase.co/auth/v1/.well-known/jwks.json",
+    SUPABASE_JWT_PAGECAST_ISSUER: "https://zdlbcvscytujdomxzwei.supabase.co/auth/v1",
+    SUPABASE_JWT_PAGECAST_AUDIENCE: "authenticated",
+  });
+
+  assert.deepEqual(config.supabaseJwtAuths.map((auth) => auth.appId), ["aintern", "pagecast"]);
+  assert.equal(config.supabaseJwtAuths.find((auth) => auth.appId === "pagecast")?.issuer, "https://zdlbcvscytujdomxzwei.supabase.co/auth/v1");
+});

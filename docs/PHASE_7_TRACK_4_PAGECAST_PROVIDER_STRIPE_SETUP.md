@@ -112,13 +112,13 @@ pageCast uses Supabase project:
 Potential PayGate Vercel settings for pageCast JWT verification:
 
 ```ini
-SUPABASE_JWKS_URL=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1/.well-known/jwks.json
-SUPABASE_JWT_APP_ID=pagecast
-SUPABASE_JWT_ISSUER=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1
-SUPABASE_JWT_AUDIENCE=authenticated
+SUPABASE_JWT_APPS=pagecast
+SUPABASE_JWT_PAGECAST_JWKS_URL=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1/.well-known/jwks.json
+SUPABASE_JWT_PAGECAST_ISSUER=https://zdlbcvscytujdomxzwei.supabase.co/auth/v1
+SUPABASE_JWT_PAGECAST_AUDIENCE=authenticated
 ```
 
-Important: current PayGate Supabase JWT config appears single-app oriented. Before AIntern and pageCast both use browser Supabase JWTs concurrently in the same PayGate deployment, implement or confirm multi-app JWT issuer/JWKS routing.
+PayGate now supports multi-app Supabase JWT issuer/JWKS routing. Keep the existing AIntern single-app env vars until migrated, and add pageCast using the `SUPABASE_JWT_APPS` app-specific env var set.
 
 ## pageCast App Integration Prep
 
@@ -144,7 +144,7 @@ When ready, the safe app-code slice is:
 - [x] Operator confirms final Cast Pass launch price: USD 19.00/month.
 - [x] Operator confirms Stripe account ID/provider alias alignment for pageCast: `acct_1U4N5nDzGAfRwUx9`.
 - [x] PayGate registry marks `cast_pass_monthly` active after lookup key exists.
-- [ ] PayGate auth config supports pageCast Supabase JWTs.
+- [x] PayGate auth config supports pageCast Supabase JWTs via multi-app JWT routing.
 - [ ] PayGate deployment/admin confirms pageCast catalog visibility.
 
 ## Safety Boundary

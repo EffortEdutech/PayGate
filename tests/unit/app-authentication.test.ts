@@ -66,6 +66,36 @@ test("composite auth preserves static app token fallback for local operator use"
   assert.doesNotThrow(() => assertAppAuthority(identity, "aintern", "any-local-user-ref"));
 });
 
+
+test("composite auth supports AIntern and pageCast Supabase JWTs side-by-side", async () => {
+  const ainternToken = signHs256({
+    sub: "aintern-user",
+    exp: Math.floor(Date.now() / 1000) + 300,
+    iss: "https://wdhdjhvvngsszqgiyk.supabase.co/auth/v1",
+    aud: "authenticated",
+  }, "aintern-secret");
+  const pagecastToken = signHs256({
+    sub: "pagecast-user",
+    exp: Math.floor(Date.now() / 1000) + 300,
+    iss: "https://zdlbcvscytujdomxzwei.supabase.co/auth/v1",
+    aud: "authenticated",
+  }, "pagecast-secret");
+  const authenticator = new CompositeAppAuthenticator([
+    new SupabaseHs256JwtAppAuthenticator({ appId: "aintern", jwtSecret: "aintern-secret", jwksUrl: undefined, issuer: "https://wdhdjhvvngsszqgiyk.supabase.co/auth/v1", audience: "authenticated" }),
+    new SupabaseHs256JwtAppAuthenticator({ appId: "pagecast", jwtSecret: "pagecast-secret", jwksUrl: undefined, issuer: "https://zdlbcvscytujdomxzwei.supabase.co/auth/v1", audience: "authenticated" }),
+  ]);
+
+  const ainternIdentity = await authenticator.authenticate(ainternToken);
+  assert.equal(ainternIdentity.appId, "aintern");
+  assert.equal(ainternIdentity.subject, "aintern-user");
+  assert.doesNotThrow(() => assertAppAuthority(ainternIdentity, "aintern", "aintern-user"));
+  assert.throws(() => assertAppAuthority(ainternIdentity, "pagecast", "aintern-user"), /APP_ID_MISMATCH/);
+
+  const pagecastIdentity = await authenticator.authenticate(pagecastToken);
+  assert.equal(pagecastIdentity.appId, "pagecast");
+  assert.equal(pagecastIdentity.subject, "pagecast-user");
+  assert.doesNotThrow(() => assertAppAuthority(pagecastIdentity, "pagecast", "pagecast-user"));
+});
 function signEs256(payload: Record<string, unknown>, privateKey: import("node:crypto").KeyObject, kid: string): string {
   const header = { alg: "ES256", typ: "JWT", kid };
   const encodedHeader = base64Url(JSON.stringify(header));

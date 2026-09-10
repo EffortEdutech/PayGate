@@ -20,6 +20,7 @@ export interface HubConfig {
   readonly authAudience: string;
   readonly appAuthTokens: Readonly<Record<string, string>>;
   readonly supabaseJwtAuth: SupabaseJwtAuthConfig | undefined;
+  readonly supabaseJwtAuths: readonly SupabaseJwtAuthConfig[];
   readonly stripeSecretKey: string | undefined;
   readonly stripeWebhookSecret: string | undefined;
   readonly stripeApiVersion: string;
@@ -62,6 +63,7 @@ export function loadHubConfig(env: NodeJS.ProcessEnv): HubConfig {
     authAudience: required(env, "APP_AUTH_AUDIENCE"),
     appAuthTokens: parseAppAuthTokens(env.APP_AUTH_TOKENS ?? ""),
     supabaseJwtAuth: parseSupabaseJwtAuth(env),
+    supabaseJwtAuths: parseSupabaseJwtAuths(env),
     stripeSecretKey,
     stripeWebhookSecret,
     stripeApiVersion: env.STRIPE_API_VERSION?.trim() || "2026-02-25.clover",
@@ -92,6 +94,24 @@ function parseSupabaseJwtAuth(env: NodeJS.ProcessEnv): SupabaseJwtAuthConfig | u
     issuer: optional(env, "SUPABASE_JWT_ISSUER"),
     audience: optional(env, "SUPABASE_JWT_AUDIENCE"),
   };
+}
+
+function parseSupabaseJwtAuths(env: NodeJS.ProcessEnv): SupabaseJwtAuthConfig[] {
+  const configs = new Map<string, SupabaseJwtAuthConfig>();
+  const legacy = parseSupabaseJwtAuth(env);
+  if (legacy) configs.set(legacy.appId, legacy);
+
+  for (const appId of splitAccountList(env.SUPABASE_JWT_APPS)) {
+    const segment = normalizeProviderAccountEnvSegment(appId);
+    const jwtSecret = optional(env, `SUPABASE_JWT_${segment}_SECRET`);
+    const jwksUrl = optional(env, `SUPABASE_JWT_${segment}_JWKS_URL`);
+    const issuer = optional(env, `SUPABASE_JWT_${segment}_ISSUER`);
+    const audience = optional(env, `SUPABASE_JWT_${segment}_AUDIENCE`);
+    if (!jwtSecret && !jwksUrl) throw new Error(`SUPABASE_JWT_${segment}_JWKS_URL or SUPABASE_JWT_${segment}_SECRET must be configured for ${appId}`);
+    configs.set(appId, { appId, jwtSecret, jwksUrl, issuer, audience });
+  }
+
+  return [...configs.values()].sort((a, b) => a.appId.localeCompare(b.appId));
 }
 
 export function envNameForProviderAccount(account: string, suffix: "SECRET_KEY" | "WEBHOOK_SECRET"): string {
