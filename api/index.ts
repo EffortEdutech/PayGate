@@ -875,7 +875,7 @@ const ADMIN_HTML = `<!doctype html>
   function generateDraftPreview(){
     var appId = draftValue('draftAppId') || 'example_app';
     var planKey = draftValue('draftPlanKey') || 'starter_monthly';
-    var entitlements = (draftValue('draftEntitlements') || appId + '.feature').split(/\n+/).map(function(item){ return item.trim(); }).filter(Boolean);
+    var entitlements = (draftValue('draftEntitlements') || appId + '.feature').split(/\\n+/).map(function(item){ return item.trim(); }).filter(Boolean);
     var draft = {
       package_path: 'registry/apps/' + appId,
       status: 'draft_preview_only',

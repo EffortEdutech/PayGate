@@ -174,6 +174,7 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.match(String(response.body), /Draft Add App Wizard/);
     assert.match(String(response.body), /Generate Draft Preview/);
     assert.match(String(response.body), /Draft registry preview/);
+    assert.ok(String(response.body).includes(".split(/\\n+/)"));
     assert.match(String(response.body), /Load Console/);
     assert.doesNotMatch(String(response.body), /operator-secret/);
   });
