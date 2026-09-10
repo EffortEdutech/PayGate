@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; pageCast selected as real app #2; draft registry package created and validated.
+Status: started; pageCast Track 4 provider/Stripe setup prepared; Stripe sandbox Product/Price pending operator.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -254,7 +254,9 @@ Goal: decide whether an app is ready to onboard.
 
 Checklist:
 
-- [x] Review exported sample draft artifact from Track 1K.`r`n- [x] Classify `example_app` as sample rehearsal only, not real app #2.`r`n- [x] Identify app #2 name and repository/location: pageCast at `../00 StoryBook/pageCast`.
+- [x] Review exported sample draft artifact from Track 1K.
+- [x] Classify `example_app` as sample rehearsal only, not real app #2.
+- [x] Identify app #2 name and repository/location: pageCast at `../00 StoryBook/pageCast`.
 - [x] Confirm app owner/operator: NHL Global Solution / EffortEdutech operator, pending final support/refund owner confirmation.
 - [x] Confirm current URLs from pageCast checklist: reader `https://pagecast-nine.vercel.app`, studio `https://pagecast-studio.vercel.app`.
 - [x] Confirm user identity provider and JWT/session strategy: Supabase JWT, project `zdlbcvscytujdomxzwei`, user_ref = Supabase user UUID.

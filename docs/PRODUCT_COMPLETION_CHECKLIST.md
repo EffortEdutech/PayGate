@@ -99,7 +99,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; pageCast selected as app #2 and draft registry package validated.
+Status: started; pageCast provider/Stripe setup prepared; Stripe sandbox Product/Price pending operator.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
@@ -115,6 +115,7 @@ Status: started; pageCast selected as app #2 and draft registry package validate
 - [ ] Operator approves app #2 intake.
 - [x] App #2 draft registry package created: `registry/apps/pagecast`.
 - [x] pageCast per-book checkout item/SKU contract decision recorded as future PayGate extension.
+- [x] pageCast provider/Stripe setup prep documented for `pagecast_cast_pass_monthly`.
 - [ ] App #2 provider account and Stripe sandbox setup complete for `pagecast_cast_pass_monthly`.
 - [ ] App #2 thin payment client integrated in pageCast reader app.
 - [ ] App #2 Supabase JWT auth boundary verified for project `zdlbcvscytujdomxzwei`.

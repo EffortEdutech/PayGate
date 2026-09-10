@@ -1,6 +1,17 @@
 # pageCast PayGate Integration Status
 
-Status: draft registry package created.
+Status: draft registry package created; provider/Stripe setup prepared.
+
+
+## Pricing page review
+
+The live pageCast pricing page currently presents ranges:
+
+- Starter Pass: `$0` start here.
+- Single Cast Unlock: `$3-$9` per Cast.
+- Cast Pass: `$9-$19` per month.
+
+PayGate requires fixed registry prices. The first prepared sandbox price is `cast_pass_monthly` at USD 9.00/month. The operator may change this before activation, but the Stripe Price amount, currency, interval, and registry values must match exactly.
 
 ## Current pageCast payment model
 
@@ -35,8 +46,8 @@ Required future PayGate extension before per-book purchase activation:
 
 ## Activation gates
 
-- [ ] Operator confirms final pageCast pricing.
-- [ ] Stripe sandbox Product/Price exists for `pagecast_cast_pass_monthly`.
+- [ ] Operator confirms final pageCast pricing; current prepared Cast Pass value is USD 9.00/month from the low end of the published `$9-$19` range.
+- [ ] Stripe sandbox Product/Price exists for `pagecast_cast_pass_monthly` with fixed USD 9.00/month or another operator-confirmed amount.
 - [ ] Optional: Stripe sandbox Product/Price exists for `pagecast_single_cast_unlock`, but keep inactive until item-specific contract exists.
 - [ ] PayGate Vercel auth env vars configured for pageCast Supabase JWTs.
 - [ ] pageCast reader app removes direct Stripe checkout as the primary payment path.
