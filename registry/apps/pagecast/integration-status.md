@@ -52,6 +52,7 @@ Required future PayGate extension before per-book purchase activation:
 - [x] PayGate registry marks `cast_pass_monthly` active.
 - [ ] Optional: Stripe sandbox Product/Price exists for `pagecast_single_cast_unlock`, but keep inactive until item-specific contract exists.
 - [x] PayGate Vercel auth env vars configured and verified for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
-- [ ] pageCast reader app removes direct Stripe checkout as the primary payment path.
-- [ ] pageCast uses PayGate checkout and entitlements.
+- [x] pageCast reader app uses PayGate checkout as the primary Cast Pass payment path; implemented in pageCast commit `5878eef`.
+- [ ] pageCast per-book direct Stripe checkout remains pending future PayGate item/SKU contract.
+- [ ] pageCast reads PayGate entitlements for Cast Pass access after deployed sandbox proof.
 - [ ] Sandbox E2E proof completed.

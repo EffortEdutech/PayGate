@@ -303,7 +303,7 @@ Goal: integrate app #2 as a PayGate consumer only.
 
 Checklist:
 
-- [ ] Add thin payment service/client inside app #2.
+- [x] Add thin payment service/client inside app #2 for Cast Pass checkout only; pageCast commit `5878eef`.
 - [ ] App sends only app ID, user ref, plan key, return context, and environment.
 - [ ] App never stores Stripe secret key or webhook secret.
 - [ ] App never sends amount, price ID, customer ID, provider account, or entitlement keys.
