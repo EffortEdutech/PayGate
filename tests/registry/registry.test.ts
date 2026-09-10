@@ -10,7 +10,7 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.
 
 test("canonical registry passes structural and semantic validation", async () => {
   const result = await validateRegistry(rootDir);
-  assert.equal(result.appCount, 2);
+  assert.equal(result.appCount, 3);
   assert.deepEqual(result.errors, []);
 });
 

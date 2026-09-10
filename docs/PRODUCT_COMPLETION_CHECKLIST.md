@@ -99,7 +99,7 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; Track 2 sample app intake rehearsal complete; real app #2 pending operator selection.
+Status: started; pageCast selected as app #2 and draft registry package validated.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
@@ -113,11 +113,12 @@ Status: started; Track 2 sample app intake rehearsal complete; real app #2 pendi
 - [x] Draft Add/Edit App Wizard preview implemented without registry mutation.
 - [x] Operator visually approves Draft Add App workflow in deployed admin console.
 - [ ] Operator approves app #2 intake.
-- [ ] App #2 registry package created.
-- [ ] App #2 provider account and Stripe sandbox setup complete.
-- [ ] App #2 thin payment client integrated.
-- [ ] App #2 auth boundary verified.
-- [ ] App #2 sandbox E2E proof complete.
+- [x] App #2 draft registry package created: `registry/apps/pagecast`.
+- [x] pageCast per-book checkout item/SKU contract decision recorded as future PayGate extension.
+- [ ] App #2 provider account and Stripe sandbox setup complete for `pagecast_cast_pass_monthly`.
+- [ ] App #2 thin payment client integrated in pageCast reader app.
+- [ ] App #2 Supabase JWT auth boundary verified for project `zdlbcvscytujdomxzwei`.
+- [ ] App #2 Cast Pass sandbox E2E proof complete.
 - [ ] Multi-app admin/monitoring verified.
 - [ ] Onboarding runbook updated from app #2 evidence.
 - [ ] Phase 7 freeze note created.

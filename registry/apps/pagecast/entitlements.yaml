@@ -1,0 +1,8 @@
+schema_version: "1.0"
+entitlements:
+  - key: pagecast.cast_pass
+    description: Allows active Cast Pass membership access once pageCast reads PayGate entitlements.
+  - key: pagecast.premium_casts
+    description: Allows access to premium casts covered by Cast Pass membership.
+  - key: pagecast.single_cast_unlock
+    description: Placeholder for one-time cast unlock; requires item-specific PayGate contract before activation.

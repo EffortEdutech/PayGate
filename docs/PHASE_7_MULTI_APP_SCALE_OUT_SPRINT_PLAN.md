@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; Track 2 sample app intake rehearsal complete; real app #2 pending operator selection.
+Status: started; pageCast selected as real app #2; draft registry package created and validated.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -254,14 +254,16 @@ Goal: decide whether an app is ready to onboard.
 
 Checklist:
 
-- [x] Review exported sample draft artifact from Track 1K.`r`n- [x] Classify `example_app` as sample rehearsal only, not real app #2.`r`n- [ ] Identify app #2 name and repository/location.
-- [ ] Confirm app owner/operator.
-- [ ] Confirm production and sandbox URLs.
-- [ ] Confirm user identity provider and JWT/session strategy.
-- [ ] Confirm whether the app sells one-time passes, subscriptions, usage credits, or mixed products.
-- [ ] Confirm company/provider account owner.
-- [ ] Confirm support/refund owner.
-- [ ] Confirm whether app #2 can use existing PayGate contracts unchanged.
+- [x] Review exported sample draft artifact from Track 1K.`r`n- [x] Classify `example_app` as sample rehearsal only, not real app #2.`r`n- [x] Identify app #2 name and repository/location: pageCast at `../00 StoryBook/pageCast`.
+- [x] Confirm app owner/operator: NHL Global Solution / EffortEdutech operator, pending final support/refund owner confirmation.
+- [x] Confirm current URLs from pageCast checklist: reader `https://pagecast-nine.vercel.app`, studio `https://pagecast-studio.vercel.app`.
+- [x] Confirm user identity provider and JWT/session strategy: Supabase JWT, project `zdlbcvscytujdomxzwei`, user_ref = Supabase user UUID.
+- [x] Confirm payment model: mixed model today; direct per-book Stripe checkout exists, Cast Pass subscription is safest PayGate first slice, per-book checkout requires future PayGate item/SKU contract.
+- [x] Draft company/provider account owner: `nhl_global_solution`, pending operator final confirmation.
+- [ ] Confirm support/refund owner for pageCast.
+- [x] Confirm whether app #2 can use existing PayGate contracts unchanged: Cast Pass can; per-book checkout cannot and needs future item/SKU contract.
+
+Track 2 pageCast evidence note: `docs/PHASE_7_PAGECAST_PAYGATE_ONBOARDING.md`.
 
 ## Track 3 - Registry Package Creation
 
@@ -269,15 +271,15 @@ Goal: add app #2 to PayGate without giving the app commercial authority.
 
 Checklist:
 
-- [ ] Create registry app package.
-- [ ] Define app ID and display name.
-- [ ] Define provider ID and provider account alias.
-- [ ] Define test and live origin allowlists.
-- [ ] Define allowed return contexts.
-- [ ] Define plans using integer minor units and uppercase currency.
-- [ ] Define provider lookup keys, not provider price IDs.
-- [ ] Define entitlements.
-- [ ] Run `npm run validate:registry`.
+- [x] Create registry app package for `pagecast`.
+- [x] Define app ID and display name: `pagecast`, pageCast.
+- [x] Define provider ID and provider account alias: `stripe:nhl_global_solution` draft.
+- [x] Define test and live origin allowlists: `https://pagecast-nine.vercel.app`.
+- [x] Define allowed return contexts: `billing`, `cast`.
+- [x] Define draft plans using integer minor units and uppercase currency.
+- [x] Define provider lookup keys, not provider price IDs.
+- [x] Define draft entitlements.
+- [x] Run `npm run validate:registry`: passed for 3 application package(s).
 
 ## Track 4 - Provider Account and Stripe Setup
 

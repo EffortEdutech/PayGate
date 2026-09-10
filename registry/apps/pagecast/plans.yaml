@@ -1,0 +1,28 @@
+schema_version: "1.0"
+plans:
+  - plan_key: cast_pass_monthly
+    name: pageCast Cast Pass Monthly
+    type: subscription
+    pricing:
+      currency: USD
+      unit_amount_minor: 900
+      interval: month
+    provider:
+      stripe:
+        lookup_key: pagecast_cast_pass_monthly
+    entitlement_bundle:
+      - pagecast.cast_pass
+      - pagecast.premium_casts
+    status: draft
+  - plan_key: single_cast_unlock
+    name: pageCast Single Cast Unlock
+    type: one_time
+    pricing:
+      currency: USD
+      unit_amount_minor: 399
+    provider:
+      stripe:
+        lookup_key: pagecast_single_cast_unlock
+    entitlement_bundle:
+      - pagecast.single_cast_unlock
+    status: draft

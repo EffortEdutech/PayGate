@@ -1,0 +1,14 @@
+schema_version: "1.0"
+app_id: pagecast
+name: pageCast
+status: draft
+provider:
+  type: stripe
+  account: nhl_global_solution
+billing:
+  enabled: true
+application_urls:
+  test: https://pagecast-nine.vercel.app
+  live: https://pagecast-nine.vercel.app
+identity:
+  user_reference: supabase_user_id

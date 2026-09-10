@@ -1,0 +1,22 @@
+schema_version: "1.0"
+app_id: pagecast
+repository:
+  path: ../00 StoryBook/pageCast
+integration_files:
+  create:
+    - apps/reader-app/src/lib/paymentHub/client.ts
+    - apps/reader-app/src/app/api/paygate/checkout/route.ts
+    - apps/reader-app/src/app/api/paygate/portal/route.ts
+  modify:
+    - apps/reader-app/src/app/book/[id]/page.tsx
+    - apps/reader-app/src/app/pricing/page.tsx
+    - apps/reader-app/src/hooks/useSync.ts
+    - apps/reader-app/src/store/readerStore.ts
+    - apps/reader-app/package.json
+    - docs/CHECKLIST.md
+  verify:
+    - apps/reader-app/src/app/api/stripe/checkout/route.ts
+    - apps/reader-app/src/app/api/stripe/webhook/route.ts
+    - apps/reader-app/src/app/api/books/[id]/access/route.ts
+    - apps/reader-app/src/lib/supabase/progress.ts
+    - docs/supabase-schema.sql
