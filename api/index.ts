@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+﻿import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 type RuntimeModule = typeof import("../payment-hub/src/runtime/runtime.js");
@@ -708,7 +708,7 @@ const ADMIN_HTML = `<!doctype html>
 
 <script>
 (function(){
-  var state = { view: 'dashboard', environment: 'live', summary: null, monitoring: null, selectedAppId: '', loadedAt: '', error: null };
+  var state = { view: 'dashboard', environment: 'test', summary: null, monitoring: null, selectedAppId: '', loadedAt: '', error: null };
   function el(id){ return document.getElementById(id); }
   function esc(value){ return String(value == null ? '' : value).replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }
   function fmtDate(value){ if(!value) return 'not recorded'; try { return new Date(value).toLocaleString(); } catch(e) { return value; } }
@@ -765,6 +765,7 @@ const ADMIN_HTML = `<!doctype html>
       state.error = null;
       state.environment = el('environmentFilter').value;
       setStatus('Loading ' + state.environment + ' gateway snapshot...');
+      el('environmentFilter').value = state.environment;
       var envParam = state.environment === 'all' ? '' : ('?environment=' + encodeURIComponent(state.environment));
       var joiner = envParam ? '&' : '?';
       var summaryUrl = '/admin/summary' + envParam;
@@ -850,7 +851,7 @@ const ADMIN_HTML = `<!doctype html>
     if(tab === 'plans') return panel('Plans and Prices', arr(app.plans).map(function(p){ return row(p.name || p.plan_key, money(p) + ' - ' + esc(p.mode || '') + ' - ' + esc(p.status || ''), 'Plan key: ' + p.plan_key + ' - lookup configured: ' + Boolean(p.provider_lookup_configured) + ' - entitlements: ' + arr(p.entitlements).join(', ')); }).join('') || empty('No plans configured.'));
     if(tab === 'urls') return '<div class="two-col">' + panel('Return Origins', '<p><strong>Test:</strong> ' + esc(app.origins && app.origins.test ? app.origins.test : 'not set') + '</p><p><strong>Live:</strong> ' + esc(app.origins && app.origins.live ? app.origins.live : 'not set') + '</p>') + panel('Boundary Rule', '<p>Apps may request a return context only. PayGate resolves the final return URL from registry allowlists.</p><p>Browser redirects never grant entitlements.</p>') + '</div>';
     if(tab === 'customers') return panel('Customers and Entitlements', appCustomers.map(customerCard).join('') || empty('No customers in this filter.'));
-    if(tab === 'webhooks') return panel('Webhook Evidence', appWebhooks.map(function(w){ return row(w.event_type, w.provider_event_id, w.status + ' - ' + w.provider_account + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook evidence for this app.'));
+    if(tab === 'webhooks') return panel('Webhook Evidence', webhookEvidenceHtml(app.app_id, appWebhooks));
     if(tab === 'reconciliation') return panel('Reconciliation Evidence', appRuns.map(function(r){ return row(r.status, r.id, (r.provider_account || 'provider account') + ' - ' + fmtDate(r.completed_at)); }).join('') || empty('No reconciliation evidence for this app.'));
     if(tab === 'evidence') return '<div class="two-col">' + panel('Checkout Sessions', appSessions.map(function(s){ return row(s.plan_key, s.provider_checkout_session_ref, s.status + ' - ' + s.environment + ' - expires ' + fmtDate(s.expires_at)); }).join('') || empty('No checkout sessions in this filter.')) + panel('Evidence Rule', '<p>Financial state shown here comes from verified webhooks or explicit reconciliation results.</p><p>Do not use redirect success pages as payment proof.</p>') + '</div>';
     return '<div class="three-col">' + panel('Provider Mapping', '<p><strong>' + esc(app.provider_id) + ':' + esc(app.provider_account) + '</strong></p><p>Secrets remain server-side. Apps never receive provider keys.</p>') + panel('Operating Status', '<p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Selected app: <strong>' + esc(app.app_id) + '</strong></p><p>Workspace tabs keep each evidence type separate.</p>') + panel('Next Safe Action', '<p>Review plans, URLs, customers, webhooks, and reconciliation evidence in their own tabs.</p><p>Edit/add/refund actions remain disabled until their controlled tracks.</p>') + '</div>';
@@ -858,6 +859,11 @@ const ADMIN_HTML = `<!doctype html>
     var groups = {};
     apps().forEach(function(app){ var key = (app.provider_id || 'provider') + ':' + (app.provider_account || 'account'); groups[key] = groups[key] || []; groups[key].push(app); });
     el('view-providers').innerHTML = '<div class="view-header"><div><h2>Provider Accounts</h2><p>Company-scoped Stripe accounts mapped to apps. This proves isolation without exposing keys.</p></div></div><div class="list">' + Object.keys(groups).map(function(key){ return row(key, groups[key].map(function(app){ return app.app_id; }).join(', '), groups[key].length + ' app(s)'); }).join('') + '</div>';
+  }
+  function webhookEvidenceHtml(appId, appWebhooks){
+    if(appWebhooks.length) return appWebhooks.map(function(w){ return row(w.event_type, w.provider_event_id, w.status + ' - ' + w.provider_account + ' - ' + w.environment + ' - ' + fmtDate(w.received_at)); }).join('');
+    if(state.environment !== 'all') return empty('No webhook evidence for this app in ' + state.environment + '. Switch Environment to all or check the other environment for sandbox/live evidence.');
+    return empty('No webhook evidence for this app.');
   }
   function renderWebhooks(){
     el('view-webhooks').innerHTML = '<div class="view-header"><div><h2>Webhooks</h2><p>Recent provider events after signature verification and trusted inbox processing.</p></div></div><div class="list">' + (webhooks().map(function(w){ return row(w.event_type, w.app_id + ' / ' + w.user_ref, w.status + ' - ' + w.provider_account + ' - ' + fmtDate(w.received_at)); }).join('') || empty('No webhook events loaded.')) + '</div>';

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { Readable } from "node:stream";
@@ -176,6 +176,8 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.match(String(response.body), /Validate Draft/);
     assert.match(String(response.body), /Download JSON/);
     assert.match(String(response.body), /Validation summary/);
+    assert.match(String(response.body), /environment: 'test'/);
+    assert.match(String(response.body), /No webhook evidence for this app in/);
     assert.match(String(response.body), /validateDraftPackage/);
     assert.match(String(response.body), /Draft registry preview/);
     assert.ok(String(response.body).includes(".split(/\\n+/)"));

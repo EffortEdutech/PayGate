@@ -308,7 +308,7 @@ Checklist:
 - [ ] App never stores Stripe secret key or webhook secret.
 - [ ] App never sends amount, price ID, customer ID, provider account, or entitlement keys.
 - [ ] App handles checkout redirect URL returned by PayGate.
-- [ ] App reads subscription/entitlement state from PayGate or its backend projection.
+- [x] App reads subscription/entitlement state from PayGate via pageCast `/api/paygate/state`; deployment verification pending.
 - [ ] App displays provider-neutral states only.
 
 ## Track 6 - App Authentication Boundary

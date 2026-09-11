@@ -54,10 +54,15 @@ Required future PayGate extension before per-book purchase activation:
 - [x] PayGate Vercel auth env vars configured and verified for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
 - [x] pageCast reader app uses PayGate checkout as the primary Cast Pass payment path; implemented in pageCast commit `5878eef`.
 - [ ] pageCast per-book direct Stripe checkout remains pending future PayGate item/SKU contract.
-- [ ] pageCast reads PayGate entitlements for Cast Pass access after deployed sandbox proof. Track 4E sandbox proof is complete; Track 4F will wire display/read behavior.
+- [x] pageCast reads PayGate entitlements for Cast Pass display through `/api/paygate/state`; deployed verification pending.
 - [ ] Sandbox E2E proof completed.
 
 
 ## Phase 7 Track 4E sandbox proof
 
 Accepted on 2026-09-11. PayGate admin evidence shows processed customer.subscription.created and checkout.session.completed webhooks for pagecast, active subscription state for cast_pass_monthly, and active plan:cast_pass_monthly entitlement projection through 2026-10-11.
+
+
+## Phase 7 Track 4F entitlement display
+
+Implemented in pageCast commit c6d8d19. pageCast now reads PayGate subscription and entitlement state server-side and displays active Cast Pass status on the pricing and billing success screens. This is display/read behavior only; per-book Single Cast unlock remains future item/SKU contract work.

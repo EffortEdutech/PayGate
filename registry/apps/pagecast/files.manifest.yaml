@@ -1,4 +1,4 @@
-schema_version: "1.0"
+﻿schema_version: "1.0"
 app_id: pagecast
 repository:
   path: ../00 StoryBook/pageCast
@@ -7,6 +7,7 @@ integration_files:
     - apps/reader-app/src/lib/paymentHub/client.ts
     - apps/reader-app/src/app/api/paygate/checkout/route.ts
     - apps/reader-app/src/app/api/paygate/portal/route.ts
+    - apps/reader-app/src/app/api/paygate/state/route.ts
   modify:
     - apps/reader-app/src/app/book/[id]/page.tsx
     - apps/reader-app/src/app/pricing/page.tsx
