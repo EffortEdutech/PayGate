@@ -66,3 +66,8 @@ Accepted on 2026-09-11. PayGate admin evidence shows processed customer.subscrip
 ## Phase 7 Track 4F entitlement display
 
 Implemented in pageCast commit c6d8d19. pageCast now reads PayGate subscription and entitlement state server-side and displays active Cast Pass status on the pricing and billing success screens. This is display/read behavior only; per-book Single Cast unlock remains future item/SKU contract work.
+
+
+## Phase 7 Track 4G access enforcement plan
+
+Accepted planning direction: active PayGate Cast Pass should unlock all current Premium Cast reading/listening access in pageCast. Single Cast remains deferred until a future PayGate item/SKU contract exists. Next implementation track is Phase 7 Track 4H.

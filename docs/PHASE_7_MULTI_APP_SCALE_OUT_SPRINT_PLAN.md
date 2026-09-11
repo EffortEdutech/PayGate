@@ -394,3 +394,10 @@ Phase 7 is complete only when:
 - [ ] admin/monitoring supports multi-app operation safely;
 - [ ] onboarding runbook is updated from real app #2 evidence;
 - [ ] Phase 7 freeze note is created.
+
+
+## Phase 7 Track 4G - pageCast Cast Pass Access Enforcement Plan
+
+- [x] Document Cast Pass access enforcement policy.
+- [x] Keep Single Cast item-level unlock deferred pending PayGate item/SKU contract.
+- [x] Define next implementation checklist for Track 4H.
