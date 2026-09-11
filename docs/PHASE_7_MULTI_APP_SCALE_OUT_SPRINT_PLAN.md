@@ -401,3 +401,11 @@ Phase 7 is complete only when:
 - [x] Document Cast Pass access enforcement policy.
 - [x] Keep Single Cast item-level unlock deferred pending PayGate item/SKU contract.
 - [x] Define next implementation checklist for Track 4H.
+
+
+## Phase 7 Track 4H - pageCast Cast Pass Access Enforcement
+
+- [x] Update pageCast access API to allow `reason: cast_pass` from verified PayGate state.
+- [x] Update book detail UI copy for Cast Pass access.
+- [x] Keep Single Cast item-level unlock deferred pending PayGate item/SKU contract.
+- [ ] Verify deployed paid-user and unpaid-user browser behavior.

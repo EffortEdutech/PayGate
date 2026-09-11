@@ -125,6 +125,7 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] App #2 Cast Pass sandbox E2E proof complete; see `docs/PHASE_7_TRACK_4E_PAGECAST_SANDBOX_PROOF_EVIDENCE.md`.
 - [x] App #2 reads PayGate entitlement state for pageCast Cast Pass; see `docs/PHASE_7_TRACK_4F_PAGECAST_ENTITLEMENT_STATE_EVIDENCE.md`.
 - [x] App #2 Cast Pass access enforcement plan documented; see `docs/PHASE_7_TRACK_4G_PAGECAST_ACCESS_ENFORCEMENT_PLAN.md`.
+- [x] App #2 Cast Pass access enforcement implemented in pageCast; deployment verification pending. See `docs/PHASE_7_TRACK_4H_PAGECAST_ACCESS_ENFORCEMENT_EVIDENCE.md`.
 - [ ] Multi-app admin/monitoring verified.
 - [ ] Onboarding runbook updated from app #2 evidence.
 - [ ] Phase 7 freeze note created.

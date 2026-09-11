@@ -71,3 +71,8 @@ Implemented in pageCast commit c6d8d19. pageCast now reads PayGate subscription 
 ## Phase 7 Track 4G access enforcement plan
 
 Accepted planning direction: active PayGate Cast Pass should unlock all current Premium Cast reading/listening access in pageCast. Single Cast remains deferred until a future PayGate item/SKU contract exists. Next implementation track is Phase 7 Track 4H.
+
+
+## Phase 7 Track 4H access enforcement implementation
+
+Implemented in pageCast commit `acfef27`. The book access API now returns `reason: cast_pass` when verified PayGate Cast Pass state is active, and the book detail page displays Cast Pass-specific access copy. Deployment verification is pending. Single Cast remains deferred until item/SKU contract work.
