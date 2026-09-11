@@ -1,4 +1,4 @@
-# PayGate Product Completion Checklist
+﻿# PayGate Product Completion Checklist
 
 Status: master checklist through Phase 7.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -122,7 +122,7 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] App #2 thin payment client integrated in pageCast reader app for Cast Pass checkout only; committed in pageCast as `5878eef`.
 - [x] App #2 Supabase JWT auth boundary implemented in PayGate for project `zdlbcvscytujdomxzwei`.
 - [x] App #2 Supabase JWT Vercel env vars configured and verified on deployment.
-- [ ] App #2 Cast Pass sandbox E2E proof complete.
+- [x] App #2 Cast Pass sandbox E2E proof complete; see `docs/PHASE_7_TRACK_4E_PAGECAST_SANDBOX_PROOF_EVIDENCE.md`.
 - [ ] Multi-app admin/monitoring verified.
 - [ ] Onboarding runbook updated from app #2 evidence.
 - [ ] Phase 7 freeze note created.

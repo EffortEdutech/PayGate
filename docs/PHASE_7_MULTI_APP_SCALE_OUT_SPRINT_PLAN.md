@@ -1,4 +1,4 @@
-# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
+﻿# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
 Status: started; pageCast Track 4 provider/Stripe setup prepared; Stripe sandbox Product/Price pending operator.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -329,10 +329,10 @@ Goal: prove app #2 works in sandbox before live readiness.
 
 Checklist:
 
-- [ ] Create sandbox checkout from app #2.
+- [x] Create sandbox checkout from app #2 for pageCast Cast Pass; Track 4E evidence accepted.
 - [ ] Complete sandbox payment.
-- [ ] Verify signed webhook is processed.
-- [ ] Verify entitlement projection.
+- [x] Verify signed webhook is processed for pageCast Cast Pass; processed `customer.subscription.created` and `checkout.session.completed`.
+- [x] Verify entitlement projection for pageCast Cast Pass; active `plan:cast_pass_monthly` projected through 2026-10-11.
 - [ ] Verify portal session.
 - [ ] Run reconciliation.
 - [ ] Confirm monitoring/admin visibility.
