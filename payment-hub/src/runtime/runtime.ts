@@ -8,7 +8,7 @@ import { InMemoryPaymentRepository } from "../persistence/in-memory-repository.j
 import { PostgresIdempotencyLedger } from "../persistence/postgres-idempotency-ledger.js";
 import { PostgresPaymentRepository } from "../persistence/postgres-repository.js";
 import { Registry } from "../registry/registry.js";
-import type { RegisteredApplication, RegisteredPlan } from "../registry/types.js";
+import type { RegisteredApplication, RegisteredItem, RegisteredItemScope, RegisteredPlan } from "../registry/types.js";
 import { CompositeAppAuthenticator, StaticTokenAppAuthenticator, SupabaseHs256JwtAppAuthenticator, type AppAuthenticator } from "../security/app-authentication.js";
 import type { IdempotencyLedger } from "../security/idempotency.js";
 import { PaymentHubService } from "../services/payment-hub-service.js";
@@ -29,7 +29,7 @@ export async function createInMemoryPaymentHubRuntime(env: NodeJS.ProcessEnv, re
   const provider = createProvider(config);
   return {
     config,
-    service: new PaymentHubService(registry, new InMemoryPaymentRepository(), provider),
+    service: new PaymentHubService(registry, new InMemoryPaymentRepository(), provider, { itemCheckoutTestAllowlist: config.itemCheckoutTestAllowlist }),
     authenticator: createAuthenticator(config),
   };
 }
@@ -41,7 +41,7 @@ export async function createPostgresPaymentHubRuntime(env: NodeJS.ProcessEnv, re
   const pool = createPgPool(config.databaseUrl);
   return {
     config,
-    service: new PaymentHubService(registry, new PostgresPaymentRepository(pool), provider),
+    service: new PaymentHubService(registry, new PostgresPaymentRepository(pool), provider, { itemCheckoutTestAllowlist: config.itemCheckoutTestAllowlist }),
     authenticator: createAuthenticator(config),
     idempotencyLedger: new PostgresIdempotencyLedger(pool),
   };
@@ -74,14 +74,26 @@ async function loadRegistry(appsDir: string): Promise<Registry> {
   return new Registry(apps);
 }
 
+async function fileExists(file: string): Promise<boolean> {
+  try {
+    await stat(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function loadApplication(appDir: string): Promise<RegisteredApplication> {
   const appDoc = parse(await readFile(path.join(appDir, "app.yaml"), "utf8")) as Record<string, unknown>;
   const plansDoc = parse(await readFile(path.join(appDir, "plans.yaml"), "utf8")) as { plans: Array<Record<string, unknown>> };
+  const itemsFile = path.join(appDir, "items.yaml");
+  const itemsDoc = await fileExists(itemsFile) ? parse(await readFile(itemsFile, "utf8")) as { items: Array<Record<string, unknown>> } : { items: [] };
   const integrationDoc = parse(await readFile(path.join(appDir, "integration.yaml"), "utf8")) as Record<string, unknown>;
   const provider = appDoc.provider as { type: string; account: string };
   const applicationUrls = appDoc.application_urls as { test?: string; live?: string };
   const returnContexts = integrationDoc.return_contexts as Record<string, { success_path: string; cancel_path: string; portal_path: string }>;
   if (!applicationUrls.test || !applicationUrls.live) throw new Error("Registry app requires test and live application_urls");
+
   const plans = new Map<string, RegisteredPlan>();
   for (const rawPlan of plansDoc.plans) {
     const pricing = rawPlan.pricing as { unit_amount_minor: number; currency: string; interval?: "day" | "week" | "month" | "year" };
@@ -101,6 +113,32 @@ async function loadApplication(appDir: string): Promise<RegisteredApplication> {
       status: rawPlan.status as "draft" | "active" | "archived",
     });
   }
+
+  const items = new Map<string, RegisteredItem>();
+  for (const rawItem of itemsDoc.items) {
+    const pricing = rawItem.pricing as { unit_amount_minor: number; currency: string };
+    const providers = rawItem.provider as Record<string, { lookup_key: string; live_lookup_key?: string }>;
+    const entitlement = rawItem.entitlement as { key: string; scope: { book_id?: string; bundle_id?: string; book_ids?: string[] } };
+    const itemKey = String(rawItem.item_key);
+    const providerLiveLookupKeys = Object.fromEntries(Object.entries(providers).filter(([, value]) => value.live_lookup_key).map(([key, value]) => [key, value.live_lookup_key!]));
+    const scope: RegisteredItemScope = {
+      ...(entitlement.scope.book_id ? { bookId: entitlement.scope.book_id } : {}),
+      ...(entitlement.scope.bundle_id ? { bundleId: entitlement.scope.bundle_id } : {}),
+      ...(entitlement.scope.book_ids ? { bookIds: entitlement.scope.book_ids } : {}),
+    };
+    items.set(itemKey, {
+      itemKey,
+      name: String(rawItem.name),
+      type: rawItem.type as "single_cast" | "cast_bundle",
+      amountMinor: pricing.unit_amount_minor,
+      currency: pricing.currency.toUpperCase() as Currency,
+      providerLookupKeys: Object.fromEntries(Object.entries(providers).map(([key, value]) => [key, value.lookup_key])),
+      ...(Object.keys(providerLiveLookupKeys).length > 0 ? { providerLiveLookupKeys } : {}),
+      entitlement: { key: entitlement.key, scope },
+      status: rawItem.status as "draft" | "active" | "archived",
+    });
+  }
+
   return {
     appId: String(appDoc.app_id),
     name: String(appDoc.name),
@@ -109,5 +147,6 @@ async function loadApplication(appDir: string): Promise<RegisteredApplication> {
     origins: { test: new URL(applicationUrls.test), live: new URL(applicationUrls.live) },
     returnContexts: Object.fromEntries(Object.entries(returnContexts).map(([key, value]) => [key, { successPath: value.success_path, cancelPath: value.cancel_path, portalPath: value.portal_path }])),
     plans,
+    items,
   };
 }

@@ -26,6 +26,7 @@ export interface HubConfig {
   readonly stripeApiVersion: string;
   readonly stripeAccounts: readonly StripeProviderAccountConfig[];
   readonly stripeLiveAccounts: readonly StripeProviderAccountConfig[];
+  readonly itemCheckoutTestAllowlist: readonly string[];
 }
 
 export const defaultLocalPort = 3017;
@@ -69,6 +70,7 @@ export function loadHubConfig(env: NodeJS.ProcessEnv): HubConfig {
     stripeApiVersion: env.STRIPE_API_VERSION?.trim() || "2026-02-25.clover",
     stripeAccounts: parseStripeAccounts(env, stripeSecretKey, stripeWebhookSecret),
     stripeLiveAccounts: parseStripeLiveAccounts(env),
+    itemCheckoutTestAllowlist: splitAccountList(env.PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST),
   };
 }
 

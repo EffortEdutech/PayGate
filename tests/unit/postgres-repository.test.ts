@@ -12,7 +12,7 @@ class RecordingQueryClient implements PgQueryClient {
     if (text.includes("RETURNING id")) return result([{ id: "00000000-0000-0000-0000-000000000001" } as R]);
     if (text.includes("provider_customer_ref")) return result([{ provider_customer_ref: "cus_test_123" } as R]);
     if (text.includes("SELECT sp.state")) return result([{ state: "active", plan_key: "growth_monthly", current_period_end: null } as R]);
-    if (text.includes("SELECT DISTINCT ON")) return result([{ entitlement_key: "plan:growth_monthly", status: "active", effective_until: null } as R]);
+    if (text.includes("SELECT DISTINCT ON")) return result([{ entitlement_key: "plan:growth_monthly", status: "active", effective_until: null, entitlement_scope: null } as R]);
     return result([]);
   }
 }
@@ -86,7 +86,47 @@ test("Postgres repository persists checkout intent without provider authority fi
   });
   assert.ok(db.calls.some((call) => call.text.includes("INSERT INTO checkout_sessions")));
   const checkoutCall = db.calls.find((call) => call.text.includes("INSERT INTO checkout_sessions"));
-  assert.deepEqual(checkoutCall?.values.slice(2, 7), ["stripe", "primary", "test", "growth_monthly", "cs_test_123"]);
+  assert.deepEqual(checkoutCall?.values.slice(2, 10), ["stripe", "primary", "test", "growth_monthly", null, null, null, "cs_test_123"]);
+});
+
+test("Postgres repository can persist future item checkout intent without activating entitlement", async () => {
+  const db = new RecordingQueryClient();
+  const repository = new PostgresPaymentRepository(db);
+  await repository.saveCheckoutSession({
+    appId: "app_test",
+    userRef: "user_1",
+    itemRef: "book:demo",
+    itemEntitlementKey: "app_test.book.unlock",
+    itemEntitlementScope: { bookId: "demo" },
+    providerId: "stripe",
+    providerAccount: "primary",
+    environment: "test",
+    checkoutSessionId: "cs_item_test_123",
+    redirectUrl: new URL("https://checkout.stripe.com/c/item-test"),
+    status: "open",
+    expiresAt: new Date("2026-08-26T12:00:00.000Z"),
+  });
+  const checkoutCall = db.calls.find((call) => call.text.includes("INSERT INTO checkout_sessions"));
+  assert.deepEqual(checkoutCall?.values.slice(5, 10), [null, "book:demo", "app_test.book.unlock", JSON.stringify({ bookId: "demo" }), "cs_item_test_123"]);
+});
+
+test("Postgres repository can persist item entitlement evidence separately from projected entitlements", async () => {
+  const db = new RecordingQueryClient();
+  const repository = new PostgresPaymentRepository(db);
+  await repository.saveItemEntitlementEvidence({
+    appId: "app_test",
+    userRef: "user_1",
+    itemRef: "book:demo",
+    entitlementKey: "app_test.book.unlock",
+    entitlementScope: { bookId: "demo" },
+    status: "active",
+    sourceType: "provider_event",
+    sourceReference: "evt_item_paid",
+    effectiveFrom: new Date("2026-08-26T12:00:00.000Z"),
+  });
+  const evidenceCall = db.calls.find((call) => call.text.includes("INSERT INTO item_entitlement_evidence"));
+  assert.ok(evidenceCall);
+  assert.deepEqual(evidenceCall?.values.slice(1, 7), ["book:demo", "app_test.book.unlock", JSON.stringify({ bookId: "demo" }), "active", "provider_event", "evt_item_paid"]);
 });
 
 test("Postgres repository deduplicates webhook events by provider identity", async () => {
@@ -115,6 +155,22 @@ test("Postgres repository projects verified events into subscription and entitle
   assert.ok(db.calls.some((call) => call.text.includes("UPDATE webhook_inbox SET status = 'processed'")));
 });
 
+
+test("Postgres repository projects verified item events into scoped item entitlement evidence", async () => {
+  const db = new RecordingQueryClient();
+  const repository = new PostgresPaymentRepository(db);
+  await repository.applyVerifiedEvent({
+    providerId: "stripe",
+    providerAccount: "primary",
+    environment: "test",
+    providerEventId: "evt_item_paid",
+    providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"),
+    eventType: "checkout.completed",
+    payload: { appId: "app_test", userRef: "user_1", itemRef: "book:demo", itemEntitlementKey: "app_test.book.unlock", itemEntitlementScope: { bookId: "demo" }, providerCustomerRef: "cus_test_123", subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: "cs_item_123" } },
+  });
+  assert.ok(db.calls.some((call) => call.text.includes("INSERT INTO item_entitlement_evidence")));
+  assert.ok(db.calls.some((call) => call.text.includes("INSERT INTO entitlement_grants") && call.values.includes("app_test.book.unlock")));
+});
 test("Postgres repository wraps verified event projection in a transaction when available", async () => {
   const pool = new RecordingPool();
   const repository = new PostgresPaymentRepository(pool);

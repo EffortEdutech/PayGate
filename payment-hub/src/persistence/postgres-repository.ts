@@ -1,7 +1,7 @@
 import type { QueryResult, QueryResultRow } from "pg";
 import type { EntitlementState, Environment, SubscriptionState } from "@payment-hub/types";
 import type { EntitlementProjection, ProviderSubscriptionSnapshot, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
-import type { AdminDashboardSnapshot, MonitoringSnapshot, CheckoutSessionRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
+import type { AdminDashboardSnapshot, MonitoringSnapshot, CheckoutSessionRecord, ItemEntitlementEvidenceRecord, PaymentRepository, ReconciliationRunInput } from "./repository.js";
 
 export interface PgQueryClient {
   query<R extends QueryResultRow = QueryResultRow>(text: string, values?: readonly unknown[]): Promise<QueryResult<R>>;
@@ -43,14 +43,23 @@ export class PostgresPaymentRepository implements PaymentRepository {
     const applicationId = await this.ensureApplication({ appId: record.appId, registryVersion: "runtime", status: "active" });
     const paymentCustomerId = await this.ensurePaymentCustomer(record.appId, record.userRef);
     await this.db.query(
-      `INSERT INTO checkout_sessions (application_id, payment_customer_id, provider_id, provider_account, environment, plan_key, provider_checkout_session_ref, redirect_url, status, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO checkout_sessions (application_id, payment_customer_id, provider_id, provider_account, environment, plan_key, item_ref, item_entitlement_key, item_entitlement_scope, provider_checkout_session_ref, redirect_url, status, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12, $13)
        ON CONFLICT (provider_id, provider_account, environment, provider_checkout_session_ref)
        DO UPDATE SET redirect_url = EXCLUDED.redirect_url, status = EXCLUDED.status, expires_at = EXCLUDED.expires_at`,
-      [applicationId, paymentCustomerId, record.providerId, record.providerAccount, record.environment, record.planKey, record.checkoutSessionId, record.redirectUrl.href, record.status, record.expiresAt],
+      [applicationId, paymentCustomerId, record.providerId, record.providerAccount, record.environment, record.planKey ?? null, record.itemRef ?? null, record.itemEntitlementKey ?? null, record.itemEntitlementScope ? JSON.stringify(record.itemEntitlementScope) : null, record.checkoutSessionId, record.redirectUrl.href, record.status, record.expiresAt],
     );
   }
 
+
+  async saveItemEntitlementEvidence(record: ItemEntitlementEvidenceRecord): Promise<void> {
+    const paymentCustomerId = await this.ensurePaymentCustomer(record.appId, record.userRef);
+    await this.db.query(
+      `INSERT INTO item_entitlement_evidence (payment_customer_id, item_ref, entitlement_key, entitlement_scope, status, source_type, source_reference, effective_from, effective_until)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9)`,
+      [paymentCustomerId, record.itemRef, record.entitlementKey, JSON.stringify(record.entitlementScope), record.status, record.sourceType, record.sourceReference, record.effectiveFrom, record.effectiveUntil ?? null],
+    );
+  }
   async insertWebhookEvent(event: VerifiedProviderEvent, payloadHash: string): Promise<"inserted" | "duplicate"> {
     const result = await this.db.query<{ id: string }>(
       `INSERT INTO webhook_inbox (provider_id, provider_account, environment, provider_event_id, provider_created_at, payload, payload_sha256)
@@ -99,16 +108,17 @@ export class PostgresPaymentRepository implements PaymentRepository {
   }
 
   async currentEntitlements(appId: string, userRef: string): Promise<EntitlementProjection> {
-    const result = await this.db.query<{ entitlement_key: string; status: EntitlementState; effective_until: Date | null }>(
-      `SELECT DISTINCT ON (eg.entitlement_key) eg.entitlement_key, eg.status, eg.effective_until
+    const result = await this.db.query<{ entitlement_key: string; status: EntitlementState; effective_until: Date | null; entitlement_scope: unknown }>(
+      `SELECT DISTINCT ON (eg.entitlement_key, COALESCE(ie.item_ref, '')) eg.entitlement_key, eg.status, eg.effective_until, ie.entitlement_scope
        FROM entitlement_grants eg
+       LEFT JOIN item_entitlement_evidence ie ON ie.payment_customer_id = eg.payment_customer_id AND ie.entitlement_key = eg.entitlement_key AND ie.source_reference = eg.source_reference
        JOIN payment_customers c ON c.id = eg.payment_customer_id
        JOIN payment_applications a ON a.id = c.application_id
        WHERE a.app_id = $1 AND c.app_user_ref = $2
-       ORDER BY eg.entitlement_key, eg.effective_from DESC`,
+       ORDER BY eg.entitlement_key, COALESCE(ie.item_ref, ''), eg.effective_from DESC`,
       [appId, userRef],
     );
-    return { appId, userRef, entitlements: result.rows.map((row) => ({ key: row.entitlement_key, state: row.status, ...(row.effective_until ? { effectiveUntil: row.effective_until } : {}) })) };
+    return { appId, userRef, entitlements: result.rows.map((row) => ({ key: row.entitlement_key, state: row.status, ...(row.effective_until ? { effectiveUntil: row.effective_until } : {}), ...(row.entitlement_scope ? { scope: row.entitlement_scope } : {}) })) };
   }
 
 
@@ -148,7 +158,10 @@ export class PostgresPaymentRepository implements PaymentRepository {
     const checkoutResult = await this.db.query<{
       app_id: string;
       app_user_ref: string;
-      plan_key: string;
+      plan_key: string | null;
+      item_ref: string | null;
+      item_entitlement_key: string | null;
+      item_entitlement_scope: unknown;
       provider_id: string;
       provider_account: string;
       environment: Environment;
@@ -157,7 +170,7 @@ export class PostgresPaymentRepository implements PaymentRepository {
       expires_at: Date;
       created_at: Date;
     }>(
-      `SELECT a.app_id, c.app_user_ref, cs.plan_key, cs.provider_id, cs.provider_account, cs.environment, cs.provider_checkout_session_ref, cs.status, cs.expires_at, cs.created_at
+      `SELECT a.app_id, c.app_user_ref, cs.plan_key, cs.item_ref, cs.item_entitlement_key, cs.item_entitlement_scope, cs.provider_id, cs.provider_account, cs.environment, cs.provider_checkout_session_ref, cs.status, cs.expires_at, cs.created_at
        FROM checkout_sessions cs
        JOIN payment_applications a ON a.id = cs.application_id
        JOIN payment_customers c ON c.id = cs.payment_customer_id
@@ -225,7 +238,7 @@ export class PostgresPaymentRepository implements PaymentRepository {
         ...(row.subscription_state ? { subscription: { appId: row.app_id, userRef: row.app_user_ref, state: row.subscription_state, ...(row.subscription_plan_key ? { planKey: row.subscription_plan_key } : {}), ...(row.current_period_end ? { currentPeriodEnd: row.current_period_end } : {}) } } : {}),
         entitlements: normalizeEntitlements(row.entitlements),
       })),
-      checkoutSessions: checkoutResult.rows.map((row) => ({ appId: row.app_id, userRef: row.app_user_ref, planKey: row.plan_key, providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerCheckoutSessionRef: row.provider_checkout_session_ref, status: row.status, expiresAt: row.expires_at, createdAt: row.created_at })),
+      checkoutSessions: checkoutResult.rows.map((row) => ({ appId: row.app_id, userRef: row.app_user_ref, ...(row.plan_key ? { planKey: row.plan_key } : {}), ...(row.item_ref ? { itemRef: row.item_ref } : {}), ...(row.item_entitlement_key ? { itemEntitlementKey: row.item_entitlement_key } : {}), ...(row.item_entitlement_scope ? { itemEntitlementScope: row.item_entitlement_scope } : {}), providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerCheckoutSessionRef: row.provider_checkout_session_ref, status: row.status, expiresAt: row.expires_at, createdAt: row.created_at })),
       webhooks: webhookResult.rows.map((row) => ({ providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, providerEventId: row.provider_event_id, ...(row.event_type ? { eventType: row.event_type } : {}), ...(row.app_id ? { appId: row.app_id } : {}), ...(row.user_ref ? { userRef: row.user_ref } : {}), status: row.status, attemptCount: row.attempt_count, receivedAt: row.received_at, ...(row.processed_at ? { processedAt: row.processed_at } : {}), ...(row.last_error_code ? { lastErrorCode: row.last_error_code } : {}) })),
       reconciliationRuns: reconciliationResult.rows.map((row) => ({ id: row.id, appId: row.app_id, ...(row.app_user_ref ? { userRef: row.app_user_ref } : {}), providerId: row.provider_id, providerAccount: row.provider_account, environment: row.environment, status: row.status, ...(row.classification ? { classification: row.classification } : {}), requestId: row.request_id, completedAt: row.completed_at })),
     };
@@ -319,6 +332,11 @@ export class PostgresPaymentRepository implements PaymentRepository {
     const paymentCustomerId = await this.ensurePaymentCustomerWithClient(client, payload.appId, payload.userRef);
     if (payload.providerCustomerRef) await this.upsertProviderCustomer(client, paymentCustomerId, event.providerId, event.providerAccount, event.environment, payload.providerCustomerRef);
     const subscriptionState = payload.subscriptionState ?? subscriptionStateForEvent(event.eventType);
+    if (payload.itemRef && payload.itemEntitlementKey && payload.itemEntitlementScope && (subscriptionState === "active" || subscriptionState === "trial" || subscriptionState === "cancelled" || subscriptionState === "past_due")) {
+      const itemStatus = grantStatus(subscriptionState);
+      await this.insertItemEntitlementEvidence(client, paymentCustomerId, payload.itemRef, payload.itemEntitlementKey, payload.itemEntitlementScope, itemStatus, "provider_event", event.providerEventId, event.providerCreatedAt, payload.currentPeriodEnd);
+      await this.insertScopedEntitlementGrant(client, paymentCustomerId, payload.itemEntitlementKey, itemStatus, "provider_event", event.providerEventId, event.providerCreatedAt, payload.currentPeriodEnd);
+    }
     if (subscriptionState) {
       await this.upsertSubscriptionProjection(client, paymentCustomerId, subscriptionState, payload.planKey, payload.currentPeriodEnd, event.providerId, event.providerAccount, event.environment, payload.providerSubscriptionRef ?? event.providerEventId);
       if (payload.planKey) await this.insertEntitlementGrant(client, paymentCustomerId, payload.planKey, grantStatus(subscriptionState), "provider_event", event.providerEventId, event.providerCreatedAt, payload.currentPeriodEnd);
@@ -358,6 +376,24 @@ export class PostgresPaymentRepository implements PaymentRepository {
     );
   }
 
+
+  private async insertItemEntitlementEvidence(client: PgQueryClient, paymentCustomerId: string, itemRef: string, entitlementKey: string, entitlementScope: unknown, status: EntitlementState, sourceType: string, sourceReference: string, effectiveFrom: Date, effectiveUntil?: Date): Promise<void> {
+    await client.query(
+      `INSERT INTO item_entitlement_evidence (payment_customer_id, item_ref, entitlement_key, entitlement_scope, status, source_type, source_reference, effective_from, effective_until)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9)
+       ON CONFLICT (payment_customer_id, item_ref, entitlement_key, source_type, source_reference)
+       DO UPDATE SET status = EXCLUDED.status, entitlement_scope = EXCLUDED.entitlement_scope, effective_until = EXCLUDED.effective_until`,
+      [paymentCustomerId, itemRef, entitlementKey, JSON.stringify(entitlementScope), status, sourceType, sourceReference, effectiveFrom, effectiveUntil ?? null],
+    );
+  }
+
+  private async insertScopedEntitlementGrant(client: PgQueryClient, paymentCustomerId: string, entitlementKey: string, status: EntitlementState, sourceType: string, sourceReference: string, effectiveFrom: Date, effectiveUntil?: Date): Promise<void> {
+    await client.query(
+      `INSERT INTO entitlement_grants (payment_customer_id, entitlement_key, status, source_type, source_reference, effective_from, effective_until)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [paymentCustomerId, entitlementKey, status, sourceType, sourceReference, effectiveFrom, effectiveUntil],
+    );
+  }
   private async insertEntitlementGrant(client: PgQueryClient, paymentCustomerId: string, planKey: string, status: EntitlementState, sourceType: string, sourceReference: string, effectiveFrom: Date, effectiveUntil?: Date): Promise<void> {
     await client.query(
       `INSERT INTO entitlement_grants (payment_customer_id, entitlement_key, status, source_type, source_reference, effective_from, effective_until)

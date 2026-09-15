@@ -346,7 +346,7 @@ function summarizeInvoice(invoice: Stripe.Invoice): Record<string, unknown> {
 
 function allowedMetadata(metadata: Stripe.Metadata | null | undefined): Record<string, string> {
   const safe: Record<string, string> = {};
-  for (const key of ["cph_app_id", "cph_user_ref", "cph_plan_key", "cph_environment", "cph_provider_account", "cph_request_id"]) {
+  for (const key of ["cph_app_id", "cph_user_ref", "cph_plan_key", "cph_item_ref", "cph_item_entitlement_key", "cph_item_entitlement_scope", "cph_environment", "cph_provider_account", "cph_request_id"]) {
     const value = metadata?.[key];
     if (typeof value === "string") safe[key] = value;
   }
@@ -365,6 +365,7 @@ export function normalizeStripeEvent(event: Stripe.Event, context: { readonly pr
   const subscriptionState = subscriptionStateFromEvent(event.type, object);
   const periodEnd = currentPeriodEnd(object);
   const planKey = metadata.cph_plan_key ?? firstPriceLookupKey(object);
+  const itemEntitlementScope = parseJsonMetadata(metadata.cph_item_entitlement_scope);
   const providerCustomerRef = providerRef(object.customer);
   const providerSubscriptionRef = providerRef(object.subscription) ?? objectId(object);
   const payload: NormalizedProviderEventPayload = {
@@ -373,6 +374,9 @@ export function normalizeStripeEvent(event: Stripe.Event, context: { readonly pr
     ...(metadata.cph_app_id ? { appId: metadata.cph_app_id } : {}),
     ...(metadata.cph_user_ref ? { userRef: metadata.cph_user_ref } : {}),
     ...(planKey ? { planKey } : {}),
+    ...(metadata.cph_item_ref ? { itemRef: metadata.cph_item_ref } : {}),
+    ...(metadata.cph_item_entitlement_key ? { itemEntitlementKey: metadata.cph_item_entitlement_key } : {}),
+    ...(itemEntitlementScope ? { itemEntitlementScope } : {}),
     ...(providerCustomerRef ? { providerCustomerRef } : {}),
     ...(providerSubscriptionRef ? { providerSubscriptionRef } : {}),
     ...(subscriptionState ? { subscriptionState } : {}),
@@ -389,7 +393,14 @@ export function normalizeStripeEvent(event: Stripe.Event, context: { readonly pr
   };
 }
 function minimalMetadata(command: ResolvedCheckoutCommand): Record<string, string> {
-  return { ...customerMetadata(command), cph_plan_key: command.planKey, cph_request_id: command.requestId };
+  return {
+    ...customerMetadata(command),
+    ...(command.planKey ? { cph_plan_key: command.planKey } : {}),
+    ...(command.itemRef ? { cph_item_ref: command.itemRef } : {}),
+    ...(command.itemEntitlementKey ? { cph_item_entitlement_key: command.itemEntitlementKey } : {}),
+    ...(command.itemEntitlementScope ? { cph_item_entitlement_scope: JSON.stringify(command.itemEntitlementScope) } : {}),
+    cph_request_id: command.requestId,
+  };
 }
 
 function customerMetadata(command: ResolvedCheckoutCommand): Record<string, string> {
@@ -430,6 +441,11 @@ function hubEventType(rawType: string, state: SubscriptionState | undefined): Hu
     if (state === "cancelled") return "subscription.cancelled";
   }
   return "provider.event_ignored";
+}
+
+function parseJsonMetadata(value: string | undefined): unknown | undefined {
+  if (!value) return undefined;
+  try { return JSON.parse(value) as unknown; } catch { return undefined; }
 }
 
 function providerRef(value: unknown): string | undefined {

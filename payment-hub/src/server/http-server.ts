@@ -100,12 +100,13 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse, requestId
     const body = await readJsonBody(req);
     const appId = requiredBodyString(body, "app_id");
     const userRef = requiredBodyString(body, "user_ref");
-    const planKey = requiredBodyString(body, "plan_key");
+    const planKey = optionalBodyString(body, "plan_key");
+    const itemRef = optionalBodyString(body, "item_ref");
     const returnContext = requiredBodyString(body, "return_context");
     assertAppAuthority(identity, appId, userRef);
     const scope = requireIdempotencyScope(req, appId, "checkout.create");
     return runIdempotentMutation(res, idempotencyLedger, scope, body, async () => {
-      const result = await deps.service.createCheckout({ requestId, appId, userRef, planKey, returnContext, environment: readBodyEnvironment(body) });
+      const result = await deps.service.createCheckout({ requestId, appId, userRef, ...(planKey ? { planKey } : {}), ...(itemRef ? { itemRef } : {}), returnContext, environment: readBodyEnvironment(body) });
       return { checkout_session_id: result.checkoutSessionId, redirect_url: result.redirectUrl.href, status: result.status, expires_at: result.expiresAt.toISOString() };
     });
   }
@@ -202,8 +203,15 @@ function requiredQuery(url: URL, name: string): string {
 }
 
 function requiredBodyString(body: Record<string, unknown>, key: string): string {
+  const value = optionalBodyString(body, key);
+  if (!value) throw new HttpError(400, "INVALID_REQUEST", `${key} is required`);
+  return value;
+}
+
+function optionalBodyString(body: Record<string, unknown>, key: string): string | undefined {
   const value = body[key];
-  if (typeof value !== "string" || !value) throw new HttpError(400, "INVALID_REQUEST", `${key} is required`);
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string") throw new HttpError(400, "INVALID_REQUEST", `${key} must be a string`);
   return value;
 }
 

@@ -1,5 +1,23 @@
 import type { CheckoutMode, Currency } from "@payment-hub/types";
 
+export interface RegisteredItemScope {
+  readonly bookId?: string;
+  readonly bundleId?: string;
+  readonly bookIds?: readonly string[];
+}
+
+export interface RegisteredItem {
+  readonly itemKey: string;
+  readonly name: string;
+  readonly type: "single_cast" | "cast_bundle";
+  readonly amountMinor: number;
+  readonly currency: Currency;
+  readonly providerLookupKeys: Readonly<Record<string, string>>;
+  readonly providerLiveLookupKeys?: Readonly<Record<string, string>>;
+  readonly entitlement: { readonly key: string; readonly scope: RegisteredItemScope };
+  readonly status: "draft" | "active" | "archived";
+}
+
 export interface RegisteredPlan {
   readonly planKey: string;
   readonly name: string;
@@ -21,4 +39,5 @@ export interface RegisteredApplication {
   readonly origins: { readonly test: URL; readonly live: URL };
   readonly returnContexts: Readonly<Record<string, { readonly successPath: string; readonly cancelPath: string; readonly portalPath: string }>>;
   readonly plans: ReadonlyMap<string, RegisteredPlan>;
+  readonly items: ReadonlyMap<string, RegisteredItem>;
 }

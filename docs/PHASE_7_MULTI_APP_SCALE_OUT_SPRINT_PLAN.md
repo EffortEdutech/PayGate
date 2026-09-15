@@ -1,4 +1,4 @@
-﻿# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
+# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
 Status: started; pageCast Track 4 provider/Stripe setup prepared; Stripe sandbox Product/Price pending operator.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -308,7 +308,7 @@ Checklist:
 - [ ] App never stores Stripe secret key or webhook secret.
 - [ ] App never sends amount, price ID, customer ID, provider account, or entitlement keys.
 - [ ] App handles checkout redirect URL returned by PayGate.
-- [x] App reads subscription/entitlement state from PayGate via pageCast `/api/paygate/state`; deployment verification pending.
+- [x] App reads subscription/entitlement state from PayGate via pageCast `/api/paygate/state`; local and deployed Cast Pass state verified.
 - [ ] App displays provider-neutral states only.
 
 ## Track 6 - App Authentication Boundary
@@ -408,4 +408,194 @@ Phase 7 is complete only when:
 - [x] Update pageCast access API to allow `reason: cast_pass` from verified PayGate state.
 - [x] Update book detail UI copy for Cast Pass access.
 - [x] Keep Single Cast item-level unlock deferred pending PayGate item/SKU contract.
-- [ ] Verify deployed paid-user and unpaid-user browser behavior.
+- [x] Verify deployed paid-user and unpaid-user browser behavior.
+
+## Phase 7 Track 4I - pageCast Operator/Admin Evidence Polish
+
+- [x] Record pageCast operator/admin evidence expectations for app, provider, plan, webhook, customer, subscription, entitlement, and monitoring review.
+- [x] Record accepted paid/unpaid Premium Cast browser evidence from Track 4H.
+- [x] Keep Single Cast item/SKU checkout deferred.
+- [x] Keep pageCast live payments blocked behind a separate live readiness gate.
+- Evidence: `docs/PHASE_7_TRACK_4I_PAGECAST_OPERATOR_ADMIN_EVIDENCE.md`.
+## Phase 7 Track 4J - pageCast Single Cast Item/SKU Contract Plan
+
+- [x] Document why current `plan_key`-only checkout is insufficient for Single Cast.
+- [x] Define future `item_ref` checkout contract direction.
+- [x] Define proposed `registry/apps/pagecast/items.yaml` authority model.
+- [x] Define item-scoped entitlement projection for books and bundles.
+- [x] Define refund/revocation policy questions before activation.
+- [x] Keep `single_cast_unlock` in draft/deferred status.
+- Evidence: `docs/PHASE_7_TRACK_4J_PAGECAST_SINGLE_CAST_ITEM_SKU_CONTRACT_PLAN.md`.
+## Phase 7 Track 4K - pageCast Onboarding Closure and Operator Evidence Packet
+
+- [x] Consolidate pageCast registry, provider, Cast Pass, webhook, entitlement, and app access evidence.
+- [x] Record explicit deferred items: Single Cast item/SKU, live mode, refunds, optional UX polish.
+- [x] Confirm pageCast Cast Pass sandbox/test onboarding can be treated as closed.
+- [x] Keep Phase 7 freeze pending broader multi-app admin/monitoring and onboarding runbook update.
+- Evidence: `docs/PHASE_7_TRACK_4K_PAGECAST_ONBOARDING_CLOSURE_EVIDENCE_PACKET.md`.
+## Phase 7 Track 4L - Multi-App Admin/Monitoring Verification and Freeze Prep
+
+Status: accepted; operator API/admin evidence reviewed.
+
+Goal: close the remaining Phase 7 gates before a pageCast/Phase 7 freeze decision.
+
+Checklist:
+
+- [x] Verify `/admin/summary?app_id=pagecast&environment=test` from the operator console/API. Evidence: `docs/PHASE_7_TRACK_4L_MULTI_APP_ADMIN_MONITORING_FREEZE_PREP.md`.
+- [x] Verify `/admin/monitoring?app_id=pagecast&environment=test` has no critical alerts.
+- [x] Verify multi-app admin view can show AIntern and pageCast without mixing provider/customer state.
+- [x] Confirm pageCast onboarding runbook lessons are recorded.
+- [x] Confirm no pageCast live-mode action is authorized.
+- [x] Prepare Phase 7 pageCast onboarding freeze/go-forward note inputs.
+### Why Single Cast and pageCast live remain deferred
+
+- Single Cast is item-specific and requires the future item/SKU contract from Track 4J before activation.
+- pageCast live payments require a separate live readiness gate and explicit operator approval because sandbox/test proof does not authorize real-money execution.
+## Phase 7 Track 4M - pageCast Onboarding Freeze / Go-Forward Note
+
+Status: prepared; operator acceptance pending.
+
+- [x] Prepare pageCast Cast Pass onboarding freeze/go-forward note.
+- [x] Confirm Track 4L evidence is accepted.
+- [x] Confirm `single_cast_unlock` remains draft and requires item/SKU work before activation.
+- [x] Define recommended next track: Track 5A - PayGate Item/SKU Registry Contract for pageCast Single Cast.
+- Evidence: `docs/PHASE_7_TRACK_4M_PAGECAST_ONBOARDING_FREEZE_GO_FORWARD.md`.
+## Phase 7 Track 5A - PayGate Item/SKU Registry Contract for pageCast Single Cast
+
+Status: complete; runtime/payment activation not started.
+
+- [x] Add dedicated pageCast PayGate sprint plan.
+- [x] Add optional `items.yaml` schema.
+- [x] Add draft pageCast single book and bundle item examples.
+- [x] Add item unlock entitlement keys.
+- [x] Validate item lookup key uniqueness and entitlement references.
+- [x] Keep all item statuses `draft`.
+- [x] Confirm no Stripe mutation, checkout runtime change, or payment activation.
+- Evidence: `docs/PHASE_7_TRACK_5A_PAGECAST_ITEM_SKU_REGISTRY_CONTRACT.md`.
+
+## Phase 7 Track 5B - Registry Loader and Domain Types for PayGate Items
+
+Status: next recommended action.
+
+Goal: teach PayGate runtime/domain code to load item registry definitions safely, without exposing item checkout yet.
+
+Checklist:
+
+- [x] Add registered item TypeScript domain types.
+- [x] Load optional `items.yaml` into registry runtime.
+- [x] Add lookup methods for item definitions and active-only item definitions.
+- [x] Keep checkout API unchanged.
+- [x] Keep item checkout disabled.
+- [x] Add tests for item lookup and draft/active boundaries.
+- Evidence: `docs/PHASE_7_TRACK_5B_PAYGATE_ITEM_REGISTRY_LOADER_DOMAIN_TYPES.md`.
+## Phase 7 Track 5C - Checkout API Extension for `item_ref` Behind Disabled Gate
+
+Status: complete; item checkout remains disabled.
+
+Goal: extend request contracts and validation shape for `item_ref` without allowing item checkout to execute yet.
+
+Checklist:
+
+- [x] Add optional `item_ref` to checkout request schema/types.
+- [x] Reject `item_ref` unless a future item-checkout gate explicitly enables item checkout.
+- [x] Prove existing plan-only checkout still works.
+- [x] Prove item checkout remains blocked while gate is disabled.
+- [x] Do not create Stripe item checkout sessions yet.
+- Evidence: `docs/PHASE_7_TRACK_5C_ITEM_REF_CHECKOUT_DISABLED_GATE.md`.
+
+## Phase 7 Track 5D - Provider Lookup Resolution for Item Prices
+
+Status: complete; item checkout remains disabled.
+
+Goal: prepare item provider lookup resolution safely, still without creating item checkout sessions.
+
+Checklist:
+
+- [x] Resolve item provider lookup keys from registry only.
+- [x] Respect test/live lookup separation.
+- [x] Reject inactive/draft item checkout until explicit activation.
+- [x] Keep provider session creation disabled for items.
+- [x] Add tests for item lookup selection and live/test separation.
+- Evidence: `docs/PHASE_7_TRACK_5D_ITEM_PROVIDER_LOOKUP_RESOLUTION.md`.
+
+## Phase 7 Track 5E - Persistence Model for Item Checkout and Item Entitlement Evidence
+
+Status: complete; item checkout and item entitlement projection remain disabled.
+
+Goal: prepare database/repository contracts for item checkout evidence without activating item checkout.
+
+Checklist:
+
+- [x] Design item checkout persistence fields.
+- [x] Design item entitlement evidence fields.
+- [x] Preserve existing plan checkout records.
+- [x] Avoid granting item access from browser redirects.
+- [x] Add migration/tests only after schema is reviewed.
+- Evidence: `docs/PHASE_7_TRACK_5E_ITEM_CHECKOUT_PERSISTENCE_EVIDENCE.md`.
+
+## Phase 7 Track 5F - Webhook Projection for Item-Scoped Entitlements
+
+Status: complete; item checkout creation remains disabled.
+
+Goal: define and implement how verified provider events map item checkout evidence into item-scoped entitlements without granting access from browser redirects.
+
+Checklist:
+
+- [x] Extend normalized provider payload with item evidence fields.
+- [x] Map item checkout/session metadata only after signature verification.
+- [x] Project item entitlement keys/scopes from verified provider evidence only.
+- [x] Preserve plan entitlement projection behavior.
+- [x] Add tests for item webhook projection and refund/revocation behavior.
+- Evidence: `docs/PHASE_7_TRACK_5F_ITEM_WEBHOOK_PROJECTION.md`.
+
+## Phase 7 Track 5G - pageCast Thin Client for Single Cast Checkout
+
+Status: complete; item checkout remains disabled.
+
+Goal: prepare pageCast client-side request flow for Single Cast checkout while PayGate still blocks item checkout unless explicitly activated.
+
+Checklist:
+
+- [x] Add pageCast thin client request shape using `item_ref` only.
+- [x] Do not send amount/currency/Stripe Price ID/entitlement key/provider account.
+- [x] Handle `ITEM_CHECKOUT_DISABLED` as planned unavailable state.
+- [x] Keep Cast Pass behavior unchanged.
+- [x] Do not activate Single Cast checkout without operator approval.
+- [x] Verify pageCast reader build.
+- Evidence: `docs/PHASE_7_TRACK_5G_PAGECAST_SINGLE_CAST_THIN_CLIENT.md`.
+
+## Phase 7 Track 5H - pageCast Item Entitlement Access Enforcement
+
+Status: next recommended action.
+
+Goal: let pageCast recognize verified PayGate item entitlement evidence for a matching book/bundle while still failing closed when item evidence is absent.
+
+Checklist:
+
+- [x] Extend pageCast PayGate state/read path for item entitlement evidence or scoped entitlement lookup.
+- [x] Match `book:<bookId>` item entitlement to the current Premium Cast only.
+- [x] Keep Cast Pass all-premium access unchanged.
+- [x] Keep unpaid user locked unless free/guest/purchased/Cast Pass/item entitlement rules apply.
+- [x] Do not grant access from checkout redirect.
+- [x] Do not activate Single Cast payment until a controlled sandbox E2E gate.
+- [ ] Decide whether to decommission or protect the legacy pageCast `/api/stripe/checkout` route after manifest approval.
+## Phase 7 Track 5I - Single Cast Sandbox E2E Proof
+
+Status: next recommended action, gated by operator approval.
+
+Goal: prove one controlled Single Cast sandbox purchase from PayGate checkout through verified webhook projection into item entitlement access.
+
+Checklist:
+
+- [x] Operator approves preparing item checkout for one sandbox item only.
+- [x] Activate exactly one pageCast item in registry for sandbox proof.
+- [ ] Confirm Stripe sandbox Price lookup key for that item.
+- [ ] Run one checkout from pageCast for the selected `item_ref` after Vercel env/deploy setup.
+- [ ] Complete Stripe sandbox payment.
+- [ ] Verify PayGate signed webhook projects `pagecast.single_cast_unlock` with matching scope.
+- [ ] Verify matching book opens as Single Cast.
+- [ ] Verify another Premium Cast remains locked without Cast Pass or matching item entitlement.
+- [ ] Record evidence and decide whether to keep item active or return to draft.
+- [x] Add server-side sandbox allowlist gate `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST`.
+- [x] Prove tests: unallowlisted item checkout blocked, allowlisted sandbox item checkout created, live item checkout blocked.
+- Evidence: `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.

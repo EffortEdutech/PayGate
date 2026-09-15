@@ -1,0 +1,33 @@
+schema_version: "1.0"
+items:
+  - item_key: book:a2020000-0000-4000-8000-000000000001
+    name: Example Premium Cast Single Unlock
+    type: single_cast
+    pricing:
+      currency: USD
+      unit_amount_minor: 999
+    provider:
+      stripe:
+        lookup_key: pagecast_book_a2020000_single_unlock
+    entitlement:
+      key: pagecast.single_cast_unlock
+      scope:
+        book_id: a2020000-0000-4000-8000-000000000001
+    status: active
+  - item_key: bundle:family_starter_01
+    name: Family Starter Cast Bundle
+    type: cast_bundle
+    pricing:
+      currency: USD
+      unit_amount_minor: 1499
+    provider:
+      stripe:
+        lookup_key: pagecast_bundle_family_starter_01
+    entitlement:
+      key: pagecast.bundle.unlock
+      scope:
+        bundle_id: family_starter_01
+        book_ids:
+          - a2020000-0000-4000-8000-000000000001
+          - a2020000-0000-4000-8000-000000000002
+    status: draft

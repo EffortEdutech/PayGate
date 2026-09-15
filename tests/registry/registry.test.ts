@@ -22,7 +22,7 @@ test("registry validation rejects duplicate effective live lookup keys", async (
   await mkdir(path.join(tempRoot, "registry", "schemas"), { recursive: true });
 
   const schemaDir = path.join(rootDir, "registry", "schemas");
-  for (const file of ["app.schema.json", "plans.schema.json", "entitlements.schema.json", "integration.schema.json", "files-manifest.schema.json"]) {
+  for (const file of ["app.schema.json", "plans.schema.json", "entitlements.schema.json", "integration.schema.json", "files-manifest.schema.json", "items.schema.json"]) {
     await writeFile(path.join(tempRoot, "registry", "schemas", file), await readFile(path.join(schemaDir, file)));
   }
 
@@ -88,4 +88,30 @@ allowed_paths:
   const result = await validateRegistry(tempRoot);
   assert.equal(result.appCount, 1);
   assert.match(result.errors.join("\n"), /stripe:live:shared_live_key/);
+});
+
+test("pageCast item registry loads controlled sandbox item definition while checkout remains gated", async () => {
+  const runtime = await import("../../payment-hub/src/runtime/runtime.js");
+  const hub = await runtime.createInMemoryPaymentHubRuntime({
+    APP_AUTH_TOKENS: "pagecast:test-token",
+    STRIPE_ACCOUNTS: "nhl_global_solution",
+    STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY: "sk_test_placeholder",
+    STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET: "whsec_placeholder",
+    APP_AUTH_ISSUER: "https://pay-gate-beta.vercel.app",
+    APP_AUTH_AUDIENCE: "payment-hub",
+    PAYMENT_HUB_CORS_ALLOW_ORIGIN: "https://pagecast-nine.vercel.app",
+    DATABASE_URL: "postgresql://payment_hub:change-me@localhost:5438/payment_hub",
+  }, rootDir);
+
+  const app = hub.service["registry"].application("pagecast");
+  assert.equal(app.items.size, 2);
+
+  const item = hub.service["registry"].item("pagecast", "book:a2020000-0000-4000-8000-000000000001");
+  assert.equal(item.status, "active");
+  assert.equal(item.amountMinor, 999);
+  assert.equal(item.currency, "USD");
+  assert.equal(item.entitlement.key, "pagecast.single_cast_unlock");
+  assert.equal(item.entitlement.scope.bookId, "a2020000-0000-4000-8000-000000000001");
+
+  assert.equal(hub.service["registry"].activeItem("pagecast", "book:a2020000-0000-4000-8000-000000000001").itemKey, item.itemKey);
 });

@@ -55,6 +55,8 @@ Privileged operations live under `/internal/*` and never accept ordinary app cre
 }
 ```
 
+For item-specific purchases, the API recognizes `item_ref` as an alternative checkout target. Item checkout is blocked by default with `ITEM_CHECKOUT_DISABLED`; in Phase 7 Track 5I it can be enabled only for an exact sandbox/test allowlist entry via `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST`. Live item checkout and broad item rollout remain blocked until a separate approval gate.
+
 The request must not contain authoritative amount, currency, provider price/customer identifiers, entitlement, or provider status.
 
 ## Errors

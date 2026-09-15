@@ -1,5 +1,5 @@
 import type { EntitlementProjection, ProviderSubscriptionSnapshot, ReconciliationResult, SubscriptionProjection, VerifiedProviderEvent } from "@payment-hub/contracts";
-import type { AdminDashboardSnapshot, MonitoringSnapshot, PaymentRepository, CheckoutSessionRecord, ReconciliationRunInput } from "./repository.js";
+import type { AdminDashboardSnapshot, MonitoringSnapshot, PaymentRepository, CheckoutSessionRecord, ItemEntitlementEvidenceRecord, ReconciliationRunInput } from "./repository.js";
 
 export class InMemoryPaymentRepository implements PaymentRepository {
   readonly #applications = new Map<string, string>();
@@ -9,6 +9,7 @@ export class InMemoryPaymentRepository implements PaymentRepository {
   readonly #subscriptions = new Map<string, SubscriptionProjection>();
   readonly #entitlements = new Map<string, EntitlementProjection>();
   readonly #reconciliationRuns = new Map<string, ReconciliationRunInput>();
+  readonly #itemEntitlementEvidence: ItemEntitlementEvidenceRecord[] = [];
 
   async ensureApplication(input: { readonly appId: string; readonly registryVersion: string; readonly status: string }): Promise<string> {
     const id = this.#applications.get(input.appId) ?? `app_${this.#applications.size + 1}`;
@@ -19,6 +20,7 @@ export class InMemoryPaymentRepository implements PaymentRepository {
   async findProviderCustomer(input: Parameters<PaymentRepository["findProviderCustomer"]>[0]): Promise<string | undefined> { return this.#providerCustomers.get(customerKey(input))?.providerCustomerRef; }
   async saveProviderCustomer(input: Parameters<PaymentRepository["saveProviderCustomer"]>[0]): Promise<void> { this.#providerCustomers.set(customerKey(input), input); }
   async saveCheckoutSession(record: CheckoutSessionRecord): Promise<void> { this.#checkoutSessions.set(record.checkoutSessionId, record); }
+  async saveItemEntitlementEvidence(record: ItemEntitlementEvidenceRecord): Promise<void> { this.#itemEntitlementEvidence.push(record); }
 
   async insertWebhookEvent(event: VerifiedProviderEvent, _payloadHash: string): Promise<"inserted" | "duplicate"> {
     const key = `${event.providerId}:${event.providerAccount}:${event.environment}:${event.providerEventId}`;
@@ -32,6 +34,11 @@ export class InMemoryPaymentRepository implements PaymentRepository {
     if (!payload.appId || !payload.userRef) return;
     if (payload.providerCustomerRef) await this.saveProviderCustomer({ appId: payload.appId, userRef: payload.userRef, providerId: event.providerId, providerAccount: event.providerAccount, environment: event.environment, providerCustomerRef: payload.providerCustomerRef });
     const state = payload.subscriptionState ?? subscriptionStateForEvent(event.eventType);
+    if (payload.itemRef && payload.itemEntitlementKey && payload.itemEntitlementScope && (state === "active" || state === "trial" || state === "cancelled" || state === "past_due")) {
+      const itemState = state === "active" || state === "trial" ? "active" : "revoked";
+      await this.saveItemEntitlementEvidence({ appId: payload.appId, userRef: payload.userRef, itemRef: payload.itemRef, entitlementKey: payload.itemEntitlementKey, entitlementScope: payload.itemEntitlementScope, status: itemState, sourceType: "provider_event", sourceReference: event.providerEventId, effectiveFrom: event.providerCreatedAt, ...(payload.currentPeriodEnd ? { effectiveUntil: payload.currentPeriodEnd } : {}) });
+      this.projectItemEntitlement(payload.appId, payload.userRef, payload.itemEntitlementKey, payload.itemEntitlementScope, itemState, payload.currentPeriodEnd);
+    }
     if (state) {
       this.#subscriptions.set(`${payload.appId}:${payload.userRef}`, { appId: payload.appId, userRef: payload.userRef, state, ...(payload.planKey ? { planKey: payload.planKey } : {}), ...(payload.currentPeriodEnd ? { currentPeriodEnd: payload.currentPeriodEnd } : {}) });
       if (payload.planKey) this.projectPlanEntitlement(payload.appId, payload.userRef, payload.planKey, state === "active" || state === "trial" ? "active" : "revoked", payload.currentPeriodEnd);
@@ -85,7 +92,7 @@ export class InMemoryPaymentRepository implements PaymentRepository {
         .filter((session) => !input.appId || session.appId === input.appId)
         .filter((session) => !input.environment || session.environment === input.environment)
         .slice(0, limit)
-        .map((session) => ({ appId: session.appId, userRef: session.userRef, planKey: session.planKey, providerId: session.providerId, providerAccount: session.providerAccount, environment: session.environment, providerCheckoutSessionRef: session.checkoutSessionId, status: session.status, expiresAt: session.expiresAt, createdAt: new Date() })),
+        .map((session) => ({ appId: session.appId, userRef: session.userRef, ...(session.planKey ? { planKey: session.planKey } : {}), ...(session.itemRef ? { itemRef: session.itemRef } : {}), ...(session.itemEntitlementKey ? { itemEntitlementKey: session.itemEntitlementKey } : {}), ...(session.itemEntitlementScope ? { itemEntitlementScope: session.itemEntitlementScope } : {}), providerId: session.providerId, providerAccount: session.providerAccount, environment: session.environment, providerCheckoutSessionRef: session.checkoutSessionId, status: session.status, expiresAt: session.expiresAt, createdAt: new Date() })),
       webhooks: [...this.#webhooks.values()]
         .filter(({ event }) => !input.appId || event.payload.appId === input.appId)
         .filter(({ event }) => !input.environment || event.environment === input.environment)
@@ -123,6 +130,11 @@ export class InMemoryPaymentRepository implements PaymentRepository {
       database: { reachable: true },
     };
   }
+  private projectItemEntitlement(appId: string, userRef: string, entitlementKey: string, scope: unknown, state: "active" | "revoked", effectiveUntil?: Date): void {
+    const current = this.#entitlements.get(`${appId}:${userRef}`)?.entitlements.filter((entitlement) => !(entitlement.key === entitlementKey && JSON.stringify(entitlement.scope) === JSON.stringify(scope))) ?? [];
+    this.#entitlements.set(`${appId}:${userRef}`, { appId, userRef, entitlements: [...current, { key: entitlementKey, state, scope, ...(effectiveUntil ? { effectiveUntil } : {}) }] });
+  }
+
   private projectPlanEntitlement(appId: string, userRef: string, planKey: string, state: "active" | "revoked", effectiveUntil?: Date): void {
     this.#entitlements.set(`${appId}:${userRef}`, { appId, userRef, entitlements: [{ key: `plan:${planKey}`, state, ...(effectiveUntil ? { effectiveUntil } : {}) }] });
   }

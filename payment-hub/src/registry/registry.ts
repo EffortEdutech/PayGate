@@ -1,5 +1,5 @@
 import type { Environment } from "@payment-hub/types";
-import type { RegisteredApplication, RegisteredPlan } from "./types.js";
+import type { RegisteredApplication, RegisteredItem, RegisteredPlan } from "./types.js";
 
 export class Registry {
   readonly #apps: ReadonlyMap<string, RegisteredApplication>;
@@ -25,6 +25,17 @@ export class Registry {
     return plan;
   }
 
+  item(appId: string, itemKey: string): RegisteredItem {
+    const item = this.application(appId).items.get(itemKey);
+    if (!item) throw new RegistryError("ITEM_NOT_FOUND", `Item ${itemKey} is not registered`);
+    return item;
+  }
+
+  activeItem(appId: string, itemKey: string): RegisteredItem {
+    const item = this.item(appId, itemKey);
+    if (item.status !== "active") throw new RegistryError("ITEM_NOT_AVAILABLE", `Item ${itemKey} is not active`);
+    return item;
+  }
   returnUrls(appId: string, environment: Environment, context: string): { success: URL; cancel: URL; portal: URL } {
     const app = this.application(appId);
     const paths = app.returnContexts[context];
@@ -39,7 +50,7 @@ export class Registry {
 }
 
 export class RegistryError extends Error {
-  constructor(readonly code: "APP_NOT_FOUND" | "PLAN_NOT_AVAILABLE" | "RETURN_CONTEXT_NOT_ALLOWED", message: string) {
+  constructor(readonly code: "APP_NOT_FOUND" | "PLAN_NOT_AVAILABLE" | "ITEM_NOT_FOUND" | "ITEM_NOT_AVAILABLE" | "RETURN_CONTEXT_NOT_ALLOWED", message: string) {
     super(message);
     this.name = "RegistryError";
   }

@@ -289,3 +289,28 @@ Entitlements:
 Return contexts:
 Operator approval:
 ```
+## pageCast completed onboarding reference
+
+pageCast is the first post-AIntern app onboarding reference for PayGate multi-app scale-out.
+
+Completed Cast Pass sandbox/test scope:
+
+- App ID: `pagecast`
+- Provider account: `stripe:nhl_global_solution`
+- Active plan: `cast_pass_monthly`
+- Deferred plan: `single_cast_unlock`
+- Environment proven: `test`
+- Evidence packet: `docs/PHASE_7_TRACK_4K_PAGECAST_ONBOARDING_CLOSURE_EVIDENCE_PACKET.md`
+
+Use this as the example standard for app #3 onboarding:
+
+1. classify app payment model;
+2. select first safe PayGate payment slice;
+3. keep unsafe/dynamic pricing out of the first slice;
+4. configure app-specific auth boundary;
+5. prove sandbox checkout/webhook/entitlement state;
+6. verify app-side display and access enforcement;
+7. record operator/admin evidence;
+8. document deferred items and live-mode hold.
+
+pageCast Single Cast is not an active PayGate product yet. It remains the example for when an app needs a future item/SKU contract instead of the existing `plan_key`-only checkout contract.

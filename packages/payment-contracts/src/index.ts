@@ -18,12 +18,16 @@ export interface ProviderCapabilities {
 
 export interface CheckoutCommand extends AppUserIdentity {
   readonly requestId: string;
-  readonly planKey: string;
+  readonly planKey?: string;
+  readonly itemRef?: string;
   readonly returnContext: string;
   readonly environment: Environment;
 }
 
 export interface ResolvedCheckoutCommand extends CheckoutCommand {
+  readonly planKey?: string;
+  readonly itemEntitlementKey?: string;
+  readonly itemEntitlementScope?: unknown;
   readonly providerAccount: string;
   readonly providerLookupKey: string;
   readonly mode: CheckoutMode;
@@ -60,7 +64,7 @@ export interface PortalResult {
 export interface EntitlementProjection {
   readonly appId: string;
   readonly userRef: string;
-  readonly entitlements: readonly { readonly key: string; readonly state: EntitlementState; readonly effectiveUntil?: Date }[];
+  readonly entitlements: readonly { readonly key: string; readonly state: EntitlementState; readonly effectiveUntil?: Date; readonly scope?: unknown }[];
 }
 
 export interface SubscriptionProjection {
@@ -89,6 +93,9 @@ export interface NormalizedProviderEventPayload {
   readonly appId?: string;
   readonly userRef?: string;
   readonly planKey?: string;
+  readonly itemRef?: string;
+  readonly itemEntitlementKey?: string;
+  readonly itemEntitlementScope?: unknown;
   readonly providerCustomerRef?: string;
   readonly providerSubscriptionRef?: string;
   readonly subscriptionState?: SubscriptionState;

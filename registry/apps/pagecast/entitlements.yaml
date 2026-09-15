@@ -5,4 +5,8 @@ entitlements:
   - key: pagecast.premium_casts
     description: Allows access to premium casts covered by Cast Pass membership.
   - key: pagecast.single_cast_unlock
-    description: Placeholder for one-time cast unlock; requires item-specific PayGate contract before activation.
+    description: Allows one verified Single Cast purchase to unlock the scoped book only.
+  - key: pagecast.cast.unlock
+    description: Historical placeholder key retained for compatibility; new Single Cast items use pagecast.single_cast_unlock.
+  - key: pagecast.bundle.unlock
+    description: Allows one verified bundle purchase to unlock only the scoped bundle books.

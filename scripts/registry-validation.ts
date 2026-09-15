@@ -20,6 +20,7 @@ const schemaFiles = {
   "entitlements.yaml": "entitlements.schema.json",
   "integration.yaml": "integration.schema.json",
   "files.manifest.yaml": "files-manifest.schema.json",
+  "items.yaml": "items.schema.json",
 } as const;
 
 type RegistryDocument = Record<string, unknown>;
@@ -90,6 +91,7 @@ export async function validateRegistry(rootDir: string): Promise<ValidationResul
     const plansDoc = documents.get("plans.yaml");
     const entitlementsDoc = documents.get("entitlements.yaml");
     const manifest = documents.get("files.manifest.yaml");
+    const itemsDoc = documents.get("items.yaml");
 
     if (app?.app_id !== appId) errors.push(`${appId}/app.yaml: app_id must match directory name`);
     if (manifest?.app_id !== appId) errors.push(`${appId}/files.manifest.yaml: app_id must match directory name`);
@@ -100,6 +102,31 @@ export async function validateRegistry(rootDir: string): Promise<ValidationResul
       if (entitlementKeys.has(item.key)) errors.push(`${appId}/entitlements.yaml: duplicate entitlement ${item.key}`);
       entitlementKeys.add(item.key);
       if (!item.key.startsWith(`${appId}.`)) errors.push(`${appId}/entitlements.yaml: ${item.key} must use the app namespace`);
+    }
+
+    const itemKeys = new Set<string>();
+    const items = (itemsDoc?.items as Array<Record<string, unknown>> | undefined) ?? [];
+    for (const item of items) {
+      const itemKey = item.item_key as string | undefined;
+      if (itemKey) {
+        if (itemKeys.has(itemKey)) errors.push(`${appId}/items.yaml: duplicate item_key ${itemKey}`);
+        itemKeys.add(itemKey);
+      }
+      const entitlement = item.entitlement as { key?: string; scope?: Record<string, unknown> } | undefined;
+      if (entitlement?.key && !entitlementKeys.has(entitlement.key)) errors.push(`${appId}/items.yaml: unknown entitlement ${entitlement.key}`);
+      const providers = (item.provider as Record<string, { lookup_key?: string; live_lookup_key?: string }> | undefined) ?? {};
+      for (const [provider, mapping] of Object.entries(providers)) {
+        if (!mapping.lookup_key) continue;
+        const testIdentity = `${provider}:test:${mapping.lookup_key}`;
+        const previousTest = globalLookupKeys.get(testIdentity);
+        if (previousTest) errors.push(`${appId}/items.yaml: lookup key ${testIdentity} already used by ${previousTest}`);
+        else globalLookupKeys.set(testIdentity, `${appId}/${itemKey ?? "unknown"}`);
+        const liveLookupKey = mapping.live_lookup_key ?? mapping.lookup_key;
+        const liveIdentity = `${provider}:live:${liveLookupKey}`;
+        const previousLive = globalLookupKeys.get(liveIdentity);
+        if (previousLive) errors.push(`${appId}/items.yaml: lookup key ${liveIdentity} already used by ${previousLive}`);
+        else globalLookupKeys.set(liveIdentity, `${appId}/${itemKey ?? "unknown"}`);
+      }
     }
 
     const planKeys = new Set<string>();

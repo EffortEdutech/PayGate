@@ -10,57 +10,63 @@ flowchart TD
   PH0 --> PH1[Phase 1\nExecutable foundation\nFrozen]
   PH1 --> PH2[Phase 2\nStripe sandbox vertical slice\nFrozen]
   PH2 --> PH3[Phase 3\nAIntern integration\nFrozen]
-  PH3 --> PH4[Phase 4\nProduction hardening\nCurrent closeout]
-  PH4 --> F4[Phase 4 freeze note\nRequired before Phase 5]
-  F4 --> PH5[Phase 5\nLive-mode implementation readiness\nPlanned, no live money]
-  PH5 --> F5[Phase 5 freeze note\nRequired before Phase 6]
-  F5 --> A6[Explicit operator approval\nRequired outside source control]
-  A6 --> PH6[Phase 6\nControlled live pilot\nFuture approval required]
-  PH6 --> F6[Phase 6 freeze/go-no-go\nRequired before scale-out]
-  F6 --> PH7[Phase 7\nMulti-app scale-out\nPlanned future]
+  PH3 --> PH4[Phase 4\nProduction hardening\nFrozen]
+  PH4 --> PH5[Phase 5\nLive-mode readiness\nFrozen]
+  PH5 --> PH6[Phase 6\nControlled live pilot\nAIntern live proof done; refund deferred]
+  PH6 --> PH7[Phase 7\nOperator console and multi-app scale-out\nCurrent]
 
-  PH4 --> T41[Diagnostics auth]
-  PH4 --> T42[Reconciliation inspection]
-  PH4 --> T43[Admin console]
-  PH4 --> T44[Multi-app onboarding checklist]
-  PH4 --> T45[Live readiness checklist]
-  PH4 --> T46[Monitoring baseline]
-  PH4 --> T47[Provider account isolation]
-  PH4 --> T48[Controlled live test gate]
+  PH7 --> T71[Track 1\nOperator console UX shell\nImplemented]
+  PH7 --> T72[Track 2\nApp #2 intake/classification\nCompleted]
+  PH7 --> T74[Track 4\npageCast Cast Pass onboarding\nSandbox/test closed]
 
-  PH5 --> T51[Live adapter boundary]
-  PH5 --> T52[Live provider account config]
-  PH5 --> T53[Live registry strategy]
-  PH5 --> T54[Live webhook boundary]
-  PH5 --> T55[Refund policy and event mapping]
-  PH5 --> T56[Live operator diagnostics]
-  PH5 --> T57[Phase 6 entry gate]
+  T74 --> T4A[4A\nCast Pass USD 19/month setup\nDone]
+  T4A --> T4B[4B\nRegistry activation/admin catalog\nDone]
+  T4B --> T4C[4C\nSupabase JWT auth boundary\nDone]
+  T4C --> T4D[4D\nThin PayGate client checkout\nDone]
+  T4D --> T4E[4E\nSandbox checkout/webhook/entitlement proof\nAccepted]
+  T4E --> T4F[4F\nEntitlement state display\nAccepted]
+  T4F --> T4G[4G\nCast Pass access enforcement plan\nAccepted]
+  T4G --> T4H[4H\nPremium Cast access enforcement\nVerified]
+  T4H --> T4I[4I\nOperator/admin evidence polish\nDone]
+  T4I --> T4J[4J\nSingle Cast item/SKU contract plan\nDone; implementation deferred]
+  T4J --> T4K[4K\npageCast onboarding closure packet\nDone]
+  T4K --> T4L[4L\nMulti-app admin/monitoring verification\nAccepted]
+  T4L --> T4M[4M\npageCast onboarding freeze/go-forward note\nPrepared]
 
-  PH6 --> T61[Approval packet]
-  PH6 --> T62[Preflight verification]
-  PH6 --> T63[One live checkout pilot]
-  PH6 --> T64[Live webhook and entitlement proof]
-  PH6 --> T65[Portal and reconciliation proof]
-  PH6 --> T66[Refund pilot if approved]
-  PH6 --> T67[Evidence and go/no-go]
+  T4M --> T5A[Track 5A\nSingle Cast item/SKU registry contract\nDone]
+  T5A --> T5B[Track 5B\nRegistry loader/domain types for items\nDone]
 
-  PH7 --> T71[App #2 intake]
-  PH7 --> T72[Registry package]
-  PH7 --> T73[Provider account setup]
-  PH7 --> T74[Thin payment client]
-  PH7 --> T75[App auth boundary]
-  PH7 --> T76[Sandbox E2E proof]
-  PH7 --> T77[Multi-app console readiness]
-  PH7 --> T78[Scale-out freeze]
+  T4M --> F7[Phase 7 pageCast freeze/go-forward decision\nOperator acceptance pending]
 
-  BLOCK[Blocked until approval\nLive checkout, live payment, live refund, broad rollout] -.-> PH5
-  BLOCK -.-> PH6
+  DEFER1[Deferred\npageCast Single Cast live/broad rollout]
+  DEFER2[Deferred\npageCast live-mode payment readiness]
+  DEFER3[Deferred\npageCast live payment/refund proof]
+
+  T5A -.-> DEFER1
+  T5B --> T5C[Track 5C\nitem_ref checkout contract behind disabled gate\nDone]
+  T5C --> T5D[Track 5D\nprovider lookup resolution for item prices\nDone]
+  T5D --> T5E[Track 5E\nitem checkout persistence and entitlement evidence\nDone]
+  T5E --> T5F[Track 5F\nwebhook projection for item-scoped entitlements\nDone]
+  T5F --> T5G[Track 5G\npageCast thin client for Single Cast checkout\nNext]
+  T5F -.-> DEFER1
+  T4M -.-> DEFER2
+  T4M -.-> DEFER3
+
+  BLOCK[Blocked without explicit operator approval\nLive checkout, live payment, live refund, broad rollout] -.-> DEFER2
+  BLOCK -.-> DEFER3
 ```
 
 ## Reading The Graph
 
-- Phase 4 must be frozen before Phase 5 implementation begins.
-- Phase 5 may prepare live-mode code boundaries, but it must not run live money.
-- Phase 6 is the first possible real-money pilot and requires explicit operator approval.
-- Phase 7 is app scale-out after the first controlled live path is proven or explicitly deferred by operator decision.
-- Phase 5, Phase 6, and Phase 7 each have documented sprint plans before execution.
+- Phases 0-5 are frozen.
+- Phase 6 proved the first controlled live path for AIntern; refund remains deferred.
+- Phase 7 is current.
+- pageCast Cast Pass sandbox/test onboarding is closed through Track 4L, with Track 4M freeze/go-forward note prepared.
+- Track 5A added the draft item/SKU registry contract for pageCast Single Cast.
+- Track 5B loaded item registry definitions into PayGate domain/runtime code while keeping item checkout disabled.
+- Track 5C made the checkout API recognize `item_ref` but explicitly block item checkout behind a disabled gate.
+- Track 5D resolves item provider lookup keys from registry definitions while still blocking item checkout execution.
+- Track 5E added item checkout/evidence persistence while keeping item entitlement projection disabled.
+- Track 5F projects item-scoped entitlements only from verified provider webhook evidence; item checkout creation remains disabled.
+- The next recommended action is Track 5G: pageCast Thin Client for Single Cast Checkout.
+- pageCast Single Cast runtime checkout and live-mode payment work remain deferred until separately approved.

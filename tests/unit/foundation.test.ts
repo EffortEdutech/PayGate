@@ -3,7 +3,7 @@ import { once } from "node:events";
 import { test } from "node:test";
 import type { AddressInfo } from "node:net";
 import type { CheckoutResult, PaymentProviderAdapter, PortalResult, ProviderCapabilities, ProviderSubscriptionSnapshot, ResolvedCheckoutCommand, ResolvedPortalCommand, ResolvedReconciliationCommand, VerifiedProviderEvent } from "@payment-hub/contracts";
-import { Registry, RegistryError, StripeAdapterSkeleton, StripeSandboxAdapter, StaticTokenAppAuthenticator, assertAppAuthority, createPaymentHubHttpServer, hashIdempotentRequest, InMemoryPaymentRepository, PaymentHubService, loadHubConfig, normalizeStripeEvent } from "../../payment-hub/src/index.js";
+import { Registry, RegistryError, StripeAdapterSkeleton, StripeSandboxAdapter, StaticTokenAppAuthenticator, assertAppAuthority, createPaymentHubHttpServer, hashIdempotentRequest, InMemoryPaymentRepository, PaymentHubService, providerLookupKeyFor, loadHubConfig, normalizeStripeEvent } from "../../payment-hub/src/index.js";
 
 const app = {
   appId: "app_test",
@@ -13,6 +13,10 @@ const app = {
   origins: { test: new URL("https://test.example.com"), live: new URL("https://example.com") },
   returnContexts: { billing: { successPath: "/processing", cancelPath: "/pricing", portalPath: "/billing" } },
   plans: new Map([["growth_monthly", { planKey: "growth_monthly", name: "Growth", mode: "subscription" as const, amountMinor: 4900, currency: "USD" as const, interval: "month" as const, providerLookupKeys: { stripe: "app_test_growth_monthly" }, providerLiveLookupKeys: { stripe: "app_test_growth_monthly_live" }, entitlements: ["analytics.export"], status: "active" as const }]]),
+  items: new Map([
+    ["book:demo", { itemKey: "book:demo", name: "Demo Book", type: "single_cast" as const, amountMinor: 999, currency: "USD" as const, providerLookupKeys: { stripe: "app_test_book_demo" }, providerLiveLookupKeys: { stripe: "app_test_book_demo_live" }, entitlement: { key: "analytics.single_item", scope: { bookId: "demo" } }, status: "active" as const }],
+    ["book:draft", { itemKey: "book:draft", name: "Draft Book", type: "single_cast" as const, amountMinor: 799, currency: "USD" as const, providerLookupKeys: { stripe: "app_test_book_draft" }, entitlement: { key: "analytics.single_item", scope: { bookId: "draft" } }, status: "draft" as const }],
+  ]),
 };
 
 class FakeProvider implements PaymentProviderAdapter {
@@ -80,7 +84,95 @@ test("checkout endpoint authenticates app and resolves registry-owned checkout f
     server.close();
   }
 });
+test("item provider lookup resolution uses registry-owned test and live lookup keys", () => {
+  const item = app.items.get("book:demo");
+  assert.ok(item);
+  assert.equal(providerLookupKeyFor(item, "stripe", "test"), "app_test_book_demo");
+  assert.equal(providerLookupKeyFor(item, "stripe", "live"), "app_test_book_demo_live");
+});
 
+test("checkout endpoint recognizes active item_ref but blocks item checkout behind disabled gate", async () => {
+  const provider = new FakeProvider();
+  const server = createPaymentHubHttpServer({ service: new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), provider), authenticator: new StaticTokenAppAuthenticator({ app_test: "secret" }) });
+  server.listen(0);
+  await once(server, "listening");
+  const port = (server.address() as AddressInfo).port;
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/checkout/sessions`, {
+      method: "POST",
+      headers: { authorization: "Bearer secret", "content-type": "application/json", "idempotency-key": "idem_item_disabled" },
+      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", item_ref: "book:demo", return_context: "billing" }),
+    });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json() as { error: { code: string } }).error.code, "ITEM_CHECKOUT_DISABLED");
+    assert.equal(provider.lastCheckout, undefined);
+  } finally {
+    server.close();
+  }
+});
+test("checkout endpoint creates sandbox item checkout only when allowlisted", async () => {
+  const provider = new FakeProvider();
+  const server = createPaymentHubHttpServer({ service: new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), provider, { itemCheckoutTestAllowlist: ["app_test|book:demo"] }), authenticator: new StaticTokenAppAuthenticator({ app_test: "secret" }) });
+  server.listen(0);
+  await once(server, "listening");
+  const port = (server.address() as AddressInfo).port;
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/checkout/sessions`, {
+      method: "POST",
+      headers: { authorization: "Bearer secret", "content-type": "application/json", "idempotency-key": "idem_item_allowed" },
+      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", item_ref: "book:demo", return_context: "billing", amount_minor: 1, currency: "XXX", provider_price_id: "price_attacker" }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(provider.lastCheckout?.itemRef, "book:demo");
+    assert.equal(provider.lastCheckout?.itemEntitlementKey, "analytics.single_item");
+    assert.deepEqual(provider.lastCheckout?.itemEntitlementScope, { bookId: "demo" });
+    assert.equal(provider.lastCheckout?.providerLookupKey, "app_test_book_demo");
+    assert.deepEqual(provider.lastCheckout?.money, { amountMinor: 999, currency: "USD" });
+    assert.equal(provider.lastCheckout?.mode, "payment");
+    assert.equal(provider.lastCheckout?.planKey, undefined);
+  } finally {
+    server.close();
+  }
+});
+
+test("item checkout allowlist never enables live item checkout", async () => {
+  const provider = new FakeProvider();
+  const server = createPaymentHubHttpServer({ service: new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), provider, { itemCheckoutTestAllowlist: ["app_test|book:demo"] }), authenticator: new StaticTokenAppAuthenticator({ app_test: "secret" }) });
+  server.listen(0);
+  await once(server, "listening");
+  const port = (server.address() as AddressInfo).port;
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/checkout/sessions`, {
+      method: "POST",
+      headers: { authorization: "Bearer secret", "content-type": "application/json", "idempotency-key": "idem_item_live_blocked" },
+      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", item_ref: "book:demo", return_context: "billing", environment: "live" }),
+    });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json() as { error: { code: string } }).error.code, "ITEM_CHECKOUT_DISABLED");
+    assert.equal(provider.lastCheckout, undefined);
+  } finally {
+    server.close();
+  }
+});
+test("checkout endpoint rejects draft item_ref before provider execution", async () => {
+  const provider = new FakeProvider();
+  const server = createPaymentHubHttpServer({ service: new PaymentHubService(new Registry([app]), new InMemoryPaymentRepository(), provider), authenticator: new StaticTokenAppAuthenticator({ app_test: "secret" }) });
+  server.listen(0);
+  await once(server, "listening");
+  const port = (server.address() as AddressInfo).port;
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/checkout/sessions`, {
+      method: "POST",
+      headers: { authorization: "Bearer secret", "content-type": "application/json", "idempotency-key": "idem_item_draft" },
+      body: JSON.stringify({ app_id: "app_test", user_ref: "user_1", item_ref: "book:draft", return_context: "billing" }),
+    });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json() as { error: { code: string } }).error.code, "ITEM_NOT_AVAILABLE");
+    assert.equal(provider.lastCheckout, undefined);
+  } finally {
+    server.close();
+  }
+});
 
 test("live checkout resolution uses registry live lookup key only", async () => {
   const provider = new FakeProvider();
@@ -134,6 +226,7 @@ test("project localhost port family is locked to 301#", () => {
   };
   assert.equal(loadHubConfig(baseEnv).port, 3017);
   assert.equal(loadHubConfig({ ...baseEnv, PORT: "3010" }).port, 3010);
+  assert.deepEqual(loadHubConfig({ ...baseEnv, PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST: "pagecast|book:a2020000-0000-4000-8000-000000000001" }).itemCheckoutTestAllowlist, ["pagecast|book:a2020000-0000-4000-8000-000000000001"]);
   assert.equal(loadHubConfig({ ...baseEnv, PORT: "3019" }).port, 3019);
   assert.throws(() => loadHubConfig({ ...baseEnv, PORT: "3000" }));
   assert.throws(() => loadHubConfig({ ...baseEnv, PORT: "3020" }));
@@ -188,6 +281,20 @@ test("Stripe event normalization maps subscription and invoice events to Hub eve
   assert.equal(failed.payload.subscriptionState, "past_due");
 });
 
+
+test("Stripe event normalization maps item metadata to item entitlement evidence", () => {
+  const itemEvent = normalizeStripeEvent({
+    id: "evt_item_paid",
+    created: 1787745600,
+    type: "checkout.session.completed",
+    data: { object: { id: "cs_item_123", customer: "cus_test_123", metadata: { cph_app_id: "app_test", cph_user_ref: "user_1", cph_item_ref: "book:demo", cph_item_entitlement_key: "app_test.book.unlock", cph_item_entitlement_scope: JSON.stringify({ bookId: "demo" }) } } },
+  } as never, { providerAccount: "primary", environment: "test" });
+  assert.equal(itemEvent.payload.itemRef, "book:demo");
+  assert.equal(itemEvent.payload.itemEntitlementKey, "app_test.book.unlock");
+  assert.deepEqual(itemEvent.payload.itemEntitlementScope, { bookId: "demo" });
+  assert.equal(itemEvent.payload.planKey, undefined);
+});
+
 test("verified payment failure revokes projected plan entitlement", async () => {
   const repository = new InMemoryPaymentRepository();
   await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_failed", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "invoice.payment_failed", payload: { appId: "app_test", userRef: "user_1", planKey: "growth_monthly", providerCustomerRef: "cus_test_123", providerSubscriptionRef: "sub_test_123", subscriptionState: "past_due", rawType: "invoice.payment_failed", evidence: { id: "in_test_123" } } });
@@ -221,6 +328,20 @@ test("Stripe refund and dispute events normalize to safe Hub outcomes", () => {
   } as never, { providerAccount: "primary", environment: "test" });
   assert.equal(dispute.eventType, "dispute.opened");
   assert.equal(dispute.payload.subscriptionState, "cancelled");
+});
+
+
+test("verified item checkout event projects scoped item entitlement", async () => {
+  const repository = new InMemoryPaymentRepository();
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_item_paid", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "checkout.completed", payload: { appId: "app_test", userRef: "user_1", itemRef: "book:demo", itemEntitlementKey: "app_test.book.unlock", itemEntitlementScope: { bookId: "demo" }, providerCustomerRef: "cus_test_123", subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: "cs_item_123" } } });
+  assert.deepEqual(await repository.currentEntitlements("app_test", "user_1"), { appId: "app_test", userRef: "user_1", entitlements: [{ key: "app_test.book.unlock", state: "active", scope: { bookId: "demo" } }] });
+});
+
+test("verified full refund revokes scoped item entitlement", async () => {
+  const repository = new InMemoryPaymentRepository();
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_item_paid", providerCreatedAt: new Date("2026-08-26T12:00:00.000Z"), eventType: "checkout.completed", payload: { appId: "app_test", userRef: "user_1", itemRef: "book:demo", itemEntitlementKey: "app_test.book.unlock", itemEntitlementScope: { bookId: "demo" }, providerCustomerRef: "cus_test_123", subscriptionState: "active", rawType: "checkout.session.completed", evidence: { id: "cs_item_123" } } });
+  await repository.applyVerifiedEvent({ providerId: "stripe", providerAccount: "primary", environment: "test", providerEventId: "evt_item_refund", providerCreatedAt: new Date("2026-08-27T12:00:00.000Z"), eventType: "refund.full", payload: { appId: "app_test", userRef: "user_1", itemRef: "book:demo", itemEntitlementKey: "app_test.book.unlock", itemEntitlementScope: { bookId: "demo" }, providerCustomerRef: "cus_test_123", subscriptionState: "cancelled", rawType: "charge.refunded", evidence: { id: "ch_item_123" } } });
+  assert.deepEqual(await repository.currentEntitlements("app_test", "user_1"), { appId: "app_test", userRef: "user_1", entitlements: [{ key: "app_test.book.unlock", state: "revoked", scope: { bookId: "demo" } }] });
 });
 
 test("verified partial refund records event without revoking entitlement", async () => {

@@ -1,4 +1,4 @@
-﻿# PayGate Product Completion Checklist
+# PayGate Product Completion Checklist
 
 Status: master checklist through Phase 7.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -125,9 +125,23 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] App #2 Cast Pass sandbox E2E proof complete; see `docs/PHASE_7_TRACK_4E_PAGECAST_SANDBOX_PROOF_EVIDENCE.md`.
 - [x] App #2 reads PayGate entitlement state for pageCast Cast Pass; see `docs/PHASE_7_TRACK_4F_PAGECAST_ENTITLEMENT_STATE_EVIDENCE.md`.
 - [x] App #2 Cast Pass access enforcement plan documented; see `docs/PHASE_7_TRACK_4G_PAGECAST_ACCESS_ENFORCEMENT_PLAN.md`.
-- [x] App #2 Cast Pass access enforcement implemented in pageCast; deployment verification pending. See `docs/PHASE_7_TRACK_4H_PAGECAST_ACCESS_ENFORCEMENT_EVIDENCE.md`.
-- [ ] Multi-app admin/monitoring verified.
-- [ ] Onboarding runbook updated from app #2 evidence.
+- [x] App #2 Cast Pass access enforcement implemented and deployed browser verification accepted. See `docs/PHASE_7_TRACK_4H_PAGECAST_ACCESS_ENFORCEMENT_EVIDENCE.md`.
+- [x] App #2 operator/admin evidence polish recorded for pageCast Cast Pass sandbox state. See docs/PHASE_7_TRACK_4I_PAGECAST_OPERATOR_ADMIN_EVIDENCE.md.
+- [x] App #2 Single Cast item/SKU contract plan documented; runtime/payment activation remains deferred. See docs/PHASE_7_TRACK_4J_PAGECAST_SINGLE_CAST_ITEM_SKU_CONTRACT_PLAN.md.
+- [x] App #2 pageCast Cast Pass onboarding closure/evidence packet recorded. See docs/PHASE_7_TRACK_4K_PAGECAST_ONBOARDING_CLOSURE_EVIDENCE_PACKET.md.
+- [x] Multi-app admin/monitoring verified for pageCast/AIntern test admin view.
+- [x] Onboarding runbook updated from app #2 evidence.
+- [x] Phase 7 Track 4L operator verification accepted; see `docs/PHASE_7_TRACK_4L_MULTI_APP_ADMIN_MONITORING_FREEZE_PREP.md`.
+- [ ] pageCast onboarding freeze/go-forward note acceptance pending; see `docs/PHASE_7_TRACK_4M_PAGECAST_ONBOARDING_FREEZE_GO_FORWARD.md`.
+- [x] Track 5A item/SKU registry contract prepared for pageCast Single Cast; all items remain draft and runtime activation is blocked. See `docs/PHASE_7_TRACK_5A_PAGECAST_ITEM_SKU_REGISTRY_CONTRACT.md`.
+- [x] Track 5B item registry loader/domain types implemented; item checkout remains disabled. See `docs/PHASE_7_TRACK_5B_PAYGATE_ITEM_REGISTRY_LOADER_DOMAIN_TYPES.md`.
+- [x] Track 5C checkout API recognizes `item_ref` but blocks item checkout behind disabled gate. See `docs/PHASE_7_TRACK_5C_ITEM_REF_CHECKOUT_DISABLED_GATE.md`.
+- [x] Track 5D item provider lookup resolution implemented while keeping item checkout disabled. See `docs/PHASE_7_TRACK_5D_ITEM_PROVIDER_LOOKUP_RESOLUTION.md`.
+- [x] Track 5E item checkout/evidence persistence model implemented while keeping item entitlement projection disabled. See `docs/PHASE_7_TRACK_5E_ITEM_CHECKOUT_PERSISTENCE_EVIDENCE.md`.
+- [x] Track 5F verified webhook projection for item-scoped entitlements implemented; item checkout creation remains disabled. See `docs/PHASE_7_TRACK_5F_ITEM_WEBHOOK_PROJECTION.md`.
+- [x] Track 5G pageCast thin client sends Single Cast `item_ref` through PayGate and handles disabled item checkout safely. See `docs/PHASE_7_TRACK_5G_PAGECAST_SINGLE_CAST_THIN_CLIENT.md`.
+- [x] Track 5H pageCast item entitlement access enforcement implemented; Single Cast payment activation remains gated. See `docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md`.
+- [x] Track 5I controlled Single Cast sandbox E2E implementation prepared behind exact test allowlist; external Stripe sandbox proof is pending deploy/operator execution. See `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
 - [ ] Phase 7 freeze note created.
 
 ## Permanent Stop Conditions

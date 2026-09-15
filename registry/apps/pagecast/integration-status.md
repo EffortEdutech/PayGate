@@ -1,6 +1,6 @@
-﻿# pageCast PayGate Integration Status
+# pageCast PayGate Integration Status
 
-Status: Cast Pass registry active; Single Cast remains draft pending item/SKU contract.
+Status: Cast Pass registry active; one controlled Single Cast sandbox item is prepared behind PayGate allowlist; live/broad Single Cast remains blocked.
 
 
 ## Pricing page review
@@ -54,7 +54,7 @@ Required future PayGate extension before per-book purchase activation:
 - [x] PayGate Vercel auth env vars configured and verified for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
 - [x] pageCast reader app uses PayGate checkout as the primary Cast Pass payment path; implemented in pageCast commit `5878eef`.
 - [ ] pageCast per-book direct Stripe checkout remains pending future PayGate item/SKU contract.
-- [x] pageCast reads PayGate entitlements for Cast Pass display through `/api/paygate/state`; deployed verification pending.
+- [x] pageCast reads PayGate entitlements for Cast Pass display through `/api/paygate/state`; local and deployed verification accepted.
 - [ ] Sandbox E2E proof completed.
 
 
@@ -75,4 +75,84 @@ Accepted planning direction: active PayGate Cast Pass should unlock all current 
 
 ## Phase 7 Track 4H access enforcement implementation
 
-Implemented in pageCast commit `acfef27`. The book access API now returns `reason: cast_pass` when verified PayGate Cast Pass state is active, and the book detail page displays Cast Pass-specific access copy. Deployment verification is pending. Single Cast remains deferred until item/SKU contract work.
+Implemented in pageCast commit `acfef27`. The book access API now returns `reason: cast_pass` when verified PayGate Cast Pass state is active, and the book detail page displays Cast Pass-specific access copy. Deployment verification accepted on Premium Cast `a2020000-0000-4000-8000-000000000001`: unpaid state showed `Unlock Cast for $9.99` plus `Get Cast Pass`; paid Cast Pass state showed `Read with Cast Pass` and opened `/reader/a2020000-0000-4000-8000-000000000001`. Single Cast remains deferred until item/SKU contract work.
+
+
+## Phase 7 Track 4I operator/admin evidence polish
+
+Completed for sandbox/test Cast Pass evidence. Operator review should use `/admin` or protected admin APIs filtered by `app_id=pagecast&environment=test` to confirm app registry, Cast Pass plan, processed webhook evidence, customer/subscription/entitlement evidence, and clean monitoring state. Single Cast remains deferred and pageCast live payments remain blocked behind a separate live readiness gate.
+
+## Phase 7 Track 4J Single Cast item/SKU contract plan
+
+Documented the future item/SKU contract required before pageCast Single Cast Unlock can move from draft to active. The contract direction requires registry-owned `item_ref` resolution, PayGate-owned price/lookup authority, item-scoped entitlement projection, refund/revocation policy, reconciliation support, and operator/admin evidence. No runtime API, pageCast app code, Stripe catalog, or payment activation was changed.
+
+## Phase 7 Track 4K onboarding closure
+
+pageCast Cast Pass sandbox/test onboarding is closed with an operator evidence packet. Closed scope includes registry package, provider account mapping, active Cast Pass plan, Supabase JWT boundary, PayGate checkout, processed sandbox webhooks, active subscription/entitlement projection, app-side Cast Pass display, and Premium Cast access enforcement. Deferred scope remains Single Cast item/SKU implementation, pageCast live readiness, live payment/refund proof, and broader Phase 7 freeze.
+
+## Phase 7 Track 4L multi-app admin/monitoring verification
+
+Accepted. Protected admin summary and monitoring outputs for `app_id=pagecast&environment=test` were reviewed on 2026-09-14. Monitoring status is `ok` with no alerts. The all-apps test summary lists AIntern and pageCast separately, with provider account aliases preserved. Single Cast remains draft and pageCast live payments remain blocked.
+
+## Phase 7 Track 4M onboarding freeze / go-forward
+
+Freeze/go-forward note prepared. pageCast Cast Pass sandbox/test onboarding is ready to freeze pending operator acceptance. `single_cast_unlock` is ready for the next item/SKU registry contract sequence but remains draft and not payment-authorized. Recommended next track: Phase 7 Track 5A - PayGate Item/SKU Registry Contract for pageCast Single Cast.
+
+## Phase 7 Track 5A item/SKU registry contract
+
+Completed as registry-contract-only work. Added optional `items.yaml` schema, draft pageCast item catalog examples for one Premium Cast and one bundle, item-scoped entitlement keys, and registry validation for item entitlement references and lookup key uniqueness. No Stripe catalog mutation, checkout runtime change, or payment activation was performed. All pageCast item entries remain `draft`.
+
+## Phase 7 Track 5B item registry loader
+
+Completed. PayGate runtime now loads optional `items.yaml` catalogs into registered app item maps, exposes item lookup and active-only item lookup, and tests prove pageCast draft items load without activating checkout. Item checkout remains disabled.
+
+## Phase 7 Track 5D - Item Provider Lookup Resolution
+
+- PayGate can resolve item provider lookup keys from registry definitions only.
+- Draft/inactive item checkout remains rejected.
+- Provider checkout session creation remains disabled for items.
+- Evidence: docs/PHASE_7_TRACK_5D_ITEM_PROVIDER_LOOKUP_RESOLUTION.md.
+
+
+## Phase 7 Track 5E - Item Checkout Persistence Evidence
+
+- PayGate can persist future item checkout intent fields.
+- PayGate can persist item entitlement evidence separately from projected entitlements.
+- Item checkout and item entitlement projection remain disabled.
+- Evidence: docs/PHASE_7_TRACK_5E_ITEM_CHECKOUT_PERSISTENCE_EVIDENCE.md.
+
+
+## Phase 7 Track 5F - Item Webhook Projection
+
+- Verified provider events can project scoped item entitlements from server-side item metadata.
+- Full refund/dispute-style cancellation evidence can revoke scoped item entitlements.
+- Item checkout creation remains disabled.
+- Evidence: docs/PHASE_7_TRACK_5F_ITEM_WEBHOOK_PROJECTION.md.
+## Phase 7 Track 5G - pageCast Single Cast Thin Client
+
+- pageCast Premium Cast unlock CTA now calls the PayGate proxy path with `item_ref=book:<bookId>`.
+- pageCast does not submit amount, currency, Stripe Price ID, provider account, provider customer, or entitlement key.
+- PayGate remains the commercial authority and still blocks item checkout creation until a separate activation gate.
+- `ITEM_CHECKOUT_DISABLED` and `ITEM_NOT_AVAILABLE` are displayed as a planned unavailable Single Cast state.
+- Cast Pass checkout and Cast Pass access behavior remain unchanged.
+- Verification: pageCast `npm run build --prefix apps/reader-app` passed.
+- Evidence: docs/PHASE_7_TRACK_5G_PAGECAST_SINGLE_CAST_THIN_CLIENT.md.
+## Phase 7 Track 5H - pageCast Item Entitlement Access Enforcement
+
+- pageCast can now unlock a matching Premium Cast when PayGate returns an active `pagecast.single_cast_unlock` entitlement with matching item scope.
+- Cast Pass access remains unchanged and continues to unlock all Premium Casts.
+- Unmatched Premium Casts remain locked unless free/guest/purchase/subscription/Cast Pass rules apply.
+- Browser redirects still do not grant access.
+- Single Cast checkout activation remains deferred.
+- Verification: pageCast `npm run build --prefix apps/reader-app` passed.
+- Evidence: docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md.
+## Phase 7 Track 5I - Controlled Single Cast Sandbox E2E Proof
+
+- Exactly one pageCast item is active for sandbox proof: `book:a2020000-0000-4000-8000-000000000001`.
+- PayGate item checkout remains disabled by default and only opens for `test` when `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST=pagecast|book:a2020000-0000-4000-8000-000000000001` is configured server-side.
+- Live item checkout remains blocked.
+- Stripe checkout metadata now carries item reference, entitlement key, and scope so verified webhooks can project `pagecast.single_cast_unlock` for the matching book only.
+- Operator/admin summary can expose item checkout and scoped entitlement evidence safely.
+- Verification: PayGate `npm run check` passed with 72 tests.
+- External proof pending: Stripe sandbox Price lookup key confirmation, Vercel env/deploy, one sandbox checkout, webhook evidence, and matching-book access verification.
+- Evidence: docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md.

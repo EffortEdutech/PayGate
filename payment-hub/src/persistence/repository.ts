@@ -4,12 +4,28 @@ import type { Environment } from "@payment-hub/types";
 export interface CheckoutSessionRecord extends CheckoutResult {
   readonly appId: string;
   readonly userRef: string;
-  readonly planKey: string;
+  readonly planKey?: string;
+  readonly itemRef?: string;
+  readonly itemEntitlementKey?: string;
+  readonly itemEntitlementScope?: unknown;
   readonly providerId: string;
   readonly providerAccount: string;
   readonly environment: Environment;
 }
 
+
+export interface ItemEntitlementEvidenceRecord {
+  readonly appId: string;
+  readonly userRef: string;
+  readonly itemRef: string;
+  readonly entitlementKey: string;
+  readonly entitlementScope: unknown;
+  readonly status: "active" | "revoked";
+  readonly sourceType: "provider_event" | "reconciliation";
+  readonly sourceReference: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveUntil?: Date;
+}
 export interface ReconciliationRunInput {
   readonly appId: string;
   readonly userRef: string;
@@ -40,7 +56,10 @@ export interface AdminDashboardSnapshot {
   readonly checkoutSessions: readonly {
     readonly appId: string;
     readonly userRef: string;
-    readonly planKey: string;
+    readonly planKey?: string;
+  readonly itemRef?: string;
+  readonly itemEntitlementKey?: string;
+  readonly itemEntitlementScope?: unknown;
     readonly providerId: string;
     readonly providerAccount: string;
     readonly environment: Environment;
@@ -105,6 +124,7 @@ export interface PaymentRepository {
   findProviderCustomer(input: { readonly appId: string; readonly userRef: string; readonly providerId: string; readonly providerAccount: string; readonly environment: Environment }): Promise<string | undefined>;
   saveProviderCustomer(input: { readonly appId: string; readonly userRef: string; readonly providerId: string; readonly providerAccount: string; readonly environment: Environment; readonly providerCustomerRef: string }): Promise<void>;
   saveCheckoutSession(record: CheckoutSessionRecord): Promise<void>;
+  saveItemEntitlementEvidence(record: ItemEntitlementEvidenceRecord): Promise<void>;
   insertWebhookEvent(event: VerifiedProviderEvent, payloadHash: string): Promise<"inserted" | "duplicate">;
   applyVerifiedEvent(event: VerifiedProviderEvent): Promise<void>;
   applyReconciliationSnapshot(input: { readonly appId: string; readonly userRef: string; readonly snapshot: ProviderSubscriptionSnapshot }): Promise<SubscriptionProjection>;

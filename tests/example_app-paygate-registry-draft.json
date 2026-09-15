@@ -1,0 +1,39 @@
+{
+  "package_path": "registry/apps/example_app",
+  "status": "draft_preview_only",
+  "app": {
+    "app_id": "example_app",
+    "name": "Example App",
+    "provider_id": "stripe",
+    "provider_account": "nhl_global_solution",
+    "auth_model": "supabase_jwt"
+  },
+  "origins": {
+    "test": "https://example-app-test.vercel.app/",
+    "live": "https://example-app.com/"
+  },
+  "return_contexts": [
+    "billing"
+  ],
+  "plans": [
+    {
+      "plan_key": "starter_monthly",
+      "name": "Starter Monthly",
+      "mode": "payment",
+      "amount_minor": 3900,
+      "currency": "MYR",
+      "provider_lookup_key": "example_app_starter_monthly",
+      "entitlements": [
+        "example_app.feature"
+      ]
+    }
+  ],
+  "required_next_steps": [
+    "Operator review",
+    "Create registry package files",
+    "Configure Stripe Product/Price lookup key",
+    "Run npm run validate:registry",
+    "Run npm run check",
+    "Commit/deploy only after approval"
+  ]
+}

@@ -3,13 +3,23 @@ import type { CheckoutResult, EntitlementProjection, PaymentProviderAdapter, Por
 import type { Environment } from "@payment-hub/types";
 import { Registry } from "../registry/registry.js";
 import type { PaymentRepository } from "../persistence/repository.js";
+import type { RegisteredItem, RegisteredPlan } from "../registry/types.js";
+
+export interface PaymentHubServiceOptions {
+  readonly itemCheckoutTestAllowlist?: readonly string[];
+}
 
 export class PaymentHubService {
+  readonly #itemCheckoutTestAllowlist: ReadonlySet<string>;
+
   constructor(
     readonly registry: Registry,
     readonly repository: PaymentRepository,
     readonly provider: PaymentProviderAdapter,
-  ) {}
+    options: PaymentHubServiceOptions = {},
+  ) {
+    this.#itemCheckoutTestAllowlist = new Set(options.itemCheckoutTestAllowlist ?? []);
+  }
 
   catalog(appId: string, environment: Environment): unknown {
     const app = this.registry.application(appId);
@@ -29,14 +39,46 @@ export class PaymentHubService {
     };
   }
 
-  async createCheckout(input: { readonly requestId: string; readonly appId: string; readonly userRef: string; readonly planKey: string; readonly returnContext: string; readonly environment: Environment }): Promise<CheckoutResult> {
+  async createCheckout(input: { readonly requestId: string; readonly appId: string; readonly userRef: string; readonly planKey?: string; readonly itemRef?: string; readonly returnContext: string; readonly environment: Environment }): Promise<CheckoutResult> {
     const app = this.registry.application(input.appId);
+    if (input.planKey && input.itemRef) throw new PaymentHubServiceError("CHECKOUT_TARGET_AMBIGUOUS", "Submit either plan_key or item_ref, not both");
+    if (input.itemRef) {
+      const item = this.registry.activeItem(input.appId, input.itemRef);
+      const itemProviderLookupKey = providerLookupKeyFor(item, app.providerId, input.environment);
+      if (!itemProviderLookupKey) throw new PaymentHubServiceError("PROVIDER_LOOKUP_KEY_NOT_CONFIGURED", "Item has no provider lookup key for this environment");
+      if (!this.itemCheckoutEnabledFor(input.appId, input.itemRef, input.environment)) throw new PaymentHubServiceError("ITEM_CHECKOUT_DISABLED", "Item checkout is recognized by PayGate but is not enabled yet");
+      const urls = this.registry.returnUrls(input.appId, input.environment, input.returnContext);
+      const result = await this.provider.createCheckout({
+        requestId: input.requestId,
+        appId: input.appId,
+        userRef: input.userRef,
+        itemRef: item.itemKey,
+        itemEntitlementKey: item.entitlement.key,
+        itemEntitlementScope: item.entitlement.scope,
+        returnContext: input.returnContext,
+        environment: input.environment,
+        providerAccount: app.providerAccount,
+        providerLookupKey: itemProviderLookupKey,
+        mode: "payment",
+        money: { amountMinor: item.amountMinor, currency: item.currency },
+        successUrl: urls.success,
+        cancelUrl: urls.cancel,
+      });
+      await this.repository.saveCheckoutSession({ ...result, appId: app.appId, userRef: input.userRef, itemRef: item.itemKey, itemEntitlementKey: item.entitlement.key, itemEntitlementScope: item.entitlement.scope, providerId: app.providerId, providerAccount: app.providerAccount, environment: input.environment });
+      return result;
+    }
+    if (!input.planKey) throw new PaymentHubServiceError("CHECKOUT_TARGET_REQUIRED", "Checkout requires plan_key or item_ref");
     const plan = this.registry.activePlan(input.appId, input.planKey);
     const urls = this.registry.returnUrls(input.appId, input.environment, input.returnContext);
     const providerLookupKey = providerLookupKeyFor(plan, app.providerId, input.environment);
     if (!providerLookupKey) throw new PaymentHubServiceError("PROVIDER_LOOKUP_KEY_NOT_CONFIGURED", "Plan has no provider lookup key for this environment");
     const result = await this.provider.createCheckout({
-      ...input,
+      requestId: input.requestId,
+      appId: input.appId,
+      userRef: input.userRef,
+      planKey: plan.planKey,
+      returnContext: input.returnContext,
+      environment: input.environment,
       providerAccount: app.providerAccount,
       providerLookupKey,
       mode: plan.mode,
@@ -119,12 +161,15 @@ export class PaymentHubService {
           created_at: providerCustomer.createdAt.toISOString(),
         })),
         subscription: customer.subscription ? serializeSubscription(customer.subscription) : { app_id: customer.appId, user_ref: customer.userRef, state: "none" },
-        entitlements: customer.entitlements.map((entitlement) => ({ key: entitlement.key, state: entitlement.state, ...(entitlement.effectiveUntil ? { effective_until: entitlement.effectiveUntil.toISOString() } : {}) })),
+        entitlements: customer.entitlements.map((entitlement) => ({ key: entitlement.key, state: entitlement.state, ...(entitlement.scope ? { scope: entitlement.scope } : {}), ...(entitlement.effectiveUntil ? { effective_until: entitlement.effectiveUntil.toISOString() } : {}) })),
       })),
       checkout_sessions: snapshot.checkoutSessions.map((session) => ({
         app_id: session.appId,
         user_ref: session.userRef,
-        plan_key: session.planKey,
+        ...(session.planKey ? { plan_key: session.planKey } : {}),
+        ...(session.itemRef ? { item_ref: session.itemRef } : {}),
+        ...(session.itemEntitlementKey ? { item_entitlement_key: session.itemEntitlementKey } : {}),
+        ...(session.itemEntitlementScope ? { item_entitlement_scope: session.itemEntitlementScope } : {}),
         provider_id: session.providerId,
         provider_account: session.providerAccount,
         environment: session.environment,
@@ -181,6 +226,10 @@ export class PaymentHubService {
       alerts,
     };
   }
+  private itemCheckoutEnabledFor(appId: string, itemRef: string, environment: Environment): boolean {
+    return environment === "test" && this.#itemCheckoutTestAllowlist.has(`${appId}|${itemRef}`);
+  }
+
   currentSubscription(appId: string, userRef: string): Promise<SubscriptionProjection> {
     return this.repository.currentSubscription(appId, userRef);
   }
@@ -190,12 +239,12 @@ export class PaymentHubService {
   }
 }
 
-function providerLookupKeyFor(plan: { readonly providerLookupKeys: Readonly<Record<string, string>>; readonly providerLiveLookupKeys?: Readonly<Record<string, string>> }, providerId: string, environment: Environment): string | undefined {
-  if (environment === "live") return plan.providerLiveLookupKeys?.[providerId] ?? plan.providerLookupKeys[providerId];
-  return plan.providerLookupKeys[providerId];
+export function providerLookupKeyFor(entry: Pick<RegisteredPlan | RegisteredItem, "providerLookupKeys" | "providerLiveLookupKeys">, providerId: string, environment: Environment): string | undefined {
+  if (environment === "live") return entry.providerLiveLookupKeys?.[providerId] ?? entry.providerLookupKeys[providerId];
+  return entry.providerLookupKeys[providerId];
 }
 export class PaymentHubServiceError extends Error {
-  constructor(readonly code: "PROVIDER_LOOKUP_KEY_NOT_CONFIGURED" | "PROVIDER_CUSTOMER_NOT_FOUND", message: string) {
+  constructor(readonly code: "PROVIDER_LOOKUP_KEY_NOT_CONFIGURED" | "PROVIDER_CUSTOMER_NOT_FOUND" | "CHECKOUT_TARGET_REQUIRED" | "CHECKOUT_TARGET_AMBIGUOUS" | "ITEM_CHECKOUT_DISABLED", message: string) {
     super(message);
     this.name = "PaymentHubServiceError";
   }
