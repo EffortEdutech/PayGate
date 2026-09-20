@@ -11,6 +11,10 @@ const requiredDocs = [
   "docs/PHASE_7_TRACK_5D_ITEM_PROVIDER_LOOKUP_RESOLUTION.md",
   "docs/PHASE_7_TRACK_5E_ITEM_CHECKOUT_PERSISTENCE_EVIDENCE.md",
   "docs/PHASE_7_TRACK_5F_ITEM_WEBHOOK_PROJECTION.md",
+  "docs/PHASE_7_TRACK_5G_PAGECAST_SINGLE_CAST_THIN_CLIENT.md",
+  "docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md",
+  "docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md",
+  "docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -48,31 +52,38 @@ flowchart TD
   T4F --> T4G[4G\\nCast Pass access enforcement plan\\nAccepted]
   T4G --> T4H[4H\\nPremium Cast access enforcement\\nVerified]
   T4H --> T4I[4I\\nOperator/admin evidence polish\\nDone]
-  T4I --> T4J[4J\\nSingle Cast item/SKU contract plan\\nDone; implementation deferred]
+  T4I --> T4J[4J\\nSingle Cast item/SKU contract plan\\nDone]
   T4J --> T4K[4K\\npageCast onboarding closure packet\\nDone]
   T4K --> T4L[4L\\nMulti-app admin/monitoring verification\\nAccepted]
   T4L --> T4M[4M\\npageCast onboarding freeze/go-forward note\\nPrepared]
 
   T4M --> T5A[Track 5A\\nSingle Cast item/SKU registry contract\\nDone]
   T5A --> T5B[Track 5B\\nRegistry loader/domain types for items\\nDone]
-
-  T4M --> F7[Phase 7 pageCast freeze/go-forward decision\\nOperator acceptance pending]
-
-  DEFER1[Deferred\\npageCast Single Cast live/broad rollout]
-  DEFER2[Deferred\\npageCast live-mode payment readiness]
-  DEFER3[Deferred\\npageCast live payment/refund proof]
-
-  T5A -.-> DEFER1
   T5B --> T5C[Track 5C\\nitem_ref checkout contract behind disabled gate\\nDone]
   T5C --> T5D[Track 5D\\nprovider lookup resolution for item prices\\nDone]
   T5D --> T5E[Track 5E\\nitem checkout persistence and entitlement evidence\\nDone]
   T5E --> T5F[Track 5F\\nwebhook projection for item-scoped entitlements\\nDone]
-  T5F --> T5G[Track 5G\\npageCast thin client for Single Cast checkout\\nNext]
-  T5F -.-> DEFER1
-  T4M -.-> DEFER2
-  T4M -.-> DEFER3
+  T5F --> T5G[Track 5G\\npageCast thin client for Single Cast checkout\\nDone]
+  T5G --> T5H[Track 5H\\nitem entitlement access enforcement\\nDone]
+  T5H --> T5I[Track 5I\\ncontrolled Single Cast sandbox E2E proof\\nAccepted]
+  T5I --> T5J[Track 5J\\noperator item evidence and reconciliation review\\nDone]
 
-  BLOCK[Blocked without explicit operator approval\\nLive checkout, live payment, live refund, broad rollout] -.-> DEFER2
+  T5J --> NEXT{Next decision}
+  NEXT --> T5K[Track 5K\\nSingle Cast live readiness gate\\nOnly if explicitly approved]
+  NEXT --> F7[Phase 7 freeze prep\\nCurrent sandbox-only pageCast state]
+
+  DEFER1[Deferred\\npageCast Single Cast live/broad rollout]
+  DEFER2[Deferred\\npageCast live-mode payment readiness]
+  DEFER3[Deferred\\npageCast live payment/refund proof]
+  DEFER4[Deferred\\nitem-specific reconciliation repair automation]
+
+  T5J -.-> DEFER1
+  T5J -.-> DEFER2
+  T5J -.-> DEFER3
+  T5J -.-> DEFER4
+
+  BLOCK[Blocked without explicit operator approval\\nLive checkout, live payment, live refund, broad rollout] -.-> T5K
+  BLOCK -.-> DEFER2
   BLOCK -.-> DEFER3
 \`\`\`
 
@@ -82,14 +93,11 @@ flowchart TD
 - Phase 6 proved the first controlled live path for AIntern; refund remains deferred.
 - Phase 7 is current.
 - pageCast Cast Pass sandbox/test onboarding is closed through Track 4L, with Track 4M freeze/go-forward note prepared.
-- Track 5A added the draft item/SKU registry contract for pageCast Single Cast.
-- Track 5B loaded item registry definitions into PayGate domain/runtime code while keeping item checkout disabled.
-- Track 5C made the checkout API recognize \`item_ref\` but explicitly block item checkout behind a disabled gate.
-- Track 5D resolves item provider lookup keys from registry definitions while still blocking item checkout execution.
-- Track 5E added item checkout/evidence persistence while keeping item entitlement projection disabled.
-- Track 5F projects item-scoped entitlements only from verified provider webhook evidence; item checkout creation remains disabled.
-- The next recommended action is Track 5G: pageCast Thin Client for Single Cast Checkout.
-- pageCast Single Cast runtime checkout and live-mode payment work remain deferred until separately approved.
+- Track 5A through Track 5F built the PayGate item/SKU contract, registry loading, checkout gate, provider lookup, persistence, and verified webhook projection.
+- Track 5G and Track 5H connected pageCast to the item contract and enforced scoped item access.
+- Track 5I accepted one controlled Single Cast sandbox E2E proof for USD 9.99.
+- Track 5J documented operator/admin item evidence and clarified that one-time Single Cast purchases are not subscription reconciliation failures.
+- The next decision is either Track 5K live readiness gate, with no live payment until explicit approval, or Phase 7 freeze prep for the current sandbox-only pageCast state.
 `;
 
 writeFileSync("docs/PRODUCT_ROADMAP_GRAPH.md", graph, "utf8");

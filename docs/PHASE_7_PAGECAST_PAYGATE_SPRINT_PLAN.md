@@ -73,8 +73,8 @@ These are not started yet:
 5. Track 5F - webhook projection for item-scoped entitlements. Done
 6. Track 5G - pageCast thin client for Single Cast checkout. Done
 7. Track 5H - pageCast access enforcement for matching book/bundle entitlement. Done
-8. Track 5I - sandbox E2E proof for one controlled Single Cast. Prepared; external proof pending
-9. Track 5J - operator/admin item evidence and reconciliation review.
+8. Track 5I - sandbox E2E proof for one controlled Single Cast. Accepted
+9. Track 5J - operator/admin item evidence and reconciliation review. Completed
 10. Track 5K - live readiness gate if operator later approves real-money Single Cast.
 
 ## Stop conditions
@@ -183,7 +183,7 @@ Evidence: `docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md
 Track 5I is prepared for one controlled Single Cast sandbox proof. External proof remains pending Stripe sandbox Price confirmation, PayGate Vercel allowlist env setup, deploy, checkout completion, webhook evidence, and matching-book access verification.
 ## Track 5I - Controlled Single Cast Sandbox E2E Proof
 
-Status: implementation prepared; external Stripe sandbox proof pending.
+Status: accepted; controlled external Stripe sandbox proof completed.
 
 - [x] Operator approved proceeding into controlled Single Cast sandbox E2E proof preparation.
 - [x] Activate exactly one pageCast item for sandbox proof: `book:a2020000-0000-4000-8000-000000000001`.
@@ -194,12 +194,25 @@ Status: implementation prepared; external Stripe sandbox proof pending.
 - [x] Attach item metadata for verified Stripe webhook projection.
 - [x] Expose item checkout and scoped entitlement evidence in safe operator/admin summary output.
 - [x] Verify PayGate registry validation, typecheck, and tests pass.
-- [ ] Confirm Stripe sandbox Price lookup key `pagecast_book_a2020000_single_unlock` exists at USD 9.99 one-time.
-- [ ] Add PayGate Vercel env `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST=pagecast|book:a2020000-0000-4000-8000-000000000001` and redeploy.
-- [ ] Run one pageCast unpaid-user Single Cast checkout from the selected Premium Cast.
-- [ ] Verify processed webhook evidence and scoped item entitlement.
-- [ ] Verify selected Premium Cast opens and another Premium Cast remains locked.
+- [x] Confirm Stripe sandbox Price lookup key `pagecast_book_a2020000_single_unlock` exists at USD 9.99 one-time.
+- [x] Add PayGate Vercel env `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST=pagecast|book:a2020000-0000-4000-8000-000000000001` and redeploy.
+- [x] Run one pageCast unpaid-user Single Cast checkout from the selected Premium Cast.
+- [x] Verify processed webhook evidence and scoped item entitlement.
+- [x] Verify selected Premium Cast opens and unpaid user remains locked.
 
 Evidence: `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
 
-Next action after Track 5I preparation: operator/deployment sandbox proof execution. Do not proceed to Track 5J until the external proof evidence is captured.
+Track 5I external proof is accepted. Proceeded to Track 5J operator/admin item evidence and reconciliation review.
+## Track 5J - Operator/Admin Item Evidence and Reconciliation Review
+
+Status: complete for controlled sandbox item proof.
+
+- [x] Record operator evidence expectations for item checkout, processed webhook, scoped entitlement, and paid/unpaid pageCast behavior.
+- [x] Confirm Single Cast one-time item purchases should not be treated as subscription reconciliation failures.
+- [x] Define item reconciliation boundary: verified webhook evidence is authoritative for Track 5J; item-specific reconciliation repair remains deferred.
+- [x] Keep live Single Cast checkout blocked.
+- [x] Keep broad item rollout blocked.
+
+Evidence: `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.
+
+Next action after Track 5J: either Track 5K live readiness gate for Single Cast, with no live payment until explicit approval, or Phase 7 freeze preparation for the current sandbox-only pageCast state.

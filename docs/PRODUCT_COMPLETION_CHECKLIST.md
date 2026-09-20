@@ -141,7 +141,8 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] Track 5F verified webhook projection for item-scoped entitlements implemented; item checkout creation remains disabled. See `docs/PHASE_7_TRACK_5F_ITEM_WEBHOOK_PROJECTION.md`.
 - [x] Track 5G pageCast thin client sends Single Cast `item_ref` through PayGate and handles disabled item checkout safely. See `docs/PHASE_7_TRACK_5G_PAGECAST_SINGLE_CAST_THIN_CLIENT.md`.
 - [x] Track 5H pageCast item entitlement access enforcement implemented; Single Cast payment activation remains gated. See `docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md`.
-- [x] Track 5I controlled Single Cast sandbox E2E implementation prepared behind exact test allowlist; external Stripe sandbox proof is pending deploy/operator execution. See `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
+- [x] Track 5I controlled Single Cast sandbox E2E proof accepted behind exact test allowlist. See `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
+- [x] Track 5J operator/admin item evidence and reconciliation review documented; item-specific reconciliation repair remains deferred. See `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.
 - [ ] Phase 7 freeze note created.
 
 ## Permanent Stop Conditions

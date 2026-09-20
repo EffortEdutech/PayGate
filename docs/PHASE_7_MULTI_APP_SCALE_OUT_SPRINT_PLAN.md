@@ -581,7 +581,7 @@ Checklist:
 - [ ] Decide whether to decommission or protect the legacy pageCast `/api/stripe/checkout` route after manifest approval.
 ## Phase 7 Track 5I - Single Cast Sandbox E2E Proof
 
-Status: next recommended action, gated by operator approval.
+Status: accepted; controlled sandbox proof completed.
 
 Goal: prove one controlled Single Cast sandbox purchase from PayGate checkout through verified webhook projection into item entitlement access.
 
@@ -589,13 +589,29 @@ Checklist:
 
 - [x] Operator approves preparing item checkout for one sandbox item only.
 - [x] Activate exactly one pageCast item in registry for sandbox proof.
-- [ ] Confirm Stripe sandbox Price lookup key for that item.
-- [ ] Run one checkout from pageCast for the selected `item_ref` after Vercel env/deploy setup.
-- [ ] Complete Stripe sandbox payment.
-- [ ] Verify PayGate signed webhook projects `pagecast.single_cast_unlock` with matching scope.
-- [ ] Verify matching book opens as Single Cast.
-- [ ] Verify another Premium Cast remains locked without Cast Pass or matching item entitlement.
-- [ ] Record evidence and decide whether to keep item active or return to draft.
+- [x] Confirm Stripe sandbox Price lookup key for that item.
+- [x] Run one checkout from pageCast for the selected `item_ref` after Vercel env/deploy setup.
+- [x] Complete Stripe sandbox payment.
+- [x] Verify PayGate signed webhook projects `pagecast.single_cast_unlock` with matching scope.
+- [x] Verify matching book opens as Single Cast.
+- [x] Verify unpaid user remains locked without Cast Pass or matching item entitlement.
+- [x] Record evidence and keep the single sandbox item active for operator review.
 - [x] Add server-side sandbox allowlist gate `PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST`.
 - [x] Prove tests: unallowlisted item checkout blocked, allowlisted sandbox item checkout created, live item checkout blocked.
 - Evidence: `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
+## Phase 7 Track 5J - Operator/Admin Item Evidence and Reconciliation Review
+
+Status: complete for controlled pageCast Single Cast sandbox proof.
+
+Goal: close the Single Cast sandbox proof with operator/admin evidence rules and a clear reconciliation boundary for one-time item purchases.
+
+Checklist:
+
+- [x] Record item checkout evidence expectations for the controlled `pagecast` item.
+- [x] Record processed webhook and scoped entitlement expectations.
+- [x] Record paid-user and unpaid-user browser evidence.
+- [x] Clarify that Single Cast is a one-time item purchase, not a subscription.
+- [x] Clarify that missing subscription evidence is not by itself a Single Cast reconciliation failure.
+- [x] Keep item-specific reconciliation repair deferred.
+- [x] Keep live Single Cast payment and broad rollout deferred.
+- Evidence: `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.

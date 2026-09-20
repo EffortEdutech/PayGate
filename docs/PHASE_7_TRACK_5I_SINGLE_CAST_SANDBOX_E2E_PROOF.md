@@ -1,6 +1,6 @@
 # Phase 7 Track 5I - Controlled Single Cast Sandbox E2E Proof
 
-Status: implementation prepared; external Stripe sandbox proof pending deployment/operator execution.
+Status: accepted; controlled external Stripe sandbox proof completed and verified.
 
 ## Objective
 
@@ -61,40 +61,53 @@ This gate does not enable live item checkout. A live request for the same `item_
 
 pageCast must not send amount, currency, Stripe Price ID, provider account, provider customer, entitlement key, or arbitrary return URL.
 
-## Stripe sandbox setup required before external proof
+## Stripe sandbox setup
 
-In Stripe test/sandbox mode for provider account alias `nhl_global_solution`, confirm a one-time Price exists with:
+In Stripe test/sandbox mode for provider account alias `nhl_global_solution`, a one-time Price exists with:
 
 - Lookup key: `pagecast_book_a2020000_single_unlock`
 - Amount: USD 9.99
 - Mode/type: one-time payment
 - Product name: pageCast Single Cast Unlock or equivalent
 
-## Deployment setup required before external proof
+## Deployment setup
 
-Set this PayGate Vercel Production env var and redeploy PayGate:
+PayGate Vercel Production was configured with this exact sandbox allowlist value and redeployed:
 
 ```ini
 PAYGATE_ITEM_CHECKOUT_TEST_ALLOWLIST=pagecast|book:a2020000-0000-4000-8000-000000000001
 ```
 
-Do not set any live item checkout flag. There is no live item checkout approval in Track 5I.
+No live item checkout flag was set. There is no live item checkout approval in Track 5I.
 
 ## Operator proof checklist
 
-- [ ] Confirm PayGate deploy includes Track 5I code and registry.
-- [ ] Confirm Stripe sandbox Price lookup key exists.
-- [ ] Confirm PayGate Vercel env has the exact allowlist value.
-- [ ] Open pageCast as an unpaid user.
-- [ ] Open `https://pagecast-nine.vercel.app/book/a2020000-0000-4000-8000-000000000001`.
-- [ ] Click Single Cast unlock.
-- [ ] Complete Stripe sandbox checkout.
-- [ ] Confirm PayGate admin summary for `app_id=pagecast&environment=test` shows the item checkout session with `item_ref`.
-- [ ] Confirm PayGate webhook evidence includes processed Stripe event(s).
-- [ ] Confirm PayGate customer entitlement includes `pagecast.single_cast_unlock` with matching scope.
-- [ ] Confirm the matching book opens.
-- [ ] Confirm another Premium Cast remains locked unless Cast Pass, free, guest, or existing purchase rules apply.
-- [ ] Record evidence and decide whether to keep this one sandbox item active or return it to draft after proof.
+- [x] Confirm PayGate deploy includes Track 5I code and registry.
+- [x] Confirm Stripe sandbox Price lookup key exists.
+- [x] Confirm PayGate Vercel env has the exact allowlist value.
+- [x] Open pageCast as an unpaid user.
+- [x] Open `https://pagecast-nine.vercel.app/book/a2020000-0000-4000-8000-000000000001`.
+- [x] Click Single Cast unlock.
+- [x] Complete Stripe sandbox checkout.
+- [x] Confirm PayGate admin summary for `app_id=pagecast&environment=test` shows the item checkout session with `item_ref`.
+- [x] Confirm PayGate webhook evidence includes processed Stripe event(s).
+- [x] Confirm PayGate customer entitlement includes `pagecast.single_cast_unlock` with matching scope.
+- [x] Confirm the matching book opens.
+- [x] Confirm an unpaid user remains locked unless Cast Pass, free, guest, or existing purchase rules apply.
+- [x] Record evidence and keep this one sandbox item active for continued operator review.
+
+## Accepted external proof evidence
+
+- PayGate commit containing controlled item checkout path: `516e729`.
+- pageCast deployed fixes through commit `9c700e9`.
+- Stripe sandbox one-time payment succeeded for USD 9.99.
+- Stripe sandbox PaymentIntent evidence: `pi_3UFx6NRgCMXjT1y61Jcu0APJ`.
+- Stripe sandbox customer evidence: `cus_VGU3FpEifavCut`.
+- pageCast paid-user book detail displays `Read Single Cast`.
+- pageCast unpaid `reader2` store card displays `$9.99` / `Unlock Cast`.
+- pageCast unpaid `reader2` book detail displays `Unlock Cast for $9.99` plus Cast Pass option.
+
+Browser redirects did not grant access. Access was accepted only after PayGate projected verified item entitlement evidence from Stripe webhook processing.
 
 ## Verification already completed locally
 

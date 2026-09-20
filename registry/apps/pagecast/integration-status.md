@@ -1,6 +1,6 @@
 # pageCast PayGate Integration Status
 
-Status: Cast Pass registry active; one controlled Single Cast sandbox item is prepared behind PayGate allowlist; live/broad Single Cast remains blocked.
+Status: Cast Pass registry active; one controlled Single Cast sandbox item proof accepted behind PayGate allowlist; live/broad Single Cast remains blocked.
 
 
 ## Pricing page review
@@ -50,12 +50,12 @@ Required future PayGate extension before per-book purchase activation:
 - [x] Stripe sandbox Product/Price exists for `pagecast_cast_pass_monthly` with fixed USD 19.00/month.
 - [x] Confirmed Stripe account `acct_1U4N5nDzGAfRwUx9` maps to PayGate alias `stripe:nhl_global_solution` for pageCast.
 - [x] PayGate registry marks `cast_pass_monthly` active.
-- [ ] Optional: Stripe sandbox Product/Price exists for `pagecast_single_cast_unlock`, but keep inactive until item-specific contract exists.
+- [x] Stripe sandbox Product/Price exists for controlled Single Cast lookup key `pagecast_book_a2020000_single_unlock`; broad item rollout remains blocked.
 - [x] PayGate Vercel auth env vars configured and verified for pageCast Supabase JWTs: `SUPABASE_JWT_APPS`, `SUPABASE_JWT_PAGECAST_JWKS_URL`, `SUPABASE_JWT_PAGECAST_ISSUER`, `SUPABASE_JWT_PAGECAST_AUDIENCE`.
 - [x] pageCast reader app uses PayGate checkout as the primary Cast Pass payment path; implemented in pageCast commit `5878eef`.
-- [ ] pageCast per-book direct Stripe checkout remains pending future PayGate item/SKU contract.
+- [x] pageCast controlled per-book Single Cast checkout now routes through PayGate for the allowlisted sandbox item only.
 - [x] pageCast reads PayGate entitlements for Cast Pass display through `/api/paygate/state`; local and deployed verification accepted.
-- [ ] Sandbox E2E proof completed.
+- [x] Sandbox E2E proof completed for one controlled Single Cast item.
 
 
 ## Phase 7 Track 4E sandbox proof
@@ -154,5 +154,12 @@ Completed. PayGate runtime now loads optional `items.yaml` catalogs into registe
 - Stripe checkout metadata now carries item reference, entitlement key, and scope so verified webhooks can project `pagecast.single_cast_unlock` for the matching book only.
 - Operator/admin summary can expose item checkout and scoped entitlement evidence safely.
 - Verification: PayGate `npm run check` passed with 72 tests.
-- External proof pending: Stripe sandbox Price lookup key confirmation, Vercel env/deploy, one sandbox checkout, webhook evidence, and matching-book access verification.
+- External proof accepted: Stripe sandbox Price lookup key confirmed, Vercel allowlist/deploy completed, one sandbox checkout completed, webhook/item entitlement evidence projected, paid user unlocked, unpaid user remained locked.
 - Evidence: docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md.
+## Phase 7 Track 5J - Operator/Admin Item Evidence and Reconciliation Review
+
+- Operator/admin item evidence review is documented for the controlled Single Cast sandbox proof.
+- One-time item purchases are not subscription purchases; missing subscription evidence must not be treated as a Single Cast failure by itself.
+- For Track 5J, verified Stripe webhook evidence with item metadata is the authoritative entitlement source.
+- Future item-specific reconciliation repair remains deferred.
+- Evidence: docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md.
