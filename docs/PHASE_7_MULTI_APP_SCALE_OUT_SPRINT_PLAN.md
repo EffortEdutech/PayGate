@@ -631,24 +631,45 @@ Evidence: `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
 
 ## Phase 7 Track 6A - UI-driven App Onboarding Workspace Plan
 
-Status: next recommended product step.
+Status: complete; ready for operator acceptance and Track 6B implementation.
 
 Goal: turn PayGate onboarding from a partially manual/document-driven workflow into a guided operator workspace that can prepare app onboarding safely without exposing secrets or bypassing registry authority.
 
 Checklist:
 
-- [ ] Define onboarding workspace information architecture.
-- [ ] Define app identity and ownership step.
-- [ ] Define provider account selection step.
-- [ ] Define test/live origins and return contexts step.
-- [ ] Define plan and item catalog drafting step.
-- [ ] Define entitlement mapping step.
-- [ ] Define app auth/JWT setup checklist step.
-- [ ] Define Stripe Product/Price lookup-key checklist step.
-- [ ] Define webhook setup checklist step.
-- [ ] Define sandbox proof checklist step.
-- [ ] Define registry package export or pull-request-ready artifact boundary.
-- [ ] Define final admin evidence review and freeze/go-forward decision step.
-- [ ] Confirm no secrets, live payments, live refunds, or registry mutations are performed without a separate approved workflow.
+- [x] Define onboarding workspace information architecture.
+- [x] Define app identity and ownership step.
+- [x] Define provider account selection step.
+- [x] Define test/live origins and return contexts step.
+- [x] Define plan and item catalog drafting step.
+- [x] Define entitlement mapping step.
+- [x] Define app auth/JWT setup checklist step.
+- [x] Define Stripe Product/Price lookup-key checklist step.
+- [x] Define webhook setup checklist step.
+- [x] Define sandbox proof checklist step.
+- [x] Define registry package export or pull-request-ready artifact boundary.
+- [x] Define final admin evidence review and freeze/go-forward decision step.
+- [x] Confirm no secrets, live payments, live refunds, or registry mutations are performed without a separate approved workflow.
 
-Track 6A replaces Track 5K as the next planned action. Track 5K remains deferred until the operator explicitly approves pageCast Single Cast live-readiness planning.
+Evidence: `docs/PHASE_7_TRACK_6A_UI_DRIVEN_APP_ONBOARDING_WORKSPACE_PLAN.md`.
+
+Track 6A replaces Track 5K as the current planned path. Track 5K remains deferred until the operator explicitly approves pageCast Single Cast live-readiness planning.
+
+## Phase 7 Track 6B - Build UI-driven Onboarding Workspace Shell
+
+Status: next recommended implementation track.
+
+Goal: implement the multi-step Add App / Onboarding workspace shell in `/admin` as a non-mutating UI.
+
+Checklist:
+
+- [ ] Add onboarding workspace navigation steps.
+- [ ] Add per-step completion status and missing-field indicators.
+- [ ] Add intake/provider/URLs/auth/plans/items/Stripe/webhook/sandbox/export panels.
+- [ ] Preserve current admin login/session model.
+- [ ] Keep all data browser-local until export.
+- [ ] Do not write registry files.
+- [ ] Do not call Stripe.
+- [ ] Do not store or display secrets.
+- [ ] Do not enable live payment, live refund, or live item checkout.
+- [ ] Verify admin shell tests and full project check pass.

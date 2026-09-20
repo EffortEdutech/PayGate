@@ -143,6 +143,9 @@ Status: governance cleanup active; pageCast remains sandbox/test, and app onboar
 - [x] Track 5H pageCast item entitlement access enforcement implemented; Single Cast payment activation remains gated. See `docs/PHASE_7_TRACK_5H_PAGECAST_ITEM_ENTITLEMENT_ACCESS_ENFORCEMENT.md`.
 - [x] Track 5I controlled Single Cast sandbox E2E proof accepted behind exact test allowlist. See `docs/PHASE_7_TRACK_5I_SINGLE_CAST_SANDBOX_E2E_PROOF.md`.
 - [x] Track 5J operator/admin item evidence and reconciliation review documented; item-specific reconciliation repair remains deferred. See `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.
+- [x] Governance cleanup records: Phase 6 frozen with refund deferred, pageCast not live, and UI-driven onboarding required. See `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
+- [x] Track 6A UI-driven App Onboarding Workspace Plan created. See `docs/PHASE_7_TRACK_6A_UI_DRIVEN_APP_ONBOARDING_WORKSPACE_PLAN.md`.
+- [ ] Track 6B UI-driven onboarding workspace shell implemented and verified.
 - [ ] Phase 7 freeze note created.
 
 ## Permanent Stop Conditions
