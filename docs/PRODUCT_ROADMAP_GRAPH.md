@@ -12,8 +12,8 @@ flowchart TD
   PH2 --> PH3[Phase 3\nAIntern integration\nFrozen]
   PH3 --> PH4[Phase 4\nProduction hardening\nFrozen]
   PH4 --> PH5[Phase 5\nLive-mode readiness\nFrozen]
-  PH5 --> PH6[Phase 6\nControlled live pilot\nAIntern live proof done; refund deferred]
-  PH6 --> PH7[Phase 7\nOperator console and multi-app scale-out\nCurrent]
+  PH5 --> PH6[Phase 6\nControlled live pilot\nFrozen; refund deferred]
+  PH6 --> PH7[Phase 7\nOperator console and multi-app scale-out\nCurrent governance cleanup]
 
   PH7 --> T71[Track 1\nOperator console UX shell\nImplemented]
   PH7 --> T72[Track 2\nApp #2 intake/classification\nCompleted]
@@ -44,9 +44,10 @@ flowchart TD
   T5H --> T5I[Track 5I\ncontrolled Single Cast sandbox E2E proof\nAccepted]
   T5I --> T5J[Track 5J\noperator item evidence and reconciliation review\nDone]
 
-  T5J --> NEXT{Next decision}
-  NEXT --> T5K[Track 5K\nSingle Cast live readiness gate\nOnly if explicitly approved]
-  NEXT --> F7[Phase 7 freeze prep\nCurrent sandbox-only pageCast state]
+  T5J --> GOV[Governance cleanup\nPhase 6 frozen, pageCast not live, UI-driven onboarding required]
+  GOV --> T6A[Track 6A\nUI-driven App Onboarding Workspace Plan\nNext]
+  GOV -.-> T5K[Track 5K\nSingle Cast live readiness gate\nDeferred unless explicitly approved]
+  T6A --> F7[Phase 7 freeze prep\nAfter UI-driven onboarding path exists]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -66,11 +67,13 @@ flowchart TD
 ## Reading The Graph
 
 - Phases 0-5 are frozen.
-- Phase 6 proved the first controlled live path for AIntern; refund remains deferred.
-- Phase 7 is current.
+- Phase 6 is frozen with refund deferred by operator decision.
+- Phase 7 is current and now in governance cleanup/freeze prep.
 - pageCast Cast Pass sandbox/test onboarding is closed through Track 4L, with Track 4M freeze/go-forward note prepared.
 - Track 5A through Track 5F built the PayGate item/SKU contract, registry loading, checkout gate, provider lookup, persistence, and verified webhook projection.
 - Track 5G and Track 5H connected pageCast to the item contract and enforced scoped item access.
 - Track 5I accepted one controlled Single Cast sandbox E2E proof for USD 9.99.
 - Track 5J documented operator/admin item evidence and clarified that one-time Single Cast purchases are not subscription reconciliation failures.
-- The next decision is either Track 5K live readiness gate, with no live payment until explicit approval, or Phase 7 freeze prep for the current sandbox-only pageCast state.
+- Track 5K is not automatic; pageCast live Stripe remains deferred.
+- The next product step is Track 6A: UI-driven App Onboarding Workspace Plan.
+- PayGate product completion now requires guided UI-driven onboarding, not only manual docs and exported JSON.

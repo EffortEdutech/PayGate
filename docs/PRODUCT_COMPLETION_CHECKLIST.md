@@ -82,7 +82,7 @@ Status: frozen and accepted by operator on 2026-09-07.
 
 ## Phase 6 - Controlled Live Pilot
 
-Status: approved to enter Track 1 documentation/preflight; live execution not authorized until detailed approval record is complete.
+Status: frozen with refund deferred by operator decision on 2026-09-21.
 
 - [x] Phase 6 sprint plan documented.
 - [x] Controlled live payment/refund gate documented.
@@ -93,13 +93,13 @@ Status: approved to enter Track 1 documentation/preflight; live execution not au
 - [x] One approved live checkout completed or pilot explicitly aborted.
 - [x] Live webhook and entitlement proof complete.
 - [x] Portal/reconciliation proof complete or intentionally deferred.
-- [ ] Refund proof complete if approved.
-- [ ] Evidence recorded safely.
-- [ ] Phase 6 freeze note created.
+- [ ] Refund proof complete if approved in a future separate refund gate.
+- [x] Evidence recorded safely enough to freeze current Phase 6 scope.
+- [x] Phase 6 freeze note created with refund deferred; see `docs/PHASE_6_FREEZE_REFUND_DEFERRED.md`.
 
 ## Phase 7 - Operator Console and Multi-App Scale-Out
 
-Status: started; pageCast provider/Stripe setup created; provider account alias confirmed.
+Status: governance cleanup active; pageCast remains sandbox/test, and app onboarding must become UI-driven before product completion.
 
 - [x] Phase 7 sprint plan documented.
 - [x] Multi-app onboarding runbook documented.
@@ -112,7 +112,7 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] App Workspace tabs and better app detail cards implemented.
 - [x] Draft Add/Edit App Wizard preview implemented without registry mutation.
 - [x] Operator visually approves Draft Add App workflow in deployed admin console.
-- [ ] Operator approves app #2 intake.
+- [x] Operator approves app #2 intake; pageCast selected and onboarded through sandbox/test evidence.
 - [x] App #2 draft registry package created: `registry/apps/pagecast`.
 - [x] pageCast per-book checkout item/SKU contract decision recorded as future PayGate extension.
 - [x] pageCast provider/Stripe setup prep documented for `pagecast_cast_pass_monthly`.
@@ -132,7 +132,7 @@ Status: started; pageCast provider/Stripe setup created; provider account alias 
 - [x] Multi-app admin/monitoring verified for pageCast/AIntern test admin view.
 - [x] Onboarding runbook updated from app #2 evidence.
 - [x] Phase 7 Track 4L operator verification accepted; see `docs/PHASE_7_TRACK_4L_MULTI_APP_ADMIN_MONITORING_FREEZE_PREP.md`.
-- [ ] pageCast onboarding freeze/go-forward note acceptance pending; see `docs/PHASE_7_TRACK_4M_PAGECAST_ONBOARDING_FREEZE_GO_FORWARD.md`.
+- [x] pageCast sandbox go-forward accepted through Track 5J; live pageCast remains deferred. See `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
 - [x] Track 5A item/SKU registry contract prepared for pageCast Single Cast; all items remain draft and runtime activation is blocked. See `docs/PHASE_7_TRACK_5A_PAGECAST_ITEM_SKU_REGISTRY_CONTRACT.md`.
 - [x] Track 5B item registry loader/domain types implemented; item checkout remains disabled. See `docs/PHASE_7_TRACK_5B_PAYGATE_ITEM_REGISTRY_LOADER_DOMAIN_TYPES.md`.
 - [x] Track 5C checkout API recognizes `item_ref` but blocks item checkout behind disabled gate. See `docs/PHASE_7_TRACK_5C_ITEM_REF_CHECKOUT_DISABLED_GATE.md`.

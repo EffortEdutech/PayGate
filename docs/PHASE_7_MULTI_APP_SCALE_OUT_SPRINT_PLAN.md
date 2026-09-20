@@ -1,6 +1,6 @@
 # Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
-Status: started; pageCast Track 4 provider/Stripe setup prepared; Stripe sandbox Product/Price pending operator.
+Status: governance cleanup active; pageCast remains sandbox/test and app onboarding must become UI-driven before product completion.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
 Related runbook: `docs/MULTI_APP_ONBOARDING_RUNBOOK.md`.
 Current UX blueprint: `docs/PHASE_7_TRACK_1F_OPERATOR_CONSOLE_UX_BLUEPRINT.md`.
@@ -11,9 +11,9 @@ Scale PayGate from the first proven app, AIntern, to a repeatable multi-app paym
 
 ## Core Guardrail
 
-Phase 7 starts after the controlled live pilot is accepted or explicitly deferred by the operator. New apps must never copy AIntern-specific assumptions blindly. Every app must declare its own app ID, user identity strategy, provider account owner, return URL allowlist, plan catalog, entitlements, and deployment evidence.
+Phase 7 continues after Phase 6 is frozen with refund deferred by the operator. New apps must never copy AIntern-specific assumptions blindly. Every app must declare its own app ID, user identity strategy, provider account owner, return URL allowlist, plan catalog, entitlements, and deployment evidence.
 
-The operator console is not allowed to weaken PayGate authority. It may guide, validate, display, and generate controlled changes, but apps must still submit only `app_id`, `user_ref`, `plan_key`, `return_context`, and `environment`.
+The operator console is not allowed to weaken PayGate authority. It may guide, validate, display, and generate controlled changes, but apps must still submit only `app_id`, `user_ref`, `plan_key`, future non-commercial `item_ref`, `return_context`, and `environment`.
 
 ## Track 1 - Operator Console UX Plan and Checklist
 
@@ -615,3 +615,40 @@ Checklist:
 - [x] Keep item-specific reconciliation repair deferred.
 - [x] Keep live Single Cast payment and broad rollout deferred.
 - Evidence: `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.
+## Phase 7 Governance Cleanup / Freeze Prep
+
+Status: accepted as current governance correction.
+
+Operator decisions:
+
+- [x] Freeze Phase 6 with refund deferred.
+- [x] Keep pageCast Stripe/live mode not active.
+- [x] Require app onboarding to become UI-driven before PayGate product completion.
+- [x] Do not proceed automatically into Track 5K.
+- [x] Keep Track 5K as deferred Single Cast live-readiness gate unless explicitly approved.
+
+Evidence: `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
+
+## Phase 7 Track 6A - UI-driven App Onboarding Workspace Plan
+
+Status: next recommended product step.
+
+Goal: turn PayGate onboarding from a partially manual/document-driven workflow into a guided operator workspace that can prepare app onboarding safely without exposing secrets or bypassing registry authority.
+
+Checklist:
+
+- [ ] Define onboarding workspace information architecture.
+- [ ] Define app identity and ownership step.
+- [ ] Define provider account selection step.
+- [ ] Define test/live origins and return contexts step.
+- [ ] Define plan and item catalog drafting step.
+- [ ] Define entitlement mapping step.
+- [ ] Define app auth/JWT setup checklist step.
+- [ ] Define Stripe Product/Price lookup-key checklist step.
+- [ ] Define webhook setup checklist step.
+- [ ] Define sandbox proof checklist step.
+- [ ] Define registry package export or pull-request-ready artifact boundary.
+- [ ] Define final admin evidence review and freeze/go-forward decision step.
+- [ ] Confirm no secrets, live payments, live refunds, or registry mutations are performed without a separate approved workflow.
+
+Track 6A replaces Track 5K as the next planned action. Track 5K remains deferred until the operator explicitly approves pageCast Single Cast live-readiness planning.
