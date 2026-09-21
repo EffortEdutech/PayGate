@@ -22,7 +22,8 @@
     "dev": "tsx payment-hub/src/dev-server.ts",
     "dev:local": "node --env-file=.env.local node_modules/tsx/dist/cli.mjs payment-hub/src/dev-server.ts",
     "phase2:check": "npm run check",
-    "graphify": "tsx scripts/graphify-product-plan.ts"
+    "graphify": "tsx scripts/graphify-product-plan.ts",
+    "proposal:dry-run": "tsx scripts/onboarding-registry-proposal.ts"
   },
   "dependencies": {
     "@types/pg": "^8.23.1",

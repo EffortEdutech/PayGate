@@ -721,3 +721,18 @@ Checklist:
 - [ ] Show/write dry-run output without mutating registry by default.
 - [ ] Add explicit operator approval requirement for any future write mode.
 - [ ] Run validation/check commands after any approved write mode.
+Evidence: `docs/PHASE_7_TRACK_6E_REGISTRY_PROPOSAL_DRY_RUN.md`.
+
+## Phase 7 Track 6F - Operator Approval Gate for Registry Proposal Apply
+
+Status: next recommended planning/implementation track.
+
+Goal: define and/or implement the explicit operator approval boundary required before a dry-run proposal can write files into `registry/apps`.
+
+Checklist:
+
+- [ ] Define exact approval phrase or UI control for write mode.
+- [ ] Require dry-run preview before apply.
+- [ ] Refuse overwriting existing app packages unless update mode is explicit.
+- [ ] Run `npm run validate:registry` and `npm run check` after approved apply.
+- [ ] Keep Stripe, Vercel env vars, live mode, refunds, deployments, and entitlements outside automatic apply.

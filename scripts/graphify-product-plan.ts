@@ -21,6 +21,7 @@ const requiredDocs = [
   "docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md",
   "docs/PHASE_7_TRACK_6C_ONBOARDING_VALIDATION_EXPORT_HARDENING.md",
   "docs/PHASE_7_TRACK_6D_CONTROLLED_REGISTRY_PROPOSAL_PLAN.md",
+  "docs/PHASE_7_TRACK_6E_REGISTRY_PROPOSAL_DRY_RUN.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -113,7 +114,8 @@ flowchart TD
 - Track 6B implemented the non-mutating onboarding workspace shell in /admin.
 - Track 6C hardened onboarding validation/export and prepared the registry proposal handoff artifact.
 - Track 6D defined the controlled path from onboarding artifact to reviewed registry proposal files.
-- The next product step is Track 6E: build a dry-run proposal generator without default file mutation.
+- Track 6E implemented a non-mutating dry-run registry proposal generator.
+- The next product step is Track 6F: define the explicit operator approval gate for any registry apply/write mode.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
 `;
 
