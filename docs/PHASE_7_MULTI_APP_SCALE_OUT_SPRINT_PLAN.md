@@ -755,14 +755,29 @@ Evidence: `docs/PHASE_7_TRACK_6G_E2E_PROPOSAL_APPLY_REHEARSAL.md`.
 
 ## Phase 7 Track 6H - Real App Onboarding Operator Runbook and UI Handoff
 
-Status: next recommended planning/implementation track.
+Status: complete.
 
 Goal: convert the proven dry-run/apply rehearsal into the operator-facing process for onboarding the next real app safely.
 
 Checklist:
 
-- [ ] Define operator steps from `/admin` export to proposal dry-run.
-- [ ] Define where proposal review artifacts are stored.
-- [ ] Define when approved apply is allowed for a real app.
-- [ ] Define post-apply validation, commit, deploy, and sandbox proof sequence.
-- [ ] Keep live payments, refunds, Stripe mutation, Vercel env mutation, and entitlement grants in separate approval gates.
+- [x] Define operator steps from `/admin` export to proposal dry-run.
+- [x] Define where proposal review artifacts are stored.
+- [x] Define when approved apply is allowed for a real app.
+- [x] Define post-apply validation, commit, deploy, and sandbox proof sequence.
+- [x] Keep live payments, refunds, Stripe mutation, Vercel env mutation, and entitlement grants in separate approval gates.
+Evidence: `docs/PHASE_7_TRACK_6H_REAL_APP_ONBOARDING_RUNBOOK_UI_HANDOFF.md`.
+
+## Phase 7 Track 6I - UI-Driven Onboarding Freeze Prep and First Real-App Candidate Gate
+
+Status: next recommended planning/implementation track.
+
+Goal: decide whether the UI-driven onboarding workflow is ready to freeze for operator use, then select the next real app candidate for a sandbox-only onboarding run.
+
+Checklist:
+
+- [ ] Review Track 6H runbook against current `/admin` onboarding UI.
+- [ ] Confirm the UI export includes every field required by the proposal generator.
+- [ ] Confirm operator evidence folder convention is accepted.
+- [ ] Pick one real app candidate for the next controlled sandbox-only onboarding.
+- [ ] Confirm no live payment, refund, provider mutation, or Vercel env mutation is bundled into the candidate gate.

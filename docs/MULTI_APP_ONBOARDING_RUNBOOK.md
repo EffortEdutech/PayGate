@@ -28,6 +28,59 @@ Applications submit only:
 
 Applications must never submit authoritative amount, currency, provider price ID, provider customer ID, provider subscription ID, provider account, or entitlement grants.
 
+
+## Primary UI-Driven Onboarding Workflow
+
+As of Phase 7 Track 6H, the primary path for a real new app is UI-driven first, CLI-controlled second:
+
+```text
+/admin onboarding workspace
+  -> export non-mutating onboarding artifact
+  -> proposal dry-run into review folder
+  -> operator/reviewer approval
+  -> exact-phrase registry apply
+  -> validate/check
+  -> commit/deploy
+  -> sandbox proof
+```
+
+The older manual registry steps in this runbook remain useful as review detail, but they are no longer the preferred starting point for a real app. A real app should begin in the PayGate admin onboarding workspace so the operator can see the app, provider, auth, plans, URLs, and item/SKU requirements in one controlled workflow.
+
+Review artifacts should be stored outside the registry package, for example:
+
+```text
+C:\Users\user\Documents\PayGate Proposal Reviews\<app_id>\<YYYY-MM-DD>\
+```
+
+Dry-run command:
+
+```powershell
+npm run proposal:dry-run -- "C:\Users\user\Documents\PayGate Proposal Reviews\<app_id>\<YYYY-MM-DD>\onboarding-artifact.json" --out-dir "C:\Users\user\Documents\PayGate Proposal Reviews\<app_id>\<YYYY-MM-DD>"
+```
+
+Approved apply command, only after review:
+
+```powershell
+npm run proposal:dry-run -- "C:\Users\user\Documents\PayGate Proposal Reviews\<app_id>\<YYYY-MM-DD>\onboarding-artifact.json" --apply --approval "APPLY REGISTRY PROPOSAL <app_id>" --root "C:\Users\user\Documents\00 Payment Gateway"
+```
+
+After apply, both commands are mandatory before commit or deployment:
+
+```powershell
+npm run validate:registry
+npm run check
+```
+
+Hard gates that stay outside automatic apply:
+
+- Stripe product, price, webhook, or credential mutation.
+- Vercel environment variable mutation.
+- Live payment or refund execution.
+- Browser-return entitlement grants.
+- Updating an existing registry app package without an explicit update-mode design.
+
+Detailed Track 6H handoff: `docs/PHASE_7_TRACK_6H_REAL_APP_ONBOARDING_RUNBOOK_UI_HANDOFF.md`.
+
 ## Stage 0 - Operator Intake
 
 Collect these facts before touching code:
