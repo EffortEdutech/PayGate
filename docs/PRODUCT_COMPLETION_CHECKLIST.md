@@ -161,4 +161,6 @@ Stop and re-plan if any work would:
 - run live payments/refunds without explicit approval;
 - add new providers or apps outside the documented roadmap.
 
-- [ ] Track 6D controlled registry proposal generation plan complete.
+- [x] Track 6D controlled registry proposal generation plan complete. See `docs/PHASE_7_TRACK_6D_CONTROLLED_REGISTRY_PROPOSAL_PLAN.md`.
+
+- [ ] Track 6E controlled registry proposal generator dry-run complete.

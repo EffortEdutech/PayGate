@@ -48,9 +48,10 @@ flowchart TD
   GOV --> T6A[Track 6A\nUI-driven App Onboarding Workspace Plan\nDone]
   T6A --> T6B[Track 6B\nBuild onboarding workspace shell\nDone]
   T6B --> T6C[Track 6C\nOnboarding validation and export hardening\nDone]
-  T6C --> T6D[Track 6D\nControlled registry proposal generation plan\nNext]
+  T6C --> T6D[Track 6D\nControlled registry proposal generation plan\nDone]
+  T6D --> T6E[Track 6E\nControlled registry proposal generator dry-run\nNext]
   GOV -.-> T5K[Track 5K\nSingle Cast live readiness gate\nDeferred unless explicitly approved]
-  T6D --> F7[Phase 7 freeze prep\nAfter controlled registry proposal path is planned]
+  T6E --> F7[Phase 7 freeze prep\nAfter controlled registry proposal dry-run exists]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -81,5 +82,6 @@ flowchart TD
 - Track 6A defines the UI-driven App Onboarding Workspace Plan.
 - Track 6B implemented the non-mutating onboarding workspace shell in /admin.
 - Track 6C hardened onboarding validation/export and prepared the registry proposal handoff artifact.
-- The next product step is Track 6D: define controlled registry proposal generation.
+- Track 6D defined the controlled path from onboarding artifact to reviewed registry proposal files.
+- The next product step is Track 6E: build a dry-run proposal generator without default file mutation.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

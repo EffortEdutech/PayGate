@@ -694,14 +694,30 @@ Evidence: `docs/PHASE_7_TRACK_6C_ONBOARDING_VALIDATION_EXPORT_HARDENING.md`.
 
 ## Phase 7 Track 6D - Controlled Registry Proposal Generation Plan
 
-Status: next recommended planning track.
+Status: planned and accepted.
 
 Goal: define the safe path from exported onboarding artifact to reviewed registry package files without giving the browser direct mutation authority.
 
 Checklist:
 
-- [ ] Define registry proposal file mapping from onboarding artifact.
-- [ ] Define operator approval gate before writing files.
-- [ ] Define validation commands required before commit/deploy.
-- [ ] Define rollback/review expectations for proposed registry changes.
-- [ ] Keep Stripe, Vercel env vars, live mode, refunds, and entitlements outside automatic apply.
+- [x] Define registry proposal file mapping from onboarding artifact.
+- [x] Define operator approval gate before writing files.
+- [x] Define validation commands required before commit/deploy.
+- [x] Define rollback/review expectations for proposed registry changes.
+- [x] Keep Stripe, Vercel env vars, live mode, refunds, and entitlements outside automatic apply.
+
+Evidence: `docs/PHASE_7_TRACK_6D_CONTROLLED_REGISTRY_PROPOSAL_PLAN.md`.
+
+## Phase 7 Track 6E - Controlled Registry Proposal Generator Dry-Run
+
+Status: next recommended implementation track.
+
+Goal: create a dry-run proposal tool or admin workflow that transforms an exported onboarding artifact into reviewable registry file proposals without writing files by default.
+
+Checklist:
+
+- [ ] Parse exported onboarding artifact safely.
+- [ ] Generate proposed `app.yaml`, `plans.yaml`, `entitlements.yaml`, `env.example`, integration docs, and optional `items.yaml`.
+- [ ] Show/write dry-run output without mutating registry by default.
+- [ ] Add explicit operator approval requirement for any future write mode.
+- [ ] Run validation/check commands after any approved write mode.
