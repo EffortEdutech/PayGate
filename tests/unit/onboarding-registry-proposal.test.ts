@@ -1,11 +1,11 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { parse } from "yaml";
-import { generateRegistryProposal, writeDryRunProposal, type OnboardingArtifact } from "../../scripts/onboarding-registry-proposal.js";
+import { applyRegistryProposal, generateRegistryProposal, registryApplyApprovalPhrase, writeDryRunProposal, type OnboardingArtifact } from "../../scripts/onboarding-registry-proposal.js";
 
 function artifact(overrides: Partial<OnboardingArtifact> = {}): OnboardingArtifact {
   return {
@@ -114,4 +114,42 @@ test("onboarding registry proposal dry-run does not write registry by default an
 test("onboarding registry proposal refuses dry-run output inside registry", async () => {
   const proposal = generateRegistryProposal(artifact());
   await assert.rejects(() => writeDryRunProposal(proposal, path.join("registry", "proposal-review")), /Refusing to write dry-run proposal inside registry/);
+});
+
+test("onboarding registry proposal apply requires exact operator approval phrase", async () => {
+  const proposal = generateRegistryProposal(artifact());
+  const tempRoot = await mkdtemp(path.join(tmpdir(), "paygate-apply-gate-"));
+  try {
+    await assert.rejects(
+      () => applyRegistryProposal(proposal, { rootDir: tempRoot, approvalPhrase: "yes please" }),
+      /Approval phrase mismatch/,
+    );
+    assert.equal(existsSync(path.join(tempRoot, "registry", "apps", "story_app")), false);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("onboarding registry proposal apply writes only after approval and reports required checks", async () => {
+  const proposal = generateRegistryProposal(artifact());
+  const tempRoot = await mkdtemp(path.join(tmpdir(), "paygate-apply-approved-"));
+  try {
+    const result = await applyRegistryProposal(proposal, {
+      rootDir: tempRoot,
+      approvalPhrase: registryApplyApprovalPhrase("story_app"),
+    });
+
+    assert.equal(result.status, "applied_to_working_tree");
+    assert.equal(result.targetDirectory, "registry/apps/story_app");
+    assert.deepEqual(result.requiredValidationCommands, ["npm run validate:registry", "npm run check"]);
+    assert.ok(result.filesWritten.includes("registry/apps/story_app/app.yaml"));
+    assert.match(await readFile(path.join(tempRoot, "registry", "apps", "story_app", "app.yaml"), "utf8"), /app_id: story_app/);
+
+    await assert.rejects(
+      () => applyRegistryProposal(proposal, { rootDir: tempRoot, approvalPhrase: registryApplyApprovalPhrase("story_app") }),
+      /already exists/,
+    );
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });

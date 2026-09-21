@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { stringify } from "yaml";
@@ -54,6 +55,20 @@ export type RegistryProposal = {
   files: ProposedRegistryFile[];
   warnings: string[];
   blockedReasons: string[];
+};
+
+export type ApplyRegistryProposalOptions = {
+  rootDir: string;
+  approvalPhrase: string;
+  allowExisting?: boolean;
+};
+
+export type ApplyRegistryProposalResult = {
+  appId: string;
+  status: "applied_to_working_tree";
+  targetDirectory: string;
+  filesWritten: string[];
+  requiredValidationCommands: string[];
 };
 
 const SAFE_IDENTIFIER = /^[a-z][a-z0-9_]{2,63}$/;
@@ -202,6 +217,19 @@ export async function loadOnboardingArtifact(filePath: string): Promise<Onboardi
   return JSON.parse(await readFile(filePath, "utf8")) as OnboardingArtifact;
 }
 
+export function registryApplyApprovalPhrase(appId: string): string {
+  return `APPLY REGISTRY PROPOSAL ${appId}`;
+}
+
+function assertProposalIsApplyable(proposal: RegistryProposal): void {
+  if (proposal.blockedReasons.length > 0) throw new Error(`Proposal is blocked: ${proposal.blockedReasons.join("; ")}`);
+}
+
+function assertInsideDirectory(target: string, directory: string): void {
+  const relative = path.relative(directory, target);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error(`Refusing to write outside approved directory: ${target}`);
+}
+
 export async function writeDryRunProposal(proposal: RegistryProposal, outDir: string): Promise<void> {
   if (path.normalize(outDir).split(path.sep).includes("registry")) {
     throw new Error("Refusing to write dry-run proposal inside registry/. Choose a separate review output directory.");
@@ -213,14 +241,52 @@ export async function writeDryRunProposal(proposal: RegistryProposal, outDir: st
   }
 }
 
+export async function applyRegistryProposal(proposal: RegistryProposal, options: ApplyRegistryProposalOptions): Promise<ApplyRegistryProposalResult> {
+  assertProposalIsApplyable(proposal);
+  const expectedApproval = registryApplyApprovalPhrase(proposal.appId);
+  if (options.approvalPhrase !== expectedApproval) {
+    throw new Error(`Approval phrase mismatch. Required exact phrase: ${expectedApproval}`);
+  }
+
+  const rootDir = path.resolve(options.rootDir);
+  const appsRoot = path.join(rootDir, "registry", "apps");
+  const targetDirectory = path.join(appsRoot, proposal.appId);
+  assertInsideDirectory(targetDirectory, appsRoot);
+
+  if (existsSync(targetDirectory) && options.allowExisting !== true) {
+    throw new Error(`Registry app package already exists: ${proposal.appId}. Re-run with explicit update mode only after operator approval.`);
+  }
+
+  const filesWritten: string[] = [];
+  for (const file of proposal.files) {
+    const target = path.resolve(rootDir, file.relativePath);
+    assertInsideDirectory(target, targetDirectory);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, file.content, "utf8");
+    filesWritten.push(path.relative(rootDir, target).replace(/\\/g, "/"));
+  }
+
+  return {
+    appId: proposal.appId,
+    status: "applied_to_working_tree",
+    targetDirectory: path.relative(rootDir, targetDirectory).replace(/\\/g, "/"),
+    filesWritten,
+    requiredValidationCommands: ["npm run validate:registry", "npm run check"],
+  };
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const artifactIndex = args.indexOf("--artifact");
   const outIndex = args.indexOf("--out-dir");
-  const positionalArtifact = args.find((arg, index) => !arg.startsWith("--") && args[index - 1] !== "--artifact" && args[index - 1] !== "--out-dir");
+  const rootIndex = args.indexOf("--root");
+  const approvalIndex = args.indexOf("--approval");
+  const shouldApply = args.includes("--apply");
+  const allowExisting = args.includes("--allow-existing");
+  const positionalArtifact = args.find((arg, index) => !arg.startsWith("--") && args[index - 1] !== "--artifact" && args[index - 1] !== "--out-dir" && args[index - 1] !== "--root" && args[index - 1] !== "--approval");
   const artifactPath = artifactIndex >= 0 ? args[artifactIndex + 1] : positionalArtifact;
   if (!artifactPath) {
-    throw new Error("Usage: tsx scripts/onboarding-registry-proposal.ts --artifact <artifact.json> [--out-dir <review-dir>] or tsx scripts/onboarding-registry-proposal.ts <artifact.json>");
+    throw new Error("Usage: tsx scripts/onboarding-registry-proposal.ts --artifact <artifact.json> [--out-dir <review-dir>] [--apply --approval <exact phrase> --root <repo>] or tsx scripts/onboarding-registry-proposal.ts <artifact.json>");
   }
   const artifact = await loadOnboardingArtifact(artifactPath);
   const proposal = generateRegistryProposal(artifact);
@@ -229,8 +295,13 @@ async function main(): Promise<void> {
     process.exitCode = 1;
     return;
   }
+  if (shouldApply) {
+    const result = await applyRegistryProposal(proposal, { rootDir: rootIndex >= 0 && args[rootIndex + 1] ? args[rootIndex + 1] : process.cwd(), approvalPhrase: approvalIndex >= 0 ? args[approvalIndex + 1] ?? "" : "", allowExisting });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
   if (outIndex >= 0 && args[outIndex + 1]) await writeDryRunProposal(proposal, args[outIndex + 1]);
-  console.log(JSON.stringify({ status: proposal.status, appId: proposal.appId, targetDirectory: proposal.targetDirectory, files: proposal.files.map((file) => file.relativePath), warnings: proposal.warnings, wroteDryRunTo: outIndex >= 0 ? args[outIndex + 1] : null }, null, 2));
+  console.log(JSON.stringify({ status: proposal.status, appId: proposal.appId, targetDirectory: proposal.targetDirectory, files: proposal.files.map((file) => file.relativePath), warnings: proposal.warnings, approvalPhraseRequiredForApply: registryApplyApprovalPhrase(proposal.appId), wroteDryRunTo: outIndex >= 0 ? args[outIndex + 1] : null }, null, 2));
 }
 
 if (process.argv[1] && process.argv[1].endsWith("onboarding-registry-proposal.ts")) {

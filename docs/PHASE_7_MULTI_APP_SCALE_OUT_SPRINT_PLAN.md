@@ -736,3 +736,18 @@ Checklist:
 - [ ] Refuse overwriting existing app packages unless update mode is explicit.
 - [ ] Run `npm run validate:registry` and `npm run check` after approved apply.
 - [ ] Keep Stripe, Vercel env vars, live mode, refunds, deployments, and entitlements outside automatic apply.
+Evidence: `docs/PHASE_7_TRACK_6F_OPERATOR_APPROVAL_APPLY_GATE.md`.
+
+## Phase 7 Track 6G - End-to-End Proposal Apply Rehearsal
+
+Status: next recommended implementation track.
+
+Goal: rehearse the dry-run -> approved apply -> validation cycle using a throwaway app artifact and isolated root/output, before using the flow for a real app.
+
+Checklist:
+
+- [ ] Create or generate a throwaway onboarding artifact.
+- [ ] Run proposal dry-run and review proposed files.
+- [ ] Apply with the exact approval phrase into an isolated root.
+- [ ] Run registry validation/checks against the isolated proposal.
+- [ ] Confirm no Stripe, Vercel, live-mode, refund, deployment, or entitlement mutation occurs.

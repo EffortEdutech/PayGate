@@ -165,4 +165,6 @@ Stop and re-plan if any work would:
 
 - [x] Track 6E controlled registry proposal generator dry-run complete. See `docs/PHASE_7_TRACK_6E_REGISTRY_PROPOSAL_DRY_RUN.md`.
 
-- [ ] Track 6F operator approval gate for registry proposal apply complete.
+- [x] Track 6F operator approval gate for registry proposal apply complete. See `docs/PHASE_7_TRACK_6F_OPERATOR_APPROVAL_APPLY_GATE.md`.
+
+- [ ] Track 6G end-to-end proposal apply rehearsal complete.

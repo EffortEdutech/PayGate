@@ -84,5 +84,6 @@ flowchart TD
 - Track 6C hardened onboarding validation/export and prepared the registry proposal handoff artifact.
 - Track 6D defined the controlled path from onboarding artifact to reviewed registry proposal files.
 - Track 6E implemented a non-mutating dry-run registry proposal generator.
-- The next product step is Track 6F: define the explicit operator approval gate for any registry apply/write mode.
+- Track 6F implemented the explicit operator approval gate for registry apply/write mode.
+- The next product step is Track 6G: rehearse the dry-run to approved-apply cycle with a throwaway app.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
