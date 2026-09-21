@@ -18,6 +18,7 @@ const requiredDocs = [
   "docs/PHASE_6_FREEZE_REFUND_DEFERRED.md",
   "docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md",
   "docs/PHASE_7_TRACK_6A_UI_DRIVEN_APP_ONBOARDING_WORKSPACE_PLAN.md",
+  "docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -73,9 +74,10 @@ flowchart TD
 
   T5J --> GOV[Governance cleanup\\nPhase 6 frozen, pageCast not live, UI-driven onboarding required]
   GOV --> T6A[Track 6A\\nUI-driven App Onboarding Workspace Plan\\nDone]
-  T6A --> T6B[Track 6B\\nBuild onboarding workspace shell\\nNext]
+  T6A --> T6B[Track 6B\\nBuild onboarding workspace shell\\nDone]
+  T6B --> T6C[Track 6C\\nOnboarding validation and export hardening\\nNext]
   GOV -.-> T5K[Track 5K\\nSingle Cast live readiness gate\\nDeferred unless explicitly approved]
-  T6B --> F7[Phase 7 freeze prep\\nAfter UI-driven onboarding shell exists]
+  T6C --> F7[Phase 7 freeze prep\\nAfter UI-driven onboarding is hardened]
 
   DEFER1[Deferred\\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\\npageCast live-mode payment readiness]
@@ -104,7 +106,8 @@ flowchart TD
 - Track 5J documented operator/admin item evidence and clarified that one-time Single Cast purchases are not subscription reconciliation failures.
 - Track 5K is not automatic; pageCast live Stripe remains deferred.
 - Track 6A defines the UI-driven App Onboarding Workspace Plan.
-- The next product step is Track 6B: build the non-mutating onboarding workspace shell in /admin.
+- Track 6B implemented the non-mutating onboarding workspace shell in /admin.
+- The next product step is Track 6C: harden onboarding validation and export quality.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
 `;
 

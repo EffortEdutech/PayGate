@@ -1,4 +1,4 @@
-﻿import type { IncomingMessage, ServerResponse } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 type RuntimeModule = typeof import("../payment-hub/src/runtime/runtime.js");
@@ -625,10 +625,18 @@ const ADMIN_HTML = `<!doctype html>
     .workspace-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
     .wizard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .wizard-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    .onboarding-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+    .onboarding-steps { display: grid; gap: 8px; }
+    .onboarding-step { width: 100%; text-align: left; background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 11px 12px; min-height: 54px; }
+    .onboarding-step.active { border-color: #84adff; box-shadow: 0 0 0 4px var(--brand-soft); }
+    .onboarding-step-title { display:block; font-weight: 950; }
+    .onboarding-step-meta { display:block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .checklist { display: grid; gap: 8px; }
+    .checkline { display:flex; gap: 9px; align-items:flex-start; border:1px solid var(--line); border-radius: 12px; background:#fff; padding:10px; color: var(--muted); font-size: 13px; }
     textarea { width: 100%; min-height: 120px; border: 1px solid #d0d5dd; border-radius: 12px; padding: 11px 12px; font: inherit; resize: vertical; }
     .identity-help { margin-top: 14px; display: grid; gap: 5px; border: 1px solid #b2ccff; background: var(--brand-soft); border-radius: 16px; padding: 12px; color: #1849a9; }
     .identity-help span { color: #194185; font-size: 13px; line-height: 1.45; }
-    @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar { grid-template-columns: 1fr; display: grid; min-width: 0; } }
+    @media (max-width: 980px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .content { padding: 14px; } .topbar, .view-header { flex-direction: column; align-items: stretch; } .topbar-actions, .kpi-grid, .two-col, .three-col, .toolbar, .onboarding-layout { grid-template-columns: 1fr; display: grid; min-width: 0; } }
   </style>
 </head>
 <body>
@@ -708,7 +716,7 @@ const ADMIN_HTML = `<!doctype html>
 
 <script>
 (function(){
-  var state = { view: 'dashboard', environment: 'test', summary: null, monitoring: null, selectedAppId: '', loadedAt: '', error: null };
+  var state = { view: 'dashboard', environment: 'test', summary: null, monitoring: null, selectedAppId: '', loadedAt: '', error: null, onboardingStep: 'intake', onboardingDraft: {} };
   function el(id){ return document.getElementById(id); }
   function esc(value){ return String(value == null ? '' : value).replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }
   function fmtDate(value){ if(!value) return 'not recorded'; try { return new Date(value).toLocaleString(); } catch(e) { return value; } }
@@ -787,7 +795,7 @@ const ADMIN_HTML = `<!doctype html>
     document.querySelectorAll('.nav button[data-view]').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.view === view); });
     document.querySelectorAll('.view').forEach(function(node){ node.classList.add('hidden'); });
     el('view-' + view).classList.remove('hidden');
-    var subtitles = { dashboard:'Monitor gateway health first, then open an app workspace when action is needed.', apps:'Find and select the app you want to operate.', workspace:'Work on one app at a time: plans, customers, webhooks, entitlements, evidence.', providers:'Check which Stripe accounts serve which apps without exposing secrets.', webhooks:'Review recent provider events and processing status.', reconciliation:'Review reconciliation outcomes and attention items.', settings:'Review safe operating boundaries and current environment.', support:'Raw safe JSON for troubleshooting only.', addapp:'Prepare a draft app registry package without applying changes.' };
+    var subtitles = { dashboard:'Monitor gateway health first, then open an app workspace when action is needed.', apps:'Find and select the app you want to operate.', workspace:'Work on one app at a time: plans, customers, webhooks, entitlements, evidence.', providers:'Check which Stripe accounts serve which apps without exposing secrets.', webhooks:'Review recent provider events and processing status.', reconciliation:'Review reconciliation outcomes and attention items.', settings:'Review safe operating boundaries and current environment.', support:'Raw safe JSON for troubleshooting only.', addapp:'Prepare a guided non-mutating onboarding workspace for a new app.' };
     el('pageSubtitle').textContent = subtitles[view] || '';
     render();
   }
@@ -875,51 +883,83 @@ const ADMIN_HTML = `<!doctype html>
     el('view-settings').innerHTML = '<div class="view-header"><div><h2>Settings</h2><p>Safe operating notes for this read-only shell.</p></div></div><div class="three-col">' + panel('PayGate Operator Identity', '<p><strong>Belongs to PayGate.</strong></p><p>Current login uses <code>OPERATOR_DIAGNOSTICS_TOKEN</code> only to create a protected admin session cookie.</p><p>Future UX: named operator accounts, roles, and audit trail.</p>') + panel('App User Identity', '<p><strong>Belongs to each app.</strong></p><p>AIntern users authenticate with their app JWT. App JWTs can create checkout/portal for that same user only.</p>') + panel('Provider Identity', '<p><strong>Belongs to Stripe/company accounts.</strong></p><p>Provider account aliases such as <code>nhl_global_solution</code> route money and webhooks. Secrets stay server-side.</p>') + '</div><div class="panel"><h3>Current Scope</h3><p>Environment filter: <strong>' + esc(state.environment) + '</strong></p><p>Loaded at: ' + esc(state.loadedAt || 'not loaded') + '</p><p>Add App, edit registry, refunds, and live-mode mutation actions are intentionally outside this slice.</p></div>';
   }
   function renderAddApp(){
-    el('view-addapp').innerHTML = '<div class="view-header"><div><h2>Draft Add App Wizard</h2><p>Create a validated registry draft for app #2. This does not save, deploy, or mutate PayGate.</p></div><span class="status warn">draft export only</span></div>' +
-      '<div class="panel"><h3>App identity</h3><div class="wizard-grid">' +
-        wizardInput('draftAppId','App ID','example_app') + wizardInput('draftAppName','Display name','Example App') +
-        wizardInput('draftProvider','Provider account alias','nhl_global_solution') + wizardInput('draftAuth','Auth model','supabase_jwt') +
-        wizardInput('draftTestOrigin','Test origin','https://example-app-test.vercel.app/') + wizardInput('draftLiveOrigin','Live origin','https://example-app.com/') +
-      '</div></div>' +
-      '<div class="panel"><h3>First plan</h3><div class="wizard-grid">' +
-        wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') +
-        wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') +
-        wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') +
-      '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label><div class="wizard-actions"><button id="validateDraftBtn" class="secondary" type="button">Validate Draft</button><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button><button id="downloadDraftBtn" class="secondary" type="button">Download JSON</button></div></div>' +
-      '<div class="panel"><h3>Validation summary</h3><div id="draftValidation" class="list">' + empty('Not validated yet. Click Validate Draft or Generate Draft Preview.') + '</div></div>' +
-      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review/export only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">Fill the wizard and click Generate Draft Preview.</pre></div>' +
-      '<div class="panel"><h3>Safety checklist</h3><div class="list">' +
-        row('No secrets', 'Do not paste Stripe secret keys, webhook secrets, JWT secrets, or database URLs into this wizard.', 'server-side env vars only') +
-        row('Commercial authority', 'Apps submit logical plan keys only. PayGate owns amount, currency, lookup key, return URLs, and entitlements.', 'registry validation required') +
-        row('Draft-first workflow', 'This screen creates a copyable/downloadable preview only. It does not update production configuration.', 'operator approval required') +
-      '</div></div>';
+    var draft = buildDraftPackage();
+    var validation = validateDraftPackage(draft);
+    var steps = onboardingSteps();
+    var step = steps.find(function(item){ return item.key === state.onboardingStep; }) || steps[0];
+    el('view-addapp').innerHTML = '<div class="view-header"><div><h2>UI-driven App Onboarding Workspace</h2><p>Guided setup for the next app. This replaces command-first onboarding with a browser workspace, while staying non-mutating.</p></div><span class="status warn">draft workspace only</span></div>' +
+      '<div class="banner"><strong>Safety boundary:</strong> This workspace does not write registry files, does not call Stripe, does not store secrets, does not deploy, and does not enable live payments or refunds.</div>' +
+      '<div class="onboarding-layout"><section class="panel"><h3>Onboarding steps</h3><div class="onboarding-steps">' + steps.map(function(item){ return '<button type="button" class="onboarding-step ' + (item.key === step.key ? 'active' : '') + '" data-onboarding-step="' + esc(item.key) + '"><span class="onboarding-step-title">' + esc(item.label) + '</span><span class="onboarding-step-meta">' + esc(item.meta) + '</span></button>'; }).join('') + '</div></section>' +
+      '<section id="onboardingStepPanel">' + onboardingStepHtml(step.key, draft, validation) + '</section></div>' +
+      '<div class="panel"><h3>Workspace actions</h3><p>This keeps all draft data in browser memory until export. Engineering review and <code>npm run validate:registry</code> remain mandatory before commit/deploy.</p><div class="wizard-actions"><button id="validateDraftBtn" class="secondary" type="button">Validate Draft</button><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button><button id="downloadDraftBtn" class="secondary" type="button">Download JSON</button></div></div>' +
+      '<div class="panel"><h3>Validation summary</h3><div id="draftValidation" class="list">' + validationSummaryHtml(validation) + '</div></div>' +
+      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review/export only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">' + esc(JSON.stringify(draft, null, 2)) + '</pre></div>';
+    document.querySelectorAll('[data-onboarding-step]').forEach(function(btn){ btn.addEventListener('click', function(){ saveOnboardingDraft(); state.onboardingStep = btn.getAttribute('data-onboarding-step') || 'intake'; renderAddApp(); }); });
+    document.querySelectorAll('[data-onboarding-field]').forEach(function(node){ node.addEventListener('input', saveOnboardingDraft); });
     var validate = el('validateDraftBtn');
     var generate = el('generateDraftBtn');
     var copy = el('copyDraftBtn');
     var download = el('downloadDraftBtn');
-    if(validate) validate.addEventListener('click', function(){ renderDraftValidation(buildDraftPackage()); });
+    if(validate) validate.addEventListener('click', function(){ saveOnboardingDraft(); renderDraftValidation(buildDraftPackage()); });
     if(generate) generate.addEventListener('click', generateDraftPreview);
     if(copy) copy.addEventListener('click', copyDraftPreview);
     if(download) download.addEventListener('click', downloadDraftPreview);
   }
-  function wizardInput(id, label, placeholder){ return '<label>' + esc(label) + '<input id="' + id + '" placeholder="' + esc(placeholder) + '" /></label>'; }
-  function draftValue(id){ var node = el(id); return node ? node.value.trim() : ''; }
+  function onboardingSteps(){
+    return [
+      { key:'intake', label:'1. Intake', meta:'identity and ownership' },
+      { key:'provider', label:'2. Provider', meta:'company Stripe alias' },
+      { key:'urls', label:'3. URLs', meta:'origins and contexts' },
+      { key:'auth', label:'4. Auth', meta:'JWT boundary checklist' },
+      { key:'plans', label:'5. Plans', meta:'PayGate-owned prices' },
+      { key:'items', label:'6. Items / SKU', meta:'optional scoped purchases' },
+      { key:'stripe', label:'7. Stripe setup', meta:'lookup-key checklist' },
+      { key:'webhooks', label:'8. Webhooks', meta:'endpoint checklist' },
+      { key:'proof', label:'9. Sandbox proof', meta:'evidence gate' },
+      { key:'export', label:'10. Export / review', meta:'draft package handoff' }
+    ];
+  }
+  function onboardingStepHtml(step, draft, validation){
+    if(step === 'provider') return panel('Provider account selection', '<div class="wizard-grid">' + wizardInput('draftProvider','Provider account alias','nhl_global_solution') + wizardInput('draftProviderOwner','Company/account owner','NHL Global Solution') + '</div>' + checklist(['Select an existing company-scoped alias when possible.', 'Unknown aliases require engineering review and Vercel env setup.', 'Never paste Stripe secret keys or webhook secrets here.', 'Live-ready status is display-only and does not authorize live use.']));
+    if(step === 'urls') return panel('URLs and return contexts', '<div class="wizard-grid">' + wizardInput('draftTestOrigin','Test origin','https://example-app-test.vercel.app/') + wizardInput('draftLiveOrigin','Live origin','https://example-app.com/') + wizardInput('draftReturnContexts','Return contexts','billing') + '</div>' + checklist(['Use HTTPS origins.', 'Apps request a return context only.', 'PayGate resolves final return URLs from registry allowlists.', 'Browser redirects never grant entitlements.']));
+    if(step === 'auth') return panel('Auth/JWT boundary checklist', '<div class="wizard-grid">' + wizardInput('draftAuth','Auth model','supabase_jwt') + wizardInput('draftJwks','JWKS URL','https://project.supabase.co/auth/v1/.well-known/jwks.json') + wizardInput('draftIssuer','JWT issuer','https://project.supabase.co/auth/v1') + wizardInput('draftAudience','JWT audience','authenticated') + '</div>' + checklist(['Browser-visible static PayGate tokens are not suitable for production apps.', 'Bind app_id to the verified app auth configuration.', 'Bind user_ref to the authenticated subject.', 'Add negative tests for cross-app and cross-user requests.']));
+    if(step === 'plans') return panel('Plans', '<div class="wizard-grid">' + wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') + wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') + wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') + '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label>' + checklist(['Amounts are integer minor units only.', 'Currency must be uppercase ISO.', 'Use Stripe lookup keys, never price IDs.', 'Entitlements must be app-scoped dotted keys.']));
+    if(step === 'items') return panel('Items / SKU catalog', '<div class="wizard-grid">' + wizardInput('draftItemRef','Example item_ref','book:a2020000-0000-4000-8000-000000000001') + wizardInput('draftItemName','Example item name','Example Premium Cast') + wizardInput('draftItemAmount','Item amount minor units','999') + wizardInput('draftItemLookup','Item lookup key','example_book_single_unlock') + '</div>' + checklist(['Item checkout remains disabled unless a separate controlled gate enables it.', 'Live item checkout remains blocked unless explicitly approved.', 'Entitlement scope must be specific and reviewable.', 'Use item_ref only; apps never send price, currency, or entitlement authority.']));
+    if(step === 'stripe') return panel('Stripe setup checklist', checklist(['Create Product/Price in the correct provider account.', 'Use the exact lookup key from the PayGate registry draft.', 'Match amount, currency, mode, and interval exactly.', 'Keep test and live lookup configuration separate.', 'Do not paste Stripe secret keys into this UI.']));
+    if(step === 'webhooks') return panel('Webhook setup checklist', checklist(['Test endpoint: /v1/webhooks/stripe/{provider_account}/test', 'Live endpoint is only prepared after live approval.', 'Store webhook signing secret in server-side Vercel env only.', 'Use Stripe redelivery if evidence is missing.', 'Webhook signatures are verified before trusted inbox processing.']));
+    if(step === 'proof') return panel('Sandbox proof checklist', checklist(['Registry validation passes.', 'PayGate deployment health and protected diagnostics are ready.', 'Checkout is created in sandbox/test.', 'Signed webhook is processed.', 'Entitlement state is projected from verified evidence.', 'App displays paid and unpaid state correctly.', 'Admin summary and monitoring show safe evidence with no critical alerts.']));
+    if(step === 'export') return panel('Export / review', '<p>Validation status: <strong>' + (validation.ok ? 'safe to export' : 'draft blocked') + '</strong></p>' + checklist(['Export is non-mutating.', 'Registry package creation remains a reviewed engineering step.', 'Environment variable checklist contains names only, never values.', 'Commit/deploy only after operator approval and project checks.']));
+    return panel('App intake', '<div class="wizard-grid">' + wizardInput('draftAppId','App ID','example_app') + wizardInput('draftAppName','Display name','Example App') + wizardInput('draftOwner','App owner/company','Company/operator label') + wizardInput('draftSupportOwner','Support/refund owner','Operator/support owner') + '</div>' + checklist(['Sandbox/test is the first onboarding proof.', 'Existing app ID conflicts must be resolved before registry creation.', 'Record ownership and support responsibility before Stripe setup.', 'This workspace is a Draft Add App Wizard replacement, not a production editor.']));
+  }
+  function checklist(items){ return '<div class="checklist">' + items.map(function(item){ return '<div class="checkline"><span>[ ]</span><span>' + esc(item) + '</span></div>'; }).join('') + '</div>'; }
+  function wizardInput(id, label, placeholder){ return '<label>' + esc(label) + '<input id="' + id + '" data-onboarding-field="1" value="' + esc(draftValue(id)) + '" placeholder="' + esc(placeholder) + '" /></label>'; }
+  function saveOnboardingDraft(){ ['draftAppId','draftAppName','draftOwner','draftSupportOwner','draftProvider','draftProviderOwner','draftTestOrigin','draftLiveOrigin','draftReturnContexts','draftAuth','draftJwks','draftIssuer','draftAudience','draftPlanKey','draftPlanName','draftAmount','draftCurrency','draftMode','draftLookup','draftEntitlements','draftItemRef','draftItemName','draftItemAmount','draftItemLookup'].forEach(function(id){ var node = el(id); if(node) state.onboardingDraft[id] = node.value; }); }
+  function draftValue(id){ var node = el(id); if(node) return node.value.trim(); return state.onboardingDraft && state.onboardingDraft[id] ? String(state.onboardingDraft[id]).trim() : ''; }
   function knownProviderAccounts(){ var values = {}; apps().forEach(function(app){ if(app.provider_account) values[app.provider_account] = true; }); return values; }
   function isSafeIdentifier(value){ return /^[a-z][a-z0-9_]*$/.test(value); }
   function isSafeUrl(value){ try { var parsed = new URL(value); return parsed.protocol === 'https:' && Boolean(parsed.hostname); } catch(e) { return false; } }
   function draftEntitlementList(appId){ return (draftValue('draftEntitlements') || appId + '.feature').split(/\\n+/).map(function(item){ return item.trim(); }).filter(Boolean); }
+  function csvList(value, fallback){ return (value || fallback).split(',').map(function(item){ return item.trim(); }).filter(Boolean); }
   function buildDraftPackage(){
     var appId = draftValue('draftAppId') || 'example_app';
     var planKey = draftValue('draftPlanKey') || 'starter_monthly';
     var amount = Number(draftValue('draftAmount') || 3900);
+    var itemAmount = Number(draftValue('draftItemAmount') || 999);
+    var itemRef = draftValue('draftItemRef') || 'book:a2020000-0000-4000-8000-000000000001';
     return {
       package_path: 'registry/apps/' + appId,
       status: 'draft_preview_only',
-      app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', provider_id: 'stripe', provider_account: draftValue('draftProvider') || 'nhl_global_solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
+      app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', owner: draftValue('draftOwner') || 'Company/operator label', support_owner: draftValue('draftSupportOwner') || 'Operator/support owner', provider_id: 'stripe', provider_account: draftValue('draftProvider') || 'nhl_global_solution', provider_owner: draftValue('draftProviderOwner') || 'NHL Global Solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
       origins: { test: draftValue('draftTestOrigin') || 'https://example-app-test.vercel.app/', live: draftValue('draftLiveOrigin') || 'https://example-app.com/' },
-      return_contexts: ['billing'],
+      return_contexts: csvList(draftValue('draftReturnContexts'), 'billing'),
+      auth_boundary: { model: draftValue('draftAuth') || 'supabase_jwt', jwks_url: draftValue('draftJwks') || '<SUPABASE_JWKS_URL>', issuer: draftValue('draftIssuer') || '<SUPABASE_JWT_ISSUER>', audience: draftValue('draftAudience') || 'authenticated', user_ref_source: 'authenticated subject' },
       plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: amount, currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: draftEntitlementList(appId) }],
-      required_next_steps: ['Operator review', 'Create registry package files', 'Configure Stripe Product/Price lookup key', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
+      items: [{ item_ref: itemRef, name: draftValue('draftItemName') || 'Example Premium Item', status: 'draft', amount_minor: itemAmount, currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftItemLookup') || appId + '_item_unlock', entitlement_key: appId + '.item_unlock', entitlement_scope: { item_ref: itemRef } }],
+      auth_checklist: ['Configure app-specific JWT/JWKS env vars server-side', 'Bind app_id and user_ref', 'Add negative cross-app/cross-user tests'],
+      stripe_setup_checklist: ['Create Product/Price in correct Stripe account', 'Use registry lookup keys only', 'Confirm test/live separation'],
+      webhook_setup_checklist: ['Create test webhook endpoint', 'Store whsec value server-side only', 'Verify signed webhook evidence'],
+      sandbox_proof_checklist: ['Create sandbox checkout', 'Complete payment/subscription', 'Verify webhook', 'Verify entitlement', 'Verify admin monitoring'],
+      required_next_steps: ['Operator review', 'Create registry package files', 'Configure Stripe Product/Price lookup key', 'Configure webhook endpoint and env var names', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
     };
   }
   function validateDraftPackage(draft){
@@ -927,6 +967,7 @@ const ADMIN_HTML = `<!doctype html>
     var warnings = [];
     var app = draft.app || {};
     var plan = draft.plans && draft.plans[0] ? draft.plans[0] : {};
+    var item = draft.items && draft.items[0] ? draft.items[0] : {};
     if(!isSafeIdentifier(app.app_id)) errors.push('App ID must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
     if(!app.name || app.name === 'Example App') warnings.push('Display name still looks like a placeholder.');
     if(!knownProviderAccounts()[app.provider_account]) warnings.push('Provider account alias is not in the currently loaded app registry view. Confirm it before creating registry files.');
@@ -934,34 +975,42 @@ const ADMIN_HTML = `<!doctype html>
     if(!isSafeUrl(draft.origins.test)) errors.push('Test origin must be a valid https URL.');
     if(!isSafeUrl(draft.origins.live)) errors.push('Live origin must be a valid https URL.');
     if(!isSafeIdentifier(plan.plan_key)) errors.push('Plan key must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
-    if(!Number.isInteger(plan.amount_minor) || plan.amount_minor <= 0) errors.push('Amount must be a positive integer in minor units, for example 3900 for MYR 39.00.');
+    if(!Number.isInteger(plan.amount_minor) || plan.amount_minor <= 0) errors.push('Plan amount must be a positive integer in minor units, for example 3900 for MYR 39.00.');
     if(!/^[A-Z]{3}$/.test(plan.currency || '')) errors.push('Currency must be a 3-letter uppercase ISO code, for example MYR.');
     if(['payment','subscription'].indexOf(plan.mode) === -1) errors.push('Mode must be payment or subscription.');
     if(!isSafeIdentifier(plan.provider_lookup_key)) errors.push('Stripe lookup key must use lowercase letters, numbers, and underscores. Do not paste a Stripe price ID.');
     if(String(plan.provider_lookup_key || '').indexOf('price_') === 0) errors.push('Use a Stripe lookup key, not a provider price ID.');
     if(!Array.isArray(plan.entitlements) || plan.entitlements.length === 0) errors.push('At least one entitlement key is required.');
-    plan.entitlements.forEach(function(key){ if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(key)) errors.push('Entitlement key must be app-scoped dotted lowercase text: ' + key); });
+    plan.entitlements.forEach(function(key){ if(!/^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$/.test(key)) errors.push('Entitlement key must be app-scoped dotted lowercase text: ' + key); });
+    if(item.item_ref && item.item_ref.indexOf(':') < 1) warnings.push('Item ref should be namespaced, for example book:<uuid>, when item/SKU checkout is needed.');
+    if(item.provider_lookup_key && String(item.provider_lookup_key).indexOf('price_') === 0) errors.push('Item lookup must be a lookup key, not a Stripe price ID.');
     return { ok: errors.length === 0, errors: errors, warnings: warnings };
   }
-  function renderDraftValidation(draft){
-    var result = validateDraftPackage(draft);
+  function validationSummaryHtml(result){
     var html = row(result.ok ? 'Validation passed' : 'Validation failed', result.ok ? 'Draft is ready for operator review/export.' : 'Fix the blocking errors before using this draft.', result.ok ? 'safe to export' : 'draft blocked');
     result.errors.forEach(function(message){ html += row('Error', message, 'must fix'); });
     result.warnings.forEach(function(message){ html += row('Warning', message, 'review before registry creation'); });
-    el('draftValidation').innerHTML = html;
+    return html;
+  }
+  function renderDraftValidation(draft){
+    var result = validateDraftPackage(draft);
+    el('draftValidation').innerHTML = validationSummaryHtml(result);
     return result;
   }
   function generateDraftPreview(){
+    saveOnboardingDraft();
     var draft = buildDraftPackage();
     renderDraftValidation(draft);
     el('draftPreview').textContent = JSON.stringify(draft, null, 2);
   }
   async function copyDraftPreview(){
+    saveOnboardingDraft();
     var text = el('draftPreview').textContent || '';
     try { await navigator.clipboard.writeText(text); }
     catch(e) {}
   }
   function downloadDraftPreview(){
+    saveOnboardingDraft();
     var draft = buildDraftPackage();
     var result = renderDraftValidation(draft);
     if(!result.ok){ return; }
@@ -969,12 +1018,11 @@ const ADMIN_HTML = `<!doctype html>
     var blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = draft.app.app_id + '-paygate-registry-draft.json';
+    link.download = draft.app.app_id + '-paygate-onboarding-draft.json';
     document.body.appendChild(link);
     link.click();
     URL.revokeObjectURL(link.href);
-    link.remove();
-  }  function renderSupport(){
+    link.remove();  }  function renderSupport(){
     var safe = { loaded_at: state.loadedAt, environment: state.environment, selected_app_id: state.selectedAppId, monitoring: state.monitoring, summary: state.summary };
     el('view-support').innerHTML = '<div class="view-header"><div><h2>Support / Debug</h2><p>Raw safe JSON is hidden here so normal operators do not start the day inside diagnostics output.</p></div></div><pre class="debug">' + esc(JSON.stringify(safe, null, 2)) + '</pre>';
   }

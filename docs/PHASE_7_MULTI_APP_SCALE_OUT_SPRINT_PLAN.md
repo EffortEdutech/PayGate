@@ -657,19 +657,35 @@ Track 6A replaces Track 5K as the current planned path. Track 5K remains deferre
 
 ## Phase 7 Track 6B - Build UI-driven Onboarding Workspace Shell
 
-Status: next recommended implementation track.
+Status: implemented as a non-mutating admin UI shell.
 
 Goal: implement the multi-step Add App / Onboarding workspace shell in `/admin` as a non-mutating UI.
 
 Checklist:
 
-- [ ] Add onboarding workspace navigation steps.
-- [ ] Add per-step completion status and missing-field indicators.
-- [ ] Add intake/provider/URLs/auth/plans/items/Stripe/webhook/sandbox/export panels.
-- [ ] Preserve current admin login/session model.
-- [ ] Keep all data browser-local until export.
-- [ ] Do not write registry files.
-- [ ] Do not call Stripe.
-- [ ] Do not store or display secrets.
-- [ ] Do not enable live payment, live refund, or live item checkout.
-- [ ] Verify admin shell tests and full project check pass.
+- [x] Add onboarding workspace navigation steps.
+- [x] Add per-step operator guidance and safety boundaries.
+- [x] Add intake/provider/URLs/auth/plans/items/Stripe/webhook/sandbox/export panels.
+- [x] Preserve current admin login/session model.
+- [x] Keep all data browser-local until export.
+- [x] Do not write registry files.
+- [x] Do not call Stripe.
+- [x] Do not store or display secrets.
+- [x] Do not enable live payment, live refund, or live item checkout.
+- [x] Verify admin shell tests and full project check pass.
+
+Evidence: `docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md`.
+
+## Phase 7 Track 6C - Onboarding Workspace Validation and Export Hardening
+
+Status: next recommended implementation track.
+
+Goal: strengthen the generated onboarding artifact and validation feedback so it is closer to a registry-package proposal.
+
+Checklist:
+
+- [ ] Add stronger cross-field validation for plans/items/auth/origins.
+- [ ] Add clearer export sections for env var names, Stripe setup, webhook setup, and sandbox proof.
+- [ ] Add provider-account alias warnings based on loaded registry apps.
+- [ ] Add visible completion status per onboarding step.
+- [ ] Keep the workflow non-mutating.

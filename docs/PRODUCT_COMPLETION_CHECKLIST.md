@@ -145,7 +145,8 @@ Status: governance cleanup active; pageCast remains sandbox/test, and app onboar
 - [x] Track 5J operator/admin item evidence and reconciliation review documented; item-specific reconciliation repair remains deferred. See `docs/PHASE_7_TRACK_5J_OPERATOR_ITEM_EVIDENCE_RECONCILIATION_REVIEW.md`.
 - [x] Governance cleanup records: Phase 6 frozen with refund deferred, pageCast not live, and UI-driven onboarding required. See `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
 - [x] Track 6A UI-driven App Onboarding Workspace Plan created. See `docs/PHASE_7_TRACK_6A_UI_DRIVEN_APP_ONBOARDING_WORKSPACE_PLAN.md`.
-- [ ] Track 6B UI-driven onboarding workspace shell implemented and verified.
+- [x] Track 6B UI-driven onboarding workspace shell implemented and verified. See `docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md`.
+- [ ] Track 6C onboarding workspace validation and export hardening complete.
 - [ ] Phase 7 freeze note created.
 
 ## Permanent Stop Conditions

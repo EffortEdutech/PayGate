@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import test from "node:test";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { Readable } from "node:stream";
@@ -172,6 +172,22 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.match(String(response.body), /Operator session active/);
     assert.match(String(response.body), /Draft Add App/);
     assert.match(String(response.body), /Draft Add App Wizard/);
+    assert.match(String(response.body), /UI-driven App Onboarding Workspace/);
+    assert.match(String(response.body), /Onboarding steps/);
+    assert.match(String(response.body), /1\. Intake/);
+    assert.match(String(response.body), /2\. Provider/);
+    assert.match(String(response.body), /3\. URLs/);
+    assert.match(String(response.body), /4\. Auth/);
+    assert.match(String(response.body), /5\. Plans/);
+    assert.match(String(response.body), /6\. Items \/ SKU/);
+    assert.match(String(response.body), /7\. Stripe setup/);
+    assert.match(String(response.body), /8\. Webhooks/);
+    assert.match(String(response.body), /9\. Sandbox proof/);
+    assert.match(String(response.body), /10\. Export \/ review/);
+    assert.match(String(response.body), /does not write registry files/);
+    assert.match(String(response.body), /does not call Stripe/);
+    assert.match(String(response.body), /data-onboarding-step/);
+    assert.match(String(response.body), /saveOnboardingDraft/);
     assert.match(String(response.body), /Generate Draft Preview/);
     assert.match(String(response.body), /Validate Draft/);
     assert.match(String(response.body), /Download JSON/);
@@ -180,7 +196,7 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.match(String(response.body), /No webhook evidence for this app in/);
     assert.match(String(response.body), /validateDraftPackage/);
     assert.match(String(response.body), /Draft registry preview/);
-    assert.ok(String(response.body).includes(".split(/\\n+/)"));
+    assert.match(String(response.body), /split\(\/\\n\+\/\)/);
     assert.match(String(response.body), /Load Console/);
     assert.doesNotMatch(String(response.body), /operator-secret/);
   });
