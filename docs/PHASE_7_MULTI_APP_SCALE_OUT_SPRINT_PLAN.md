@@ -678,14 +678,30 @@ Evidence: `docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md`.
 
 ## Phase 7 Track 6C - Onboarding Workspace Validation and Export Hardening
 
-Status: next recommended implementation track.
+Status: implemented and verified.
 
 Goal: strengthen the generated onboarding artifact and validation feedback so it is closer to a registry-package proposal.
 
 Checklist:
 
-- [ ] Add stronger cross-field validation for plans/items/auth/origins.
-- [ ] Add clearer export sections for env var names, Stripe setup, webhook setup, and sandbox proof.
-- [ ] Add provider-account alias warnings based on loaded registry apps.
-- [ ] Add visible completion status per onboarding step.
-- [ ] Keep the workflow non-mutating.
+- [x] Add stronger cross-field validation for plans/items/auth/origins.
+- [x] Add clearer export sections for env var names, Stripe setup, webhook setup, and sandbox proof.
+- [x] Add provider-account alias warnings based on loaded registry apps.
+- [x] Add visible completion status per onboarding step.
+- [x] Keep the workflow non-mutating.
+
+Evidence: `docs/PHASE_7_TRACK_6C_ONBOARDING_VALIDATION_EXPORT_HARDENING.md`.
+
+## Phase 7 Track 6D - Controlled Registry Proposal Generation Plan
+
+Status: next recommended planning track.
+
+Goal: define the safe path from exported onboarding artifact to reviewed registry package files without giving the browser direct mutation authority.
+
+Checklist:
+
+- [ ] Define registry proposal file mapping from onboarding artifact.
+- [ ] Define operator approval gate before writing files.
+- [ ] Define validation commands required before commit/deploy.
+- [ ] Define rollback/review expectations for proposed registry changes.
+- [ ] Keep Stripe, Vercel env vars, live mode, refunds, and entitlements outside automatic apply.

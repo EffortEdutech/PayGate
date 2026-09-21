@@ -146,7 +146,7 @@ Status: governance cleanup active; pageCast remains sandbox/test, and app onboar
 - [x] Governance cleanup records: Phase 6 frozen with refund deferred, pageCast not live, and UI-driven onboarding required. See `docs/PHASE_7_GOVERNANCE_CLEANUP_FREEZE_PREP.md`.
 - [x] Track 6A UI-driven App Onboarding Workspace Plan created. See `docs/PHASE_7_TRACK_6A_UI_DRIVEN_APP_ONBOARDING_WORKSPACE_PLAN.md`.
 - [x] Track 6B UI-driven onboarding workspace shell implemented and verified. See `docs/PHASE_7_TRACK_6B_UI_DRIVEN_ONBOARDING_WORKSPACE_SHELL.md`.
-- [ ] Track 6C onboarding workspace validation and export hardening complete.
+- [x] Track 6C onboarding workspace validation and export hardening complete. See `docs/PHASE_7_TRACK_6C_ONBOARDING_VALIDATION_EXPORT_HARDENING.md`.
 - [ ] Phase 7 freeze note created.
 
 ## Permanent Stop Conditions
@@ -160,3 +160,5 @@ Stop and re-plan if any work would:
 - mix sandbox and live mode;
 - run live payments/refunds without explicit approval;
 - add new providers or apps outside the documented roadmap.
+
+- [ ] Track 6D controlled registry proposal generation plan complete.

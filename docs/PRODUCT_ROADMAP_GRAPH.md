@@ -47,9 +47,10 @@ flowchart TD
   T5J --> GOV[Governance cleanup\nPhase 6 frozen, pageCast not live, UI-driven onboarding required]
   GOV --> T6A[Track 6A\nUI-driven App Onboarding Workspace Plan\nDone]
   T6A --> T6B[Track 6B\nBuild onboarding workspace shell\nDone]
-  T6B --> T6C[Track 6C\nOnboarding validation and export hardening\nNext]
+  T6B --> T6C[Track 6C\nOnboarding validation and export hardening\nDone]
+  T6C --> T6D[Track 6D\nControlled registry proposal generation plan\nNext]
   GOV -.-> T5K[Track 5K\nSingle Cast live readiness gate\nDeferred unless explicitly approved]
-  T6C --> F7[Phase 7 freeze prep\nAfter UI-driven onboarding is hardened]
+  T6D --> F7[Phase 7 freeze prep\nAfter controlled registry proposal path is planned]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -79,5 +80,6 @@ flowchart TD
 - Track 5K is not automatic; pageCast live Stripe remains deferred.
 - Track 6A defines the UI-driven App Onboarding Workspace Plan.
 - Track 6B implemented the non-mutating onboarding workspace shell in /admin.
-- The next product step is Track 6C: harden onboarding validation and export quality.
+- Track 6C hardened onboarding validation/export and prepared the registry proposal handoff artifact.
+- The next product step is Track 6D: define controlled registry proposal generation.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

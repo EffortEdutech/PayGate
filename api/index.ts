@@ -629,6 +629,10 @@ const ADMIN_HTML = `<!doctype html>
     .onboarding-steps { display: grid; gap: 8px; }
     .onboarding-step { width: 100%; text-align: left; background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 11px 12px; min-height: 54px; }
     .onboarding-step.active { border-color: #84adff; box-shadow: 0 0 0 4px var(--brand-soft); }
+    .step-state { display:inline-flex; align-items:center; border-radius: 999px; padding: 2px 7px; font-size: 11px; font-weight: 900; margin-top: 7px; }
+    .step-state.complete { background:#ecfdf3; color:#067647; }
+    .step-state.review { background:#fffaeb; color:#b54708; }
+    .step-state.blocked { background:#fef3f2; color:#b42318; }
     .onboarding-step-title { display:block; font-weight: 950; }
     .onboarding-step-meta { display:block; color: var(--muted); font-size: 12px; margin-top: 3px; }
     .checklist { display: grid; gap: 8px; }
@@ -889,11 +893,11 @@ const ADMIN_HTML = `<!doctype html>
     var step = steps.find(function(item){ return item.key === state.onboardingStep; }) || steps[0];
     el('view-addapp').innerHTML = '<div class="view-header"><div><h2>UI-driven App Onboarding Workspace</h2><p>Guided setup for the next app. This replaces command-first onboarding with a browser workspace, while staying non-mutating.</p></div><span class="status warn">draft workspace only</span></div>' +
       '<div class="banner"><strong>Safety boundary:</strong> This workspace does not write registry files, does not call Stripe, does not store secrets, does not deploy, and does not enable live payments or refunds.</div>' +
-      '<div class="onboarding-layout"><section class="panel"><h3>Onboarding steps</h3><div class="onboarding-steps">' + steps.map(function(item){ return '<button type="button" class="onboarding-step ' + (item.key === step.key ? 'active' : '') + '" data-onboarding-step="' + esc(item.key) + '"><span class="onboarding-step-title">' + esc(item.label) + '</span><span class="onboarding-step-meta">' + esc(item.meta) + '</span></button>'; }).join('') + '</div></section>' +
+      '<div class="onboarding-layout"><section class="panel"><h3>Onboarding steps</h3><div class="onboarding-steps">' + steps.map(function(item){ var status = validation.step_status && validation.step_status[item.key] ? validation.step_status[item.key] : 'review'; return '<button type="button" class="onboarding-step ' + (item.key === step.key ? 'active' : '') + '" data-onboarding-step="' + esc(item.key) + '"><span class="onboarding-step-title">' + esc(item.label) + '</span><span class="onboarding-step-meta">' + esc(item.meta) + '</span><span class="step-state ' + esc(status) + '">' + esc(status) + '</span></button>'; }).join('') + '</div></section>' +
       '<section id="onboardingStepPanel">' + onboardingStepHtml(step.key, draft, validation) + '</section></div>' +
-      '<div class="panel"><h3>Workspace actions</h3><p>This keeps all draft data in browser memory until export. Engineering review and <code>npm run validate:registry</code> remain mandatory before commit/deploy.</p><div class="wizard-actions"><button id="validateDraftBtn" class="secondary" type="button">Validate Draft</button><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button><button id="downloadDraftBtn" class="secondary" type="button">Download JSON</button></div></div>' +
+      '<div class="panel"><h3>Workspace actions</h3><p>This keeps all draft data in browser memory until export. Engineering review and <code>npm run validate:registry</code> remain mandatory before commit/deploy.</p><div class="wizard-actions"><button id="validateDraftBtn" class="secondary" type="button">Validate Draft</button><button id="generateDraftBtn" class="primary" type="button">Generate Draft Preview</button><button id="copyDraftBtn" class="secondary" type="button">Copy Preview</button><button id="downloadDraftBtn" class="secondary" type="button">Download JSON</button></div><p><strong>Track 6C hardening:</strong> export includes env var names, Stripe setup, webhook setup, sandbox proof, registry proposal notes, and per-step validation status.</p></div>' +
       '<div class="panel"><h3>Validation summary</h3><div id="draftValidation" class="list">' + validationSummaryHtml(validation) + '</div></div>' +
-      '<div class="panel"><h3>Draft registry preview</h3><p>This preview is for review/export only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">' + esc(JSON.stringify(draft, null, 2)) + '</pre></div>';
+      '<div class="panel"><h3>Onboarding artifact preview</h3><p>This preview is for review/export only. A future apply step must run registry validation before commit/deploy.</p><pre id="draftPreview" class="debug">' + esc(JSON.stringify(draft, null, 2)) + '</pre></div>';
     document.querySelectorAll('[data-onboarding-step]').forEach(function(btn){ btn.addEventListener('click', function(){ saveOnboardingDraft(); state.onboardingStep = btn.getAttribute('data-onboarding-step') || 'intake'; renderAddApp(); }); });
     document.querySelectorAll('[data-onboarding-field]').forEach(function(node){ node.addEventListener('input', saveOnboardingDraft); });
     var validate = el('validateDraftBtn');
@@ -923,7 +927,7 @@ const ADMIN_HTML = `<!doctype html>
     if(step === 'provider') return panel('Provider account selection', '<div class="wizard-grid">' + wizardInput('draftProvider','Provider account alias','nhl_global_solution') + wizardInput('draftProviderOwner','Company/account owner','NHL Global Solution') + '</div>' + checklist(['Select an existing company-scoped alias when possible.', 'Unknown aliases require engineering review and Vercel env setup.', 'Never paste Stripe secret keys or webhook secrets here.', 'Live-ready status is display-only and does not authorize live use.']));
     if(step === 'urls') return panel('URLs and return contexts', '<div class="wizard-grid">' + wizardInput('draftTestOrigin','Test origin','https://example-app-test.vercel.app/') + wizardInput('draftLiveOrigin','Live origin','https://example-app.com/') + wizardInput('draftReturnContexts','Return contexts','billing') + '</div>' + checklist(['Use HTTPS origins.', 'Apps request a return context only.', 'PayGate resolves final return URLs from registry allowlists.', 'Browser redirects never grant entitlements.']));
     if(step === 'auth') return panel('Auth/JWT boundary checklist', '<div class="wizard-grid">' + wizardInput('draftAuth','Auth model','supabase_jwt') + wizardInput('draftJwks','JWKS URL','https://project.supabase.co/auth/v1/.well-known/jwks.json') + wizardInput('draftIssuer','JWT issuer','https://project.supabase.co/auth/v1') + wizardInput('draftAudience','JWT audience','authenticated') + '</div>' + checklist(['Browser-visible static PayGate tokens are not suitable for production apps.', 'Bind app_id to the verified app auth configuration.', 'Bind user_ref to the authenticated subject.', 'Add negative tests for cross-app and cross-user requests.']));
-    if(step === 'plans') return panel('Plans', '<div class="wizard-grid">' + wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') + wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') + wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') + '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" placeholder="example.feature_one&#10;example.feature_two"></textarea></label>' + checklist(['Amounts are integer minor units only.', 'Currency must be uppercase ISO.', 'Use Stripe lookup keys, never price IDs.', 'Entitlements must be app-scoped dotted keys.']));
+    if(step === 'plans') return panel('Plans', '<div class="wizard-grid">' + wizardInput('draftPlanKey','Plan key','starter_monthly') + wizardInput('draftPlanName','Plan name','Starter Monthly') + wizardInput('draftAmount','Amount minor units','3900') + wizardInput('draftCurrency','Currency','MYR') + wizardInput('draftMode','Mode','payment') + wizardInput('draftLookup','Stripe lookup key','example_starter_monthly') + '</div><label style="margin-top:12px">Entitlements, one per line<textarea id="draftEntitlements" data-onboarding-field="1" placeholder="example.feature_one&#10;example.feature_two">' + esc(draftValue('draftEntitlements')) + '</textarea></label>' + checklist(['Amounts are integer minor units only.', 'Currency must be uppercase ISO.', 'Use Stripe lookup keys, never price IDs.', 'Entitlements must be app-scoped dotted keys.']));
     if(step === 'items') return panel('Items / SKU catalog', '<div class="wizard-grid">' + wizardInput('draftItemRef','Example item_ref','book:a2020000-0000-4000-8000-000000000001') + wizardInput('draftItemName','Example item name','Example Premium Cast') + wizardInput('draftItemAmount','Item amount minor units','999') + wizardInput('draftItemLookup','Item lookup key','example_book_single_unlock') + '</div>' + checklist(['Item checkout remains disabled unless a separate controlled gate enables it.', 'Live item checkout remains blocked unless explicitly approved.', 'Entitlement scope must be specific and reviewable.', 'Use item_ref only; apps never send price, currency, or entitlement authority.']));
     if(step === 'stripe') return panel('Stripe setup checklist', checklist(['Create Product/Price in the correct provider account.', 'Use the exact lookup key from the PayGate registry draft.', 'Match amount, currency, mode, and interval exactly.', 'Keep test and live lookup configuration separate.', 'Do not paste Stripe secret keys into this UI.']));
     if(step === 'webhooks') return panel('Webhook setup checklist', checklist(['Test endpoint: /v1/webhooks/stripe/{provider_account}/test', 'Live endpoint is only prepared after live approval.', 'Store webhook signing secret in server-side Vercel env only.', 'Use Stripe redelivery if evidence is missing.', 'Webhook signatures are verified before trusted inbox processing.']));
@@ -940,51 +944,107 @@ const ADMIN_HTML = `<!doctype html>
   function isSafeUrl(value){ try { var parsed = new URL(value); return parsed.protocol === 'https:' && Boolean(parsed.hostname); } catch(e) { return false; } }
   function draftEntitlementList(appId){ return (draftValue('draftEntitlements') || appId + '.feature').split(/\\n+/).map(function(item){ return item.trim(); }).filter(Boolean); }
   function csvList(value, fallback){ return (value || fallback).split(',').map(function(item){ return item.trim(); }).filter(Boolean); }
+  function upperSnake(value){ return String(value || '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toUpperCase(); }
+  function providerEnvPrefix(providerAccount){ return 'STRIPE_ACCOUNT_' + upperSnake(providerAccount || 'provider_account'); }
+  function liveProviderEnvPrefix(providerAccount){ return 'STRIPE_LIVE_ACCOUNT_' + upperSnake(providerAccount || 'provider_account'); }
+  function containsSecretPattern(value){ return /(sk_live_|sk_test_|whsec_|rk_live_|rk_test_)/.test(String(value || '')); }
+  function allDraftText(draft){ return JSON.stringify(draft || {}); }
   function buildDraftPackage(){
     var appId = draftValue('draftAppId') || 'example_app';
+    var providerAccount = draftValue('draftProvider') || 'nhl_global_solution';
     var planKey = draftValue('draftPlanKey') || 'starter_monthly';
     var amount = Number(draftValue('draftAmount') || 3900);
     var itemAmount = Number(draftValue('draftItemAmount') || 999);
     var itemRef = draftValue('draftItemRef') || 'book:a2020000-0000-4000-8000-000000000001';
+    var currency = (draftValue('draftCurrency') || 'MYR').toUpperCase();
+    var testOrigin = draftValue('draftTestOrigin') || 'https://example-app-test.vercel.app/';
+    var liveOrigin = draftValue('draftLiveOrigin') || 'https://example-app.com/';
+    var providerPrefix = providerEnvPrefix(providerAccount);
+    var liveProviderPrefix = liveProviderEnvPrefix(providerAccount);
     return {
       package_path: 'registry/apps/' + appId,
       status: 'draft_preview_only',
-      app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', owner: draftValue('draftOwner') || 'Company/operator label', support_owner: draftValue('draftSupportOwner') || 'Operator/support owner', provider_id: 'stripe', provider_account: draftValue('draftProvider') || 'nhl_global_solution', provider_owner: draftValue('draftProviderOwner') || 'NHL Global Solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
-      origins: { test: draftValue('draftTestOrigin') || 'https://example-app-test.vercel.app/', live: draftValue('draftLiveOrigin') || 'https://example-app.com/' },
+      non_mutating: true,
+      generated_by: 'paygate_admin_onboarding_workspace',
+      app: { app_id: appId, name: draftValue('draftAppName') || 'Example App', owner: draftValue('draftOwner') || 'Company/operator label', support_owner: draftValue('draftSupportOwner') || 'Operator/support owner', provider_id: 'stripe', provider_account: providerAccount, provider_owner: draftValue('draftProviderOwner') || 'NHL Global Solution', auth_model: draftValue('draftAuth') || 'supabase_jwt' },
+      origins: { test: testOrigin, live: liveOrigin },
       return_contexts: csvList(draftValue('draftReturnContexts'), 'billing'),
-      auth_boundary: { model: draftValue('draftAuth') || 'supabase_jwt', jwks_url: draftValue('draftJwks') || '<SUPABASE_JWKS_URL>', issuer: draftValue('draftIssuer') || '<SUPABASE_JWT_ISSUER>', audience: draftValue('draftAudience') || 'authenticated', user_ref_source: 'authenticated subject' },
-      plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: amount, currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: draftEntitlementList(appId) }],
-      items: [{ item_ref: itemRef, name: draftValue('draftItemName') || 'Example Premium Item', status: 'draft', amount_minor: itemAmount, currency: (draftValue('draftCurrency') || 'MYR').toUpperCase(), provider_lookup_key: draftValue('draftItemLookup') || appId + '_item_unlock', entitlement_key: appId + '.item_unlock', entitlement_scope: { item_ref: itemRef } }],
+      auth_boundary: { model: draftValue('draftAuth') || 'supabase_jwt', jwks_url: draftValue('draftJwks') || '<SUPABASE_JWKS_URL>', issuer: draftValue('draftIssuer') || '<SUPABASE_JWT_ISSUER>', audience: draftValue('draftAudience') || 'authenticated', user_ref_source: 'authenticated subject', required_binding: ['app_id', 'user_ref'] },
+      plans: [{ plan_key: planKey, name: draftValue('draftPlanName') || 'Starter Monthly', mode: draftValue('draftMode') || 'payment', amount_minor: amount, currency: currency, provider_lookup_key: draftValue('draftLookup') || appId + '_' + planKey, entitlements: draftEntitlementList(appId) }],
+      items: [{ item_ref: itemRef, name: draftValue('draftItemName') || 'Example Premium Item', status: 'draft', amount_minor: itemAmount, currency: currency, provider_lookup_key: draftValue('draftItemLookup') || appId + '_item_unlock', entitlement_key: appId + '.item_unlock', entitlement_scope: { item_ref: itemRef } }],
+      environment_variable_names: {
+        sandbox_provider: [providerPrefix + '_SECRET_KEY', providerPrefix + '_WEBHOOK_SECRET'],
+        live_provider: [liveProviderPrefix + '_SECRET_KEY', liveProviderPrefix + '_WEBHOOK_SECRET'],
+        app_auth: ['SUPABASE_JWT_' + upperSnake(appId) + '_JWKS_URL', 'SUPABASE_JWT_' + upperSnake(appId) + '_ISSUER', 'SUPABASE_JWT_' + upperSnake(appId) + '_AUDIENCE'],
+        cors: ['PAYMENT_HUB_CORS_ALLOW_ORIGIN'],
+        operator: ['OPERATOR_DIAGNOSTICS_TOKEN']
+      },
+      registry_proposal: {
+        target_files: ['registry/apps/' + appId + '/app.json', 'registry/apps/' + appId + '/plans.json'],
+        optional_item_file: 'registry/apps/' + appId + '/items.json',
+        validation_commands: ['npm run validate:registry', 'npm run check'],
+        review_required: true
+      },
       auth_checklist: ['Configure app-specific JWT/JWKS env vars server-side', 'Bind app_id and user_ref', 'Add negative cross-app/cross-user tests'],
-      stripe_setup_checklist: ['Create Product/Price in correct Stripe account', 'Use registry lookup keys only', 'Confirm test/live separation'],
-      webhook_setup_checklist: ['Create test webhook endpoint', 'Store whsec value server-side only', 'Verify signed webhook evidence'],
+      stripe_setup_checklist: ['Create Product/Price in correct Stripe account', 'Use registry lookup keys only', 'Confirm amount, currency, mode, interval', 'Confirm test/live separation'],
+      webhook_setup_checklist: ['Create test webhook endpoint /v1/webhooks/stripe/' + providerAccount + '/test', 'Store whsec value server-side only', 'Verify signed webhook evidence', 'Prepare live endpoint only after approval'],
       sandbox_proof_checklist: ['Create sandbox checkout', 'Complete payment/subscription', 'Verify webhook', 'Verify entitlement', 'Verify admin monitoring'],
-      required_next_steps: ['Operator review', 'Create registry package files', 'Configure Stripe Product/Price lookup key', 'Configure webhook endpoint and env var names', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
+      required_next_steps: ['Operator review', 'Create registry package files from reviewed proposal', 'Configure Stripe Product/Price lookup key', 'Configure webhook endpoint and env var names', 'Run npm run validate:registry', 'Run npm run check', 'Commit/deploy only after approval']
     };
   }
   function validateDraftPackage(draft){
     var errors = [];
     var warnings = [];
+    var stepStatus = { intake:'complete', provider:'complete', urls:'complete', auth:'complete', plans:'complete', items:'review', stripe:'review', webhooks:'review', proof:'review', export:'complete' };
+    function block(step, message){ errors.push(message); stepStatus[step] = 'blocked'; }
+    function review(step, message){ warnings.push(message); if(stepStatus[step] !== 'blocked') stepStatus[step] = 'review'; }
     var app = draft.app || {};
     var plan = draft.plans && draft.plans[0] ? draft.plans[0] : {};
     var item = draft.items && draft.items[0] ? draft.items[0] : {};
-    if(!isSafeIdentifier(app.app_id)) errors.push('App ID must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
-    if(!app.name || app.name === 'Example App') warnings.push('Display name still looks like a placeholder.');
-    if(!knownProviderAccounts()[app.provider_account]) warnings.push('Provider account alias is not in the currently loaded app registry view. Confirm it before creating registry files.');
-    if(app.auth_model !== 'supabase_jwt') warnings.push('Auth model is not supabase_jwt. Confirm the app auth boundary before onboarding.');
-    if(!isSafeUrl(draft.origins.test)) errors.push('Test origin must be a valid https URL.');
-    if(!isSafeUrl(draft.origins.live)) errors.push('Live origin must be a valid https URL.');
-    if(!isSafeIdentifier(plan.plan_key)) errors.push('Plan key must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
-    if(!Number.isInteger(plan.amount_minor) || plan.amount_minor <= 0) errors.push('Plan amount must be a positive integer in minor units, for example 3900 for MYR 39.00.');
-    if(!/^[A-Z]{3}$/.test(plan.currency || '')) errors.push('Currency must be a 3-letter uppercase ISO code, for example MYR.');
-    if(['payment','subscription'].indexOf(plan.mode) === -1) errors.push('Mode must be payment or subscription.');
-    if(!isSafeIdentifier(plan.provider_lookup_key)) errors.push('Stripe lookup key must use lowercase letters, numbers, and underscores. Do not paste a Stripe price ID.');
-    if(String(plan.provider_lookup_key || '').indexOf('price_') === 0) errors.push('Use a Stripe lookup key, not a provider price ID.');
-    if(!Array.isArray(plan.entitlements) || plan.entitlements.length === 0) errors.push('At least one entitlement key is required.');
-    plan.entitlements.forEach(function(key){ if(!/^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$/.test(key)) errors.push('Entitlement key must be app-scoped dotted lowercase text: ' + key); });
-    if(item.item_ref && item.item_ref.indexOf(':') < 1) warnings.push('Item ref should be namespaced, for example book:<uuid>, when item/SKU checkout is needed.');
-    if(item.provider_lookup_key && String(item.provider_lookup_key).indexOf('price_') === 0) errors.push('Item lookup must be a lookup key, not a Stripe price ID.');
-    return { ok: errors.length === 0, errors: errors, warnings: warnings };
+    var auth = draft.auth_boundary || {};
+    var returnContexts = Array.isArray(draft.return_contexts) ? draft.return_contexts : [];
+    if(containsSecretPattern(allDraftText(draft))) block('export', 'Draft contains a secret-looking value. Remove Stripe/API/webhook secrets before export.');
+    if(!isSafeIdentifier(app.app_id)) block('intake', 'App ID must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
+    if(app.app_id === 'example_app') review('intake', 'App ID still uses the example placeholder.');
+    if(apps().some(function(existing){ return existing.app_id === app.app_id; })) block('intake', 'App ID already exists in the loaded registry view: ' + app.app_id);
+    if(!app.name || app.name === 'Example App') review('intake', 'Display name still looks like a placeholder.');
+    if(!app.owner || app.owner === 'Company/operator label') review('intake', 'App owner/company should be replaced before registry proposal creation.');
+    if(!app.support_owner || app.support_owner === 'Operator/support owner') review('intake', 'Support/refund owner should be replaced before registry proposal creation.');
+    if(!isSafeIdentifier(app.provider_account)) block('provider', 'Provider account alias must use lowercase letters, numbers, and underscores.');
+    if(!knownProviderAccounts()[app.provider_account]) review('provider', 'Provider account alias is not in the currently loaded app registry view. Confirm it before creating registry files.');
+    if(!app.provider_owner || app.provider_owner === 'NHL Global Solution') review('provider', 'Confirm provider account owner/company for this app.');
+    if(app.auth_model !== 'supabase_jwt') review('auth', 'Auth model is not supabase_jwt. Confirm the app auth boundary before onboarding.');
+    if(!isSafeUrl(draft.origins.test)) block('urls', 'Test origin must be a valid https URL.');
+    if(!isSafeUrl(draft.origins.live)) block('urls', 'Live origin must be a valid https URL.');
+    if(draft.origins.test === draft.origins.live) review('urls', 'Test and live origins are identical. This is allowed only when the app intentionally uses one deployment for both.');
+    if(returnContexts.length === 0) block('urls', 'At least one return context is required.');
+    returnContexts.forEach(function(context){ if(!isSafeIdentifier(context)) block('urls', 'Return context must be a safe identifier: ' + context); });
+    if(auth.model !== 'supabase_jwt') review('auth', 'Only supabase_jwt is currently productized for app onboarding.');
+    if(!isSafeUrl(auth.jwks_url)) block('auth', 'JWKS URL must be a valid https URL.');
+    if(!isSafeUrl(auth.issuer)) block('auth', 'JWT issuer must be a valid https URL.');
+    try { if(isSafeUrl(auth.jwks_url) && isSafeUrl(auth.issuer) && new URL(auth.jwks_url).host !== new URL(auth.issuer).host) review('auth', 'JWKS URL host and issuer host differ. Confirm this is intentional.'); } catch(e) {}
+    if(!auth.audience || /<|>/.test(auth.audience)) block('auth', 'JWT audience must be concrete, not a placeholder.');
+    if(!isSafeIdentifier(plan.plan_key)) block('plans', 'Plan key must start with a lowercase letter and use only lowercase letters, numbers, and underscores.');
+    if(!Number.isInteger(plan.amount_minor) || plan.amount_minor <= 0) block('plans', 'Plan amount must be a positive integer in minor units, for example 3900 for MYR 39.00.');
+    if(!/^[A-Z]{3}$/.test(plan.currency || '')) block('plans', 'Currency must be a 3-letter uppercase ISO code, for example MYR.');
+    if(['payment','subscription'].indexOf(plan.mode) === -1) block('plans', 'Mode must be payment or subscription.');
+    if(!isSafeIdentifier(plan.provider_lookup_key)) block('plans', 'Stripe lookup key must use lowercase letters, numbers, and underscores. Do not paste a Stripe price ID.');
+    if(String(plan.provider_lookup_key || '').indexOf('price_') === 0) block('plans', 'Use a Stripe lookup key, not a provider price ID.');
+    if(String(plan.provider_lookup_key || '').indexOf(app.app_id + '_') !== 0) review('plans', 'Plan lookup key should normally start with the app ID prefix: ' + app.app_id + '_');
+    if(!Array.isArray(plan.entitlements) || plan.entitlements.length === 0) block('plans', 'At least one entitlement key is required.');
+    plan.entitlements.forEach(function(key){ if(!/^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$/.test(key)) block('plans', 'Entitlement key must be app-scoped dotted lowercase text: ' + key); if(String(key).indexOf(app.app_id + '.') !== 0) review('plans', 'Entitlement should usually start with the app ID prefix: ' + key); });
+    if(item.item_ref && item.item_ref.indexOf(':') < 1) review('items', 'Item ref should be namespaced, for example book:<uuid>, when item/SKU checkout is needed.');
+    if(item.item_ref && !/^[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$/.test(item.item_ref)) block('items', 'Item ref must be namespaced and URL-safe, for example book:<uuid>.');
+    if(item.provider_lookup_key && !isSafeIdentifier(item.provider_lookup_key)) block('items', 'Item lookup key must use lowercase letters, numbers, and underscores.');
+    if(item.provider_lookup_key && String(item.provider_lookup_key).indexOf('price_') === 0) block('items', 'Item lookup must be a lookup key, not a Stripe price ID.');
+    if(item.amount_minor && (!Number.isInteger(item.amount_minor) || item.amount_minor <= 0)) block('items', 'Item amount must be a positive integer in minor units.');
+    if(item.entitlement_key && String(item.entitlement_key).indexOf(app.app_id + '.') !== 0) review('items', 'Item entitlement key should start with the app ID prefix.');
+    if(stepStatus.stripe !== 'blocked' && (stepStatus.provider === 'blocked' || stepStatus.plans === 'blocked')) stepStatus.stripe = 'blocked';
+    if(stepStatus.webhooks !== 'blocked' && stepStatus.provider === 'blocked') stepStatus.webhooks = 'blocked';
+    if(stepStatus.proof !== 'blocked' && (errors.length > 0 || stepStatus.stripe === 'blocked' || stepStatus.webhooks === 'blocked')) stepStatus.proof = 'blocked';
+    if(stepStatus.export !== 'blocked' && errors.length > 0) stepStatus.export = 'blocked';
+    if(stepStatus.export !== 'blocked' && warnings.length > 0) stepStatus.export = 'review';
+    return { ok: errors.length === 0, errors: errors, warnings: warnings, step_status: stepStatus };
   }
   function validationSummaryHtml(result){
     var html = row(result.ok ? 'Validation passed' : 'Validation failed', result.ok ? 'Draft is ready for operator review/export.' : 'Fix the blocking errors before using this draft.', result.ok ? 'safe to export' : 'draft blocked');

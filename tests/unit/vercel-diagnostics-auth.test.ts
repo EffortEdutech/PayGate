@@ -195,7 +195,13 @@ test("Vercel admin session login creates cookie for operator console APIs", asyn
     assert.match(String(response.body), /environment: 'test'/);
     assert.match(String(response.body), /No webhook evidence for this app in/);
     assert.match(String(response.body), /validateDraftPackage/);
-    assert.match(String(response.body), /Draft registry preview/);
+    assert.match(String(response.body), /Onboarding artifact preview/);
+    assert.match(String(response.body), /Track 6C hardening/);
+    assert.match(String(response.body), /environment_variable_names/);
+    assert.match(String(response.body), /registry_proposal/);
+    assert.match(String(response.body), /step_status/);
+    assert.match(String(response.body), /secret-looking value/);
+    assert.match(String(response.body), /STRIPE_ACCOUNT_/);
     assert.match(String(response.body), /split\(\/\\n\+\/\)/);
     assert.match(String(response.body), /Load Console/);
     assert.doesNotMatch(String(response.body), /operator-secret/);
