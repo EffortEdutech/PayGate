@@ -751,3 +751,18 @@ Checklist:
 - [ ] Apply with the exact approval phrase into an isolated root.
 - [ ] Run registry validation/checks against the isolated proposal.
 - [ ] Confirm no Stripe, Vercel, live-mode, refund, deployment, or entitlement mutation occurs.
+Evidence: `docs/PHASE_7_TRACK_6G_E2E_PROPOSAL_APPLY_REHEARSAL.md`.
+
+## Phase 7 Track 6H - Real App Onboarding Operator Runbook and UI Handoff
+
+Status: next recommended planning/implementation track.
+
+Goal: convert the proven dry-run/apply rehearsal into the operator-facing process for onboarding the next real app safely.
+
+Checklist:
+
+- [ ] Define operator steps from `/admin` export to proposal dry-run.
+- [ ] Define where proposal review artifacts are stored.
+- [ ] Define when approved apply is allowed for a real app.
+- [ ] Define post-apply validation, commit, deploy, and sandbox proof sequence.
+- [ ] Keep live payments, refunds, Stripe mutation, Vercel env mutation, and entitlement grants in separate approval gates.

@@ -167,4 +167,6 @@ Stop and re-plan if any work would:
 
 - [x] Track 6F operator approval gate for registry proposal apply complete. See `docs/PHASE_7_TRACK_6F_OPERATOR_APPROVAL_APPLY_GATE.md`.
 
-- [ ] Track 6G end-to-end proposal apply rehearsal complete.
+- [x] Track 6G end-to-end proposal apply rehearsal complete. See `docs/PHASE_7_TRACK_6G_E2E_PROPOSAL_APPLY_REHEARSAL.md`.
+
+- [ ] Track 6H real app onboarding operator runbook and UI handoff complete.

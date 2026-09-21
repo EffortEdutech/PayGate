@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { parse } from "yaml";
+import { validateRegistry } from "../../scripts/registry-validation.js";
 import { applyRegistryProposal, generateRegistryProposal, registryApplyApprovalPhrase, writeDryRunProposal, type OnboardingArtifact } from "../../scripts/onboarding-registry-proposal.js";
 
 function artifact(overrides: Partial<OnboardingArtifact> = {}): OnboardingArtifact {
@@ -149,6 +150,59 @@ test("onboarding registry proposal apply writes only after approval and reports 
       () => applyRegistryProposal(proposal, { rootDir: tempRoot, approvalPhrase: registryApplyApprovalPhrase("story_app") }),
       /already exists/,
     );
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+test("onboarding registry proposal rehearsal validates throwaway app in isolated registry root", async () => {
+  const proposal = generateRegistryProposal(artifact({
+    app: {
+      app_id: "throwaway_app",
+      name: "Throwaway App",
+      owner: "Rehearsal Operator",
+      support_owner: "Rehearsal Support",
+      provider_id: "stripe",
+      provider_account: "nhl_global_solution",
+      auth_model: "supabase_jwt",
+    },
+    package_path: "registry/apps/throwaway_app",
+    plans: [{
+      plan_key: "rehearsal_pass",
+      name: "Rehearsal Pass",
+      mode: "one_time",
+      amount_minor: 1234,
+      currency: "MYR",
+      provider_lookup_key: "throwaway_app_rehearsal_pass",
+      entitlements: ["throwaway_app.access"],
+    }],
+    items: [],
+    environment_variable_names: {
+      sandbox_provider: ["STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_SECRET_KEY", "STRIPE_ACCOUNT_NHL_GLOBAL_SOLUTION_WEBHOOK_SECRET"],
+      app_auth: ["SUPABASE_JWT_THROWAWAY_APP_JWKS_URL", "SUPABASE_JWT_THROWAWAY_APP_ISSUER", "SUPABASE_JWT_THROWAWAY_APP_AUDIENCE"],
+    },
+  }));
+
+  const tempRoot = await mkdtemp(path.join(tmpdir(), "paygate-rehearsal-"));
+  try {
+    await mkdir(path.join(tempRoot, "registry", "schemas"), { recursive: true });
+    for (const schema of await readdir(path.join("registry", "schemas"))) {
+      await writeFile(
+        path.join(tempRoot, "registry", "schemas", schema),
+        await readFile(path.join("registry", "schemas", schema)),
+      );
+    }
+
+    const applyResult = await applyRegistryProposal(proposal, {
+      rootDir: tempRoot,
+      approvalPhrase: registryApplyApprovalPhrase("throwaway_app"),
+    });
+
+    assert.equal(applyResult.status, "applied_to_working_tree");
+    assert.equal(applyResult.filesWritten.length, 7);
+
+    const validation = await validateRegistry(tempRoot);
+    assert.equal(validation.appCount, 1);
+    assert.deepEqual(validation.errors, []);
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }

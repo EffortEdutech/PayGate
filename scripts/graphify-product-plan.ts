@@ -23,6 +23,7 @@ const requiredDocs = [
   "docs/PHASE_7_TRACK_6D_CONTROLLED_REGISTRY_PROPOSAL_PLAN.md",
   "docs/PHASE_7_TRACK_6E_REGISTRY_PROPOSAL_DRY_RUN.md",
   "docs/PHASE_7_TRACK_6F_OPERATOR_APPROVAL_APPLY_GATE.md",
+  "docs/PHASE_7_TRACK_6G_E2E_PROPOSAL_APPLY_REHEARSAL.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -117,7 +118,8 @@ flowchart TD
 - Track 6D defined the controlled path from onboarding artifact to reviewed registry proposal files.
 - Track 6E implemented a non-mutating dry-run registry proposal generator.
 - Track 6F implemented the explicit operator approval gate for registry apply/write mode.
-- The next product step is Track 6G: rehearse the dry-run to approved-apply cycle with a throwaway app.
+- Track 6G rehearsed the dry-run to approved-apply cycle with a throwaway app in an isolated registry root.
+- The next product step is Track 6H: document the real-app onboarding operator runbook and UI handoff.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
 `;
 
