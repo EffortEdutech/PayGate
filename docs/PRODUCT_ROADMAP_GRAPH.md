@@ -53,9 +53,10 @@ flowchart TD
   T6E --> T6F[Track 6F\nOperator approval gate for registry apply\nDone]
   T6F --> T6G[Track 6G\nEnd-to-end proposal apply rehearsal\nDone]
   T6G --> T6H[Track 6H\nReal app onboarding operator runbook and UI handoff\nDone]
-  T6H --> T6I[Track 6I\nUI-driven onboarding freeze prep and first real-app candidate gate\nNext]
+  T6H --> T6I[Track 6I\nUI-driven onboarding freeze prep and first real-app candidate gate\nDone]
   GOV -.-> T5K[Track 5K\nSingle Cast live readiness gate\nDeferred unless explicitly approved]
-  T6I --> F7[Phase 7 freeze prep\nAfter UI-driven onboarding freeze/candidate gate]
+  T6I --> T6J[Track 6J\nFirst real-app candidate intake and dry-run proposal\nNext]
+  T6J --> F7[Phase 7 freeze prep\nAfter first candidate dry-run review]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -91,5 +92,6 @@ flowchart TD
 - Track 6F implemented the explicit operator approval gate for registry apply/write mode.
 - Track 6G rehearsed the dry-run to approved-apply cycle with a throwaway app in an isolated registry root.
 - Track 6H documented the real-app onboarding operator runbook and UI handoff.
-- The next product step is Track 6I: freeze-prep the UI-driven onboarding workflow and choose the first real-app candidate gate.
+- Track 6I freeze-prepped the UI-driven onboarding workflow and defined the first real-app candidate gate.
+- The next product step is Track 6J: choose one real app candidate and run a non-mutating dry-run proposal review.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

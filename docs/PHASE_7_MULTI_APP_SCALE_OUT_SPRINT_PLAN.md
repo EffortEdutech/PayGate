@@ -770,14 +770,30 @@ Evidence: `docs/PHASE_7_TRACK_6H_REAL_APP_ONBOARDING_RUNBOOK_UI_HANDOFF.md`.
 
 ## Phase 7 Track 6I - UI-Driven Onboarding Freeze Prep and First Real-App Candidate Gate
 
-Status: next recommended planning/implementation track.
+Status: complete.
 
 Goal: decide whether the UI-driven onboarding workflow is ready to freeze for operator use, then select the next real app candidate for a sandbox-only onboarding run.
 
 Checklist:
 
-- [ ] Review Track 6H runbook against current `/admin` onboarding UI.
-- [ ] Confirm the UI export includes every field required by the proposal generator.
-- [ ] Confirm operator evidence folder convention is accepted.
-- [ ] Pick one real app candidate for the next controlled sandbox-only onboarding.
-- [ ] Confirm no live payment, refund, provider mutation, or Vercel env mutation is bundled into the candidate gate.
+- [x] Review Track 6H runbook against current `/admin` onboarding UI.
+- [x] Confirm the UI export includes every field required by the proposal generator.
+- [x] Confirm operator evidence folder convention is accepted.
+- [x] Define the first real-app candidate gate for the next controlled sandbox-only onboarding.
+- [x] Confirm no live payment, refund, provider mutation, or Vercel env mutation is bundled into the candidate gate.
+Evidence: `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
+
+## Phase 7 Track 6J - First Real-App Candidate Intake and Dry-Run Proposal
+
+Status: next recommended implementation track.
+
+Goal: choose one real app candidate, complete the candidate gate, export a fresh onboarding artifact from `/admin`, and run the non-mutating registry proposal dry-run for review.
+
+Checklist:
+
+- [ ] Select one real app candidate.
+- [ ] Complete candidate gate fields: owner, app_id, provider account, URLs, auth model, first safe payment slice, deferred scope.
+- [ ] Export a fresh onboarding artifact from `/admin`.
+- [ ] Store artifact in the candidate review folder.
+- [ ] Run `npm run proposal:dry-run` with `--out-dir` pointing to the review folder.
+- [ ] Review generated package output and stop before approved apply unless operator explicitly authorizes the exact apply phrase.

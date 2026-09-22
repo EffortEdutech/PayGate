@@ -170,4 +170,5 @@ Stop and re-plan if any work would:
 - [x] Track 6G end-to-end proposal apply rehearsal complete. See `docs/PHASE_7_TRACK_6G_E2E_PROPOSAL_APPLY_REHEARSAL.md`.
 
 - [x] Track 6H real app onboarding operator runbook and UI handoff complete. See `docs/PHASE_7_TRACK_6H_REAL_APP_ONBOARDING_RUNBOOK_UI_HANDOFF.md`.
-- [ ] Track 6I UI-driven onboarding freeze prep and first real-app candidate gate complete.
+- [x] Track 6I UI-driven onboarding freeze prep and first real-app candidate gate complete. See `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
+- [ ] Track 6J first real-app candidate intake and dry-run proposal complete.
