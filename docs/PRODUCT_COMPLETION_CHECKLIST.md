@@ -171,4 +171,4 @@ Stop and re-plan if any work would:
 
 - [x] Track 6H real app onboarding operator runbook and UI handoff complete. See `docs/PHASE_7_TRACK_6H_REAL_APP_ONBOARDING_RUNBOOK_UI_HANDOFF.md`.
 - [x] Track 6I UI-driven onboarding freeze prep and first real-app candidate gate complete. See `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
-- [ ] Track 6J first real-app candidate intake and dry-run proposal complete.
+- [ ] Track 6J first real-app candidate intake and dry-run proposal complete. Candidate worksheet prepared; awaiting operator-selected app. See `docs/PHASE_7_TRACK_6J_FIRST_REAL_APP_CANDIDATE_DRY_RUN.md`.

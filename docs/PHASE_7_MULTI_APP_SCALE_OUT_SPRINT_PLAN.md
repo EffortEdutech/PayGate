@@ -785,7 +785,7 @@ Evidence: `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
 
 ## Phase 7 Track 6J - First Real-App Candidate Intake and Dry-Run Proposal
 
-Status: next recommended implementation track.
+Status: awaiting operator candidate selection.
 
 Goal: choose one real app candidate, complete the candidate gate, export a fresh onboarding artifact from `/admin`, and run the non-mutating registry proposal dry-run for review.
 
@@ -797,3 +797,4 @@ Checklist:
 - [ ] Store artifact in the candidate review folder.
 - [ ] Run `npm run proposal:dry-run` with `--out-dir` pointing to the review folder.
 - [ ] Review generated package output and stop before approved apply unless operator explicitly authorizes the exact apply phrase.
+Evidence/worksheet: `docs/PHASE_7_TRACK_6J_FIRST_REAL_APP_CANDIDATE_DRY_RUN.md`.
