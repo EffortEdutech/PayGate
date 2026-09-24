@@ -864,14 +864,31 @@ Evidence: `docs/PHASE_7_TRACK_6N_MYEXPENSIO_SANDBOX_PROVIDER_CONFIGURATION_EVIDE
 
 ## Phase 7 Track 6O - MyExpensio Thin PayGate Client Plan and Code Prep
 
-Status: next recommended implementation planning track.
+Status: complete as a code-prep plan. MyExpensio code remains unchanged.
 
 Goal: prepare the MyExpensio app-side migration from direct Stripe checkout routes to PayGate for the Pro monthly sandbox slice, only after Track 6N provider/auth evidence is green.
 
 Checklist:
 
-- [ ] Confirm Track 6N evidence is green before code changes.
-- [ ] Identify MyExpensio files/routes authorized for a thin PayGate client change.
-- [ ] Plan server-side token/JWT forwarding from MyExpensio to PayGate without browser-visible PayGate secrets.
-- [ ] Preserve legacy direct Stripe routes until PayGate checkout/webhook/entitlement proof passes.
-- [ ] Keep Premium, ORG/workspace subscriptions, portal migration, live payment, and refunds deferred.
+- [x] Confirm Track 6N evidence must be green before code changes.
+- [x] Identify MyExpensio files/routes authorized for a thin PayGate client change.
+- [x] Plan server-side token/JWT forwarding from MyExpensio to PayGate without browser-visible PayGate secrets.
+- [x] Preserve legacy direct Stripe routes until PayGate checkout/webhook/entitlement proof passes.
+- [x] Keep Premium, ORG/workspace subscriptions, portal migration, live payment, and refunds deferred.
+Evidence: `docs/PHASE_7_TRACK_6O_MYEXPENSIO_THIN_PAYGATE_CLIENT_PLAN.md`.
+
+## Phase 7 Track 6P - Implement MyExpensio Pro Sandbox PayGate Checkout Proxy
+
+Status: next recommended implementation track, gated by Track 6N evidence.
+
+Goal: add a small MyExpensio server-side PayGate checkout proxy for Pro monthly sandbox checkout behind `PAYGATE_CHECKOUT_ENABLED`, while preserving legacy direct Stripe checkout as rollback.
+
+Checklist:
+
+- [ ] Confirm Track 6N evidence is green immediately before editing MyExpensio.
+- [ ] Add non-secret PayGate env examples for MyExpensio.
+- [ ] Add `POST /api/paygate/checkout` server-side proxy for `tier: PRO` only.
+- [ ] Forward current Supabase user JWT to PayGate; do not use browser-visible static PayGate tokens.
+- [ ] Route Pro checkout through PayGate only when `PAYGATE_CHECKOUT_ENABLED=true`.
+- [ ] Preserve legacy direct Stripe checkout fallback when the flag is false.
+- [ ] Leave Premium, ORG/workspace, portal migration, live payment, and refunds deferred.
