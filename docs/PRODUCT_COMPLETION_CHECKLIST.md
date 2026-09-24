@@ -1,4 +1,4 @@
-# PayGate Product Completion Checklist
+﻿# PayGate Product Completion Checklist
 
 Status: master checklist through Phase 7.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -174,4 +174,5 @@ Stop and re-plan if any work would:
 - [x] Track 6J first real-app candidate intake and dry-run proposal complete for MyExpensio. See `docs/PHASE_7_TRACK_6J_FIRST_REAL_APP_CANDIDATE_DRY_RUN.md`.
 - [x] Track 6K MyExpensio pricing alignment and registry apply gate complete. See `docs/PHASE_7_TRACK_6K_MYEXPENSIO_PRICING_ALIGNMENT.md`.
 - [x] Track 6L MyExpensio registry apply approval and validation complete. See `docs/PHASE_7_TRACK_6L_MYEXPENSIO_REGISTRY_APPLY_VALIDATION.md`.
-- [ ] Track 6M MyExpensio sandbox provider setup plan complete.
+- [x] Track 6M MyExpensio sandbox provider setup plan complete. See `docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md`.
+- [ ] Track 6N MyExpensio sandbox provider configuration evidence complete.

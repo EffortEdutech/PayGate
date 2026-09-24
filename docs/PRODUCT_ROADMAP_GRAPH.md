@@ -98,5 +98,6 @@ flowchart TD
 - Track 6J selected MyExpensio and completed a non-mutating dry-run proposal review without registry mutation.
 - Track 6K aligned MyExpensio pricing: Pro is MYR 18/month and Premium is MYR 29/month.
 - Track 6L applied and validated the MyExpensio draft registry package after exact operator approval.
-- The next product step is Track 6M: prepare the MyExpensio sandbox provider setup plan without live payment, deployment, or refund scope.
+- Track 6M prepared the MyExpensio sandbox provider setup plan without live payment, deployment, provider mutation, or app code changes.
+- The next product step is Track 6N: collect MyExpensio sandbox provider configuration evidence before touching MyExpensio app code.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

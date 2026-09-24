@@ -1,4 +1,4 @@
-# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
+﻿# Phase 7 - Operator Console and Multi-App Scale-Out Sprint Plan
 
 Status: governance cleanup active; pageCast remains sandbox/test and app onboarding must become UI-driven before product completion.
 Parent product plan: `docs/PRODUCT_PLAN.md`.
@@ -833,14 +833,30 @@ Evidence: `docs/PHASE_7_TRACK_6L_MYEXPENSIO_REGISTRY_APPLY_VALIDATION.md`.
 
 ## Phase 7 Track 6M - MyExpensio Sandbox Provider Setup Plan
 
-Status: next recommended planning/implementation track.
+Status: complete.
 
-Goal: prepare the sandbox-only provider and app integration setup for MyExpensio Pro monthly without live payment or provider mutation outside explicit operator steps.
+Goal: prepare the sandbox-only provider and app integration setup plan for MyExpensio Pro monthly without live payment, deployment, provider mutation, or MyExpensio app code changes in this track.
 
 Checklist:
 
-- [ ] Confirm or create Stripe sandbox Product/Price with lookup key `myexpensio_pro_monthly` and amount MYR 18/month.
-- [ ] Confirm PayGate sandbox provider account `nhl_global_solution` remains configured.
-- [ ] Confirm MyExpensio Supabase JWT boundary values needed by PayGate.
-- [ ] Prepare MyExpensio thin-client migration plan from direct Stripe routes to PayGate.
-- [ ] Keep Premium, ORG subscriptions, live payment, refunds, and deployment in separate gates.
+- [x] Confirm or create Stripe sandbox Product/Price requirements with lookup key `myexpensio_pro_monthly` and amount MYR 18/month.
+- [x] Confirm PayGate sandbox provider account `nhl_global_solution` remains the selected provider alias.
+- [x] Confirm MyExpensio Supabase JWT boundary values needed by PayGate.
+- [x] Prepare MyExpensio thin-client migration plan from direct Stripe routes to PayGate.
+- [x] Keep Premium, ORG subscriptions, live payment, refunds, deployment, and provider mutation in separate gates.
+Evidence: `docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md`.
+
+## Phase 7 Track 6N - MyExpensio Sandbox Provider Configuration Evidence
+
+Status: next recommended operator evidence track.
+
+Goal: collect proof that the sandbox provider, lookup key, webhook endpoint, and PayGate MyExpensio Supabase JWT configuration are ready before touching MyExpensio app code.
+
+Checklist:
+
+- [ ] Confirm or create Stripe sandbox Product/Price lookup key `myexpensio_pro_monthly` at MYR 18/month.
+- [ ] Add/confirm PayGate Vercel MyExpensio Supabase JWT variables.
+- [ ] Preserve existing multi-app `SUPABASE_JWT_APPS` values while adding `myexpensio`.
+- [ ] Redeploy PayGate only if Vercel env vars changed.
+- [ ] Run protected `/diagnostics/ready` and `/diagnostics/runtime` and confirm MyExpensio auth readiness.
+- [ ] Stop before MyExpensio app code changes until provider/auth boundary is green.
