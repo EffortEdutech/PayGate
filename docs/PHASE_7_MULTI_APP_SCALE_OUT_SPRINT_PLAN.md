@@ -879,16 +879,34 @@ Evidence: `docs/PHASE_7_TRACK_6O_MYEXPENSIO_THIN_PAYGATE_CLIENT_PLAN.md`.
 
 ## Phase 7 Track 6P - Implement MyExpensio Pro Sandbox PayGate Checkout Proxy
 
-Status: next recommended implementation track, gated by Track 6N evidence.
+Status: complete.
 
 Goal: add a small MyExpensio server-side PayGate checkout proxy for Pro monthly sandbox checkout behind `PAYGATE_CHECKOUT_ENABLED`, while preserving legacy direct Stripe checkout as rollback.
 
 Checklist:
 
-- [ ] Confirm Track 6N evidence is green immediately before editing MyExpensio.
-- [ ] Add non-secret PayGate env examples for MyExpensio.
-- [ ] Add `POST /api/paygate/checkout` server-side proxy for `tier: PRO` only.
-- [ ] Forward current Supabase user JWT to PayGate; do not use browser-visible static PayGate tokens.
-- [ ] Route Pro checkout through PayGate only when `PAYGATE_CHECKOUT_ENABLED=true`.
-- [ ] Preserve legacy direct Stripe checkout fallback when the flag is false.
-- [ ] Leave Premium, ORG/workspace, portal migration, live payment, and refunds deferred.
+- [x] Keep implementation inert unless Track 6N evidence is green and `PAYGATE_CHECKOUT_ENABLED=true`.
+- [x] Add non-secret PayGate env examples for MyExpensio.
+- [x] Add `POST /api/paygate/checkout` server-side proxy for `tier: PRO` only.
+- [x] Forward current Supabase user JWT to PayGate; do not use browser-visible static PayGate tokens.
+- [x] Route Pro checkout through PayGate only when `PAYGATE_CHECKOUT_ENABLED=true`.
+- [x] Preserve legacy direct Stripe checkout fallback when the flag is false.
+- [x] Leave Premium, ORG/workspace, portal migration, live payment, and refunds deferred.
+Evidence: `docs/PHASE_7_TRACK_6P_MYEXPENSIO_PAYGATE_CHECKOUT_PROXY.md`.
+
+## Phase 7 Track 6Q - MyExpensio Sandbox Checkout Evidence Run
+
+Status: next recommended operator proof track.
+
+Goal: run one controlled MyExpensio Pro sandbox checkout through PayGate and collect checkout, webhook, admin summary, and monitoring evidence.
+
+Checklist:
+
+- [ ] Confirm Track 6N provider/auth evidence is green.
+- [ ] Configure MyExpensio non-secret PayGate env vars in the selected sandbox deployment.
+- [ ] Enable `PAYGATE_CHECKOUT_ENABLED=true` only for the sandbox proof.
+- [ ] Start one Pro checkout as a MyExpensio test user.
+- [ ] Complete Stripe sandbox payment.
+- [ ] Capture PayGate webhook/admin evidence for `app_id=myexpensio`, `plan_key=pro_monthly`.
+- [ ] Confirm legacy rollback by setting `PAYGATE_CHECKOUT_ENABLED=false` after proof if needed.
+- [ ] Keep Premium, ORG/workspace, live payment, and refunds deferred.

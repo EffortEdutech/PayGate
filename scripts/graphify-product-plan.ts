@@ -32,6 +32,7 @@ const requiredDocs = [
   "docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md",
   "docs/PHASE_7_TRACK_6N_MYEXPENSIO_SANDBOX_PROVIDER_CONFIGURATION_EVIDENCE.md",
   "docs/PHASE_7_TRACK_6O_MYEXPENSIO_THIN_PAYGATE_CLIENT_PLAN.md",
+  "docs/PHASE_7_TRACK_6P_MYEXPENSIO_PAYGATE_CHECKOUT_PROXY.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -102,8 +103,9 @@ flowchart TD
   T6L --> T6M[Track 6M\nMyExpensio sandbox provider setup plan\nDone]
   T6M --> T6N[Track 6N\nMyExpensio sandbox provider configuration evidence\nDone]
   T6N --> T6O[Track 6O\nMyExpensio thin PayGate client plan and code prep\nDone]
-  T6O --> T6P[Track 6P\nImplement MyExpensio Pro sandbox PayGate checkout proxy\nNext]
-  T6P --> F7[Phase 7 freeze prep\nAfter MyExpensio Pro sandbox checkout proxy proof]
+  T6O --> T6P[Track 6P\nImplement MyExpensio Pro sandbox PayGate checkout proxy\nDone]
+  T6P --> T6Q[Track 6Q\nMyExpensio sandbox checkout evidence run\nNext]
+  T6Q --> F7[Phase 7 freeze prep\nAfter MyExpensio sandbox checkout evidence]
 
   DEFER1[Deferred\\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\\npageCast live-mode payment readiness]
@@ -146,7 +148,8 @@ flowchart TD
 - Track 6M prepared the MyExpensio sandbox provider setup plan without live payment, deployment, provider mutation, or app code changes.
 - Track 6N defined the MyExpensio sandbox provider configuration evidence gate before touching MyExpensio app code.
 - Track 6O prepared the MyExpensio thin PayGate client/proxy plan and code-prep boundary without app code mutation.
-- The next product step is Track 6P: implement the MyExpensio Pro sandbox PayGate checkout proxy behind a rollback flag after Track 6N evidence is green.
+- Track 6P implemented the MyExpensio Pro sandbox PayGate checkout proxy behind a disabled-by-default rollback flag.
+- The next product step is Track 6Q: run one controlled MyExpensio Pro sandbox checkout evidence proof through PayGate.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
 `;
 

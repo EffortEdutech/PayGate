@@ -71,9 +71,12 @@ MyExpensio thin PayGate client plan and code prep
 Done]
   T6O --> T6P[Track 6P
 Implement MyExpensio Pro sandbox PayGate checkout proxy
+Done]
+  T6P --> T6Q[Track 6Q
+MyExpensio sandbox checkout evidence run
 Next]
-  T6P --> F7[Phase 7 freeze prep
-After MyExpensio Pro sandbox checkout proxy proof]
+  T6Q --> F7[Phase 7 freeze prep
+After MyExpensio sandbox checkout evidence]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -116,5 +119,6 @@ After MyExpensio Pro sandbox checkout proxy proof]
 - Track 6M prepared the MyExpensio sandbox provider setup plan without live payment, deployment, provider mutation, or app code changes.
 - Track 6N defined the MyExpensio sandbox provider configuration evidence gate before touching MyExpensio app code.
 - Track 6O prepared the MyExpensio thin PayGate client/proxy plan and code-prep boundary without app code mutation.
-- The next product step is Track 6P: implement the MyExpensio Pro sandbox PayGate checkout proxy behind a rollback flag after Track 6N evidence is green.
+- Track 6P implemented the MyExpensio Pro sandbox PayGate checkout proxy behind a disabled-by-default rollback flag.
+- The next product step is Track 6Q: run one controlled MyExpensio Pro sandbox checkout evidence proof through PayGate.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

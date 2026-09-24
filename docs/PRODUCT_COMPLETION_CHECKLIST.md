@@ -177,4 +177,5 @@ Stop and re-plan if any work would:
 - [x] Track 6M MyExpensio sandbox provider setup plan complete. See `docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md`.
 - [x] Track 6N MyExpensio sandbox provider configuration evidence complete as a runbook/pre-code gate. See `docs/PHASE_7_TRACK_6N_MYEXPENSIO_SANDBOX_PROVIDER_CONFIGURATION_EVIDENCE.md`.
 - [x] Track 6O MyExpensio thin PayGate client plan and code prep complete. See `docs/PHASE_7_TRACK_6O_MYEXPENSIO_THIN_PAYGATE_CLIENT_PLAN.md`.
-- [ ] Track 6P MyExpensio Pro sandbox PayGate checkout proxy implemented.
+- [x] Track 6P MyExpensio Pro sandbox PayGate checkout proxy implemented. See `docs/PHASE_7_TRACK_6P_MYEXPENSIO_PAYGATE_CHECKOUT_PROXY.md`.
+- [ ] Track 6Q MyExpensio sandbox checkout evidence run complete.
