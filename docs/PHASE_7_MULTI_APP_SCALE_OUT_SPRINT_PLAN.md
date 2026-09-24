@@ -802,14 +802,30 @@ External review folder: `C:\Users\user\Documents\PayGate Proposal Reviews\myexpe
 
 ## Phase 7 Track 6K - MyExpensio Pricing Alignment and Registry Apply Gate
 
-Status: next recommended decision track.
+Status: complete.
 
 Goal: resolve the MyExpensio plan naming/pricing mismatch before any registry apply, then decide whether to apply the reviewed draft registry package.
 
 Checklist:
 
-- [ ] Decide whether `pro_monthly` should be MYR 29/month, or whether it should remain MYR 18/month as currently documented in the MyExpensio repo.
-- [ ] Decide whether MYR 29/month should instead be `premium_monthly`.
-- [ ] If needed, regenerate the onboarding artifact and dry-run proposal with corrected plan key/amount.
-- [ ] Confirm Stripe sandbox lookup key to create/use after the registry decision.
-- [ ] Stop before registry apply unless operator explicitly authorizes `APPLY REGISTRY PROPOSAL myexpensio`.
+- [x] Decide whether `pro_monthly` should be MYR 29/month, or whether it should remain MYR 18/month as currently documented in the MyExpensio repo.
+- [x] Decide whether MYR 29/month should instead be `premium_monthly`.
+- [x] Regenerate the onboarding artifact and dry-run proposal with corrected plan amount.
+- [x] Confirm Stripe sandbox lookup key to create/use after the registry decision: `myexpensio_pro_monthly`.
+- [x] Stop before registry apply unless operator explicitly authorizes `APPLY REGISTRY PROPOSAL myexpensio`.
+Evidence: `docs/PHASE_7_TRACK_6K_MYEXPENSIO_PRICING_ALIGNMENT.md`.
+External review folder: `C:\Users\user\Documents\PayGate Proposal Reviews\myexpensio\2026-09-24\`.
+
+## Phase 7 Track 6L - MyExpensio Registry Apply Approval and Validation
+
+Status: next recommended approval track.
+
+Goal: apply the reviewed MyExpensio draft registry package only if the operator explicitly approves the exact apply phrase, then validate before any deployment or sandbox checkout work.
+
+Checklist:
+
+- [ ] Obtain exact operator approval phrase: `APPLY REGISTRY PROPOSAL myexpensio`.
+- [ ] Apply the reviewed proposal into `registry/apps/myexpensio`.
+- [ ] Run `npm run validate:registry`.
+- [ ] Run `npm run check`.
+- [ ] Confirm no Stripe product/price, Vercel env var, live payment, refund, deployment, or entitlement mutation occurs in this track.

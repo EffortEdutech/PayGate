@@ -56,8 +56,9 @@ flowchart TD
   T6H --> T6I[Track 6I\nUI-driven onboarding freeze prep and first real-app candidate gate\nDone]
   GOV -.-> T5K[Track 5K\nSingle Cast live readiness gate\nDeferred unless explicitly approved]
   T6I --> T6J[Track 6J\nFirst real-app candidate intake and dry-run proposal\nDone: MyExpensio dry run]
-  T6J --> T6K[Track 6K\nMyExpensio pricing alignment and registry apply gate\nNext]
-  T6K --> F7[Phase 7 freeze prep\nAfter MyExpensio pricing/apply decision]
+  T6J --> T6K[Track 6K\nMyExpensio pricing alignment and registry apply gate\nDone]
+  T6K --> T6L[Track 6L\nMyExpensio registry apply approval and validation\nNext]
+  T6L --> F7[Phase 7 freeze prep\nAfter MyExpensio registry apply/validation decision]
 
   DEFER1[Deferred\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\npageCast live-mode payment readiness]
@@ -95,5 +96,6 @@ flowchart TD
 - Track 6H documented the real-app onboarding operator runbook and UI handoff.
 - Track 6I freeze-prepped the UI-driven onboarding workflow and defined the first real-app candidate gate.
 - Track 6J selected MyExpensio and completed a non-mutating dry-run proposal review without registry mutation.
-- The next product step is Track 6K: resolve MyExpensio Pro/Premium pricing alignment before any registry apply.
+- Track 6K aligned MyExpensio pricing: Pro is MYR 18/month and Premium is MYR 29/month.
+- The next product step is Track 6L: apply the MyExpensio registry proposal only with exact operator approval and validation.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.

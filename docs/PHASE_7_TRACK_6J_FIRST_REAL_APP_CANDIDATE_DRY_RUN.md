@@ -113,10 +113,10 @@ Auth provider: Supabase JWT
 User ref source: Supabase Auth user id / JWT subject
 First safe payment slice: Individual USER Pro monthly subscription checkout, sandbox/test only
 Plan-based, item/SKU-based, or both: Plan-based
-Plans/items included in the first slice: pro_monthly - MYR 29/month
+Plans/items included in the first slice: pro_monthly - MYR 18/month
 Plans/items explicitly deferred: premium_monthly, ORG/workspace subscriptions, billing portal migration, live payment, refund automation
 Currency: MYR
-Amount model: Fixed MYR 29/month subscription
+Amount model: Fixed MYR 18/month subscription
 Support/refund owner: NHL Global Solution operator
 Operator approval: Approved for MyExpensio sandbox-only onboarding artifact. No live payment, no refund, no provider mutation.
 ```
@@ -153,9 +153,9 @@ approvalPhraseRequiredForApply: APPLY REGISTRY PROPOSAL myexpensio
 
 PayGate registry was not mutated. `registry/apps/myexpensio` does not exist in the working tree after Track 6J.
 
-## Review warning before apply
+## Pricing alignment update
 
-The MyExpensio repository currently documents Pro as RM18/month and Premium as RM29/month. The operator-selected PayGate candidate uses `pro_monthly` at MYR 29/month. Resolve this naming/pricing mismatch before approved registry apply or app UI integration.
+Track 6K resolved the pricing mismatch. MyExpensio pricing is now aligned as Pro = MYR 18/month and Premium = MYR 29/month. The first PayGate dry-run slice is `pro_monthly` at MYR 18/month.
 
 ## Track 6J checklist
 
@@ -169,6 +169,4 @@ The MyExpensio repository currently documents Pro as RM18/month and Premium as R
 
 ## Next documented step
 
-Proceed to Phase 7 Track 6K - MyExpensio Pricing Alignment and Registry Apply Gate.
-
-Track 6K should resolve whether `pro_monthly` is really MYR 29/month, or whether the first PayGate slice should be renamed/repriced before any registry apply.
+Track 6K has resolved the pricing alignment. Proceed next to Phase 7 Track 6L - MyExpensio Registry Apply Approval and Validation.
