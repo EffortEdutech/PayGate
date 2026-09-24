@@ -785,16 +785,31 @@ Evidence: `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
 
 ## Phase 7 Track 6J - First Real-App Candidate Intake and Dry-Run Proposal
 
-Status: awaiting operator candidate selection.
+Status: complete.
 
 Goal: choose one real app candidate, complete the candidate gate, export a fresh onboarding artifact from `/admin`, and run the non-mutating registry proposal dry-run for review.
 
 Checklist:
 
-- [ ] Select one real app candidate.
-- [ ] Complete candidate gate fields: owner, app_id, provider account, URLs, auth model, first safe payment slice, deferred scope.
-- [ ] Export a fresh onboarding artifact from `/admin`.
-- [ ] Store artifact in the candidate review folder.
-- [ ] Run `npm run proposal:dry-run` with `--out-dir` pointing to the review folder.
-- [ ] Review generated package output and stop before approved apply unless operator explicitly authorizes the exact apply phrase.
+- [x] Select one real app candidate: MyExpensio.
+- [x] Complete candidate gate fields: owner, app_id, provider account, URLs, auth model, first safe payment slice, deferred scope.
+- [x] Create operator-approved onboarding artifact for the selected candidate.
+- [x] Store artifact in the candidate review folder.
+- [x] Run non-mutating proposal dry-run with output pointing to the review folder.
+- [x] Review generated package output and stop before approved apply unless operator explicitly authorizes the exact apply phrase.
 Evidence/worksheet: `docs/PHASE_7_TRACK_6J_FIRST_REAL_APP_CANDIDATE_DRY_RUN.md`.
+External review folder: `C:\Users\user\Documents\PayGate Proposal Reviews\myexpensio\2026-09-24\`.
+
+## Phase 7 Track 6K - MyExpensio Pricing Alignment and Registry Apply Gate
+
+Status: next recommended decision track.
+
+Goal: resolve the MyExpensio plan naming/pricing mismatch before any registry apply, then decide whether to apply the reviewed draft registry package.
+
+Checklist:
+
+- [ ] Decide whether `pro_monthly` should be MYR 29/month, or whether it should remain MYR 18/month as currently documented in the MyExpensio repo.
+- [ ] Decide whether MYR 29/month should instead be `premium_monthly`.
+- [ ] If needed, regenerate the onboarding artifact and dry-run proposal with corrected plan key/amount.
+- [ ] Confirm Stripe sandbox lookup key to create/use after the registry decision.
+- [ ] Stop before registry apply unless operator explicitly authorizes `APPLY REGISTRY PROPOSAL myexpensio`.

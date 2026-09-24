@@ -1,12 +1,12 @@
 # Phase 7 Track 6J - First Real-App Candidate Intake and Dry-Run Proposal
 
-Status: awaiting operator candidate selection.
+Status: complete.
 
 Purpose: run the first real-app onboarding through the UI-driven process: candidate gate -> `/admin` onboarding artifact export -> non-mutating registry proposal dry-run -> review. This track must not silently invent a candidate app or mutate PayGate registry without operator confirmation.
 
 ## Current decision
 
-Track 6J cannot be completed until the operator selects one real app candidate and provides the candidate gate fields.
+Track 6J completed after the operator selected MyExpensio and approved a sandbox-only onboarding artifact. A non-mutating dry-run proposal was generated for review.
 
 This is intentional. The PayGate onboarding workflow is now controlled enough that choosing the wrong candidate, owner, provider account, auth boundary, or payment slice would create architectural drift.
 
@@ -100,16 +100,75 @@ APPLY REGISTRY PROPOSAL <app_id>
 
 Registry apply, Stripe setup, Vercel env setup, deployment, sandbox checkout proof, live checkout, and refunds are all separate actions.
 
+## MyExpensio candidate selected
+
+```text
+Candidate app name: MyExpensio
+Candidate app_id: myexpensio
+Owning company / billing entity: NHL Global Solution
+Provider account alias: nhl_global_solution
+Test URL: https://myexpensio-jade.vercel.app
+Live URL: https://myexpensio-jade.vercel.app
+Auth provider: Supabase JWT
+User ref source: Supabase Auth user id / JWT subject
+First safe payment slice: Individual USER Pro monthly subscription checkout, sandbox/test only
+Plan-based, item/SKU-based, or both: Plan-based
+Plans/items included in the first slice: pro_monthly - MYR 29/month
+Plans/items explicitly deferred: premium_monthly, ORG/workspace subscriptions, billing portal migration, live payment, refund automation
+Currency: MYR
+Amount model: Fixed MYR 29/month subscription
+Support/refund owner: NHL Global Solution operator
+Operator approval: Approved for MyExpensio sandbox-only onboarding artifact. No live payment, no refund, no provider mutation.
+```
+
+## Dry-run evidence
+
+Review folder:
+
+```text
+C:\Users\user\Documents\PayGate Proposal Reviews\myexpensio\2026-09-24\
+```
+
+Generated review files:
+
+- `candidate-gate.md`
+- `onboarding-artifact.json`
+- `proposal-summary.md`
+- `registry/apps/myexpensio/app.yaml`
+- `registry/apps/myexpensio/plans.yaml`
+- `registry/apps/myexpensio/entitlements.yaml`
+- `registry/apps/myexpensio/integration.yaml`
+- `registry/apps/myexpensio/files.manifest.yaml`
+- `registry/apps/myexpensio/env.example`
+- `registry/apps/myexpensio/integration-status.md`
+
+Dry-run result:
+
+```text
+status: dry_run_only
+appId: myexpensio
+targetDirectory: registry/apps/myexpensio
+approvalPhraseRequiredForApply: APPLY REGISTRY PROPOSAL myexpensio
+```
+
+PayGate registry was not mutated. `registry/apps/myexpensio` does not exist in the working tree after Track 6J.
+
+## Review warning before apply
+
+The MyExpensio repository currently documents Pro as RM18/month and Premium as RM29/month. The operator-selected PayGate candidate uses `pro_monthly` at MYR 29/month. Resolve this naming/pricing mismatch before approved registry apply or app UI integration.
+
 ## Track 6J checklist
 
-- [ ] Select one real app candidate.
-- [ ] Complete candidate gate fields.
-- [ ] Export fresh onboarding artifact from `/admin`.
-- [ ] Store artifact in the candidate review folder.
-- [ ] Run `npm run proposal:dry-run` with `--out-dir` pointing to the review folder.
-- [ ] Review generated package output.
-- [ ] Stop before approved apply unless operator explicitly authorizes the exact apply phrase.
+- [x] Select one real app candidate.
+- [x] Complete candidate gate fields.
+- [x] Create operator-approved onboarding artifact for the selected candidate.
+- [x] Store artifact in the candidate review folder.
+- [x] Run non-mutating proposal dry-run with output pointing to the review folder.
+- [x] Review generated package output.
+- [x] Stop before approved apply unless operator explicitly authorizes the exact apply phrase.
 
-## Next action needed from operator
+## Next documented step
 
-Provide the completed candidate gate worksheet. After that, continue Track 6J by creating the review folder, exporting/saving the artifact, and running the non-mutating proposal dry-run.
+Proceed to Phase 7 Track 6K - MyExpensio Pricing Alignment and Registry Apply Gate.
+
+Track 6K should resolve whether `pro_monthly` is really MYR 29/month, or whether the first PayGate slice should be renamed/repriced before any registry apply.
