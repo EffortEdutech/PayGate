@@ -173,4 +173,5 @@ Stop and re-plan if any work would:
 - [x] Track 6I UI-driven onboarding freeze prep and first real-app candidate gate complete. See `docs/PHASE_7_TRACK_6I_UI_DRIVEN_ONBOARDING_FREEZE_PREP.md`.
 - [x] Track 6J first real-app candidate intake and dry-run proposal complete for MyExpensio. See `docs/PHASE_7_TRACK_6J_FIRST_REAL_APP_CANDIDATE_DRY_RUN.md`.
 - [x] Track 6K MyExpensio pricing alignment and registry apply gate complete. See `docs/PHASE_7_TRACK_6K_MYEXPENSIO_PRICING_ALIGNMENT.md`.
-- [ ] Track 6L MyExpensio registry apply approval and validation complete.
+- [x] Track 6L MyExpensio registry apply approval and validation complete. See `docs/PHASE_7_TRACK_6L_MYEXPENSIO_REGISTRY_APPLY_VALIDATION.md`.
+- [ ] Track 6M MyExpensio sandbox provider setup plan complete.

@@ -1,0 +1,4 @@
+schema_version: "1.0"
+entitlements:
+  - key: myexpensio.exports
+    description: Draft entitlement for myexpensio.exports. Operator must review before activation.

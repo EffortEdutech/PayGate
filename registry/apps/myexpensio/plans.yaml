@@ -1,0 +1,15 @@
+schema_version: "1.0"
+plans:
+  - plan_key: pro_monthly
+    name: MyExpensio Pro Monthly
+    type: subscription
+    pricing:
+      currency: MYR
+      unit_amount_minor: 1800
+      interval: month
+    provider:
+      stripe:
+        lookup_key: myexpensio_pro_monthly
+    entitlement_bundle:
+      - myexpensio.exports
+    status: draft

@@ -1,0 +1,8 @@
+schema_version: "1.0"
+app_id: myexpensio
+repository:
+  path: <APP_REPOSITORY_PATH>
+integration_files:
+  create: []
+  modify: []
+  verify: []

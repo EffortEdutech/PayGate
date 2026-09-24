@@ -1,0 +1,14 @@
+schema_version: "1.0"
+app_id: myexpensio
+name: MyExpensio
+status: draft
+provider:
+  type: stripe
+  account: nhl_global_solution
+billing:
+  enabled: true
+application_urls:
+  test: https://myexpensio-jade.vercel.app
+  live: https://myexpensio-jade.vercel.app
+identity:
+  user_reference: supabase_user_id

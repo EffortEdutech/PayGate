@@ -818,14 +818,29 @@ External review folder: `C:\Users\user\Documents\PayGate Proposal Reviews\myexpe
 
 ## Phase 7 Track 6L - MyExpensio Registry Apply Approval and Validation
 
-Status: next recommended approval track.
+Status: complete.
 
 Goal: apply the reviewed MyExpensio draft registry package only if the operator explicitly approves the exact apply phrase, then validate before any deployment or sandbox checkout work.
 
 Checklist:
 
-- [ ] Obtain exact operator approval phrase: `APPLY REGISTRY PROPOSAL myexpensio`.
-- [ ] Apply the reviewed proposal into `registry/apps/myexpensio`.
-- [ ] Run `npm run validate:registry`.
-- [ ] Run `npm run check`.
-- [ ] Confirm no Stripe product/price, Vercel env var, live payment, refund, deployment, or entitlement mutation occurs in this track.
+- [x] Obtain exact operator approval phrase: `APPLY REGISTRY PROPOSAL myexpensio`.
+- [x] Apply the reviewed proposal into `registry/apps/myexpensio`.
+- [x] Run `npm run validate:registry`.
+- [x] Run `npm run check`.
+- [x] Confirm no Stripe product/price, Vercel env var, live payment, refund, deployment, or entitlement mutation occurs in this track.
+Evidence: `docs/PHASE_7_TRACK_6L_MYEXPENSIO_REGISTRY_APPLY_VALIDATION.md`.
+
+## Phase 7 Track 6M - MyExpensio Sandbox Provider Setup Plan
+
+Status: next recommended planning/implementation track.
+
+Goal: prepare the sandbox-only provider and app integration setup for MyExpensio Pro monthly without live payment or provider mutation outside explicit operator steps.
+
+Checklist:
+
+- [ ] Confirm or create Stripe sandbox Product/Price with lookup key `myexpensio_pro_monthly` and amount MYR 18/month.
+- [ ] Confirm PayGate sandbox provider account `nhl_global_solution` remains configured.
+- [ ] Confirm MyExpensio Supabase JWT boundary values needed by PayGate.
+- [ ] Prepare MyExpensio thin-client migration plan from direct Stripe routes to PayGate.
+- [ ] Keep Premium, ORG subscriptions, live payment, refunds, and deployment in separate gates.
