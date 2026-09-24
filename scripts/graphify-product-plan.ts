@@ -30,6 +30,7 @@ const requiredDocs = [
   "docs/PHASE_7_TRACK_6K_MYEXPENSIO_PRICING_ALIGNMENT.md",
   "docs/PHASE_7_TRACK_6L_MYEXPENSIO_REGISTRY_APPLY_VALIDATION.md",
   "docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md",
+  "docs/PHASE_7_TRACK_6N_MYEXPENSIO_SANDBOX_PROVIDER_CONFIGURATION_EVIDENCE.md",
 ];
 
 const missing = requiredDocs.filter((path) => !existsSync(path));
@@ -96,8 +97,11 @@ flowchart TD
   GOV -.-> T5K[Track 5K\\nSingle Cast live readiness gate\\nDeferred unless explicitly approved]
   T6I --> T6J[Track 6J\\nFirst real-app candidate intake and dry-run proposal\\nDone: MyExpensio dry run]
   T6J --> T6K[Track 6K\\nMyExpensio pricing alignment and registry apply gate\\nDone]
-  T6K --> T6L[Track 6L\\nMyExpensio registry apply approval and validation\\nNext]
-  T6L --> F7[Phase 7 freeze prep\\nAfter MyExpensio registry apply/validation decision]
+  T6K --> T6L[Track 6L\nMyExpensio registry apply approval and validation\nDone]
+  T6L --> T6M[Track 6M\nMyExpensio sandbox provider setup plan\nDone]
+  T6M --> T6N[Track 6N\nMyExpensio sandbox provider configuration evidence\nDone]
+  T6N --> T6O[Track 6O\nMyExpensio thin PayGate client plan and code prep\nNext]
+  T6O --> F7[Phase 7 freeze prep\nAfter MyExpensio sandbox client proof decision]
 
   DEFER1[Deferred\\npageCast Single Cast live/broad rollout]
   DEFER2[Deferred\\npageCast live-mode payment readiness]
@@ -138,7 +142,8 @@ flowchart TD
 - Track 6K aligned MyExpensio pricing: Pro is MYR 18/month and Premium is MYR 29/month.
 - Track 6L applied and validated the MyExpensio draft registry package after exact operator approval.
 - Track 6M prepared the MyExpensio sandbox provider setup plan without live payment, deployment, provider mutation, or app code changes.
-- The next product step is Track 6N: collect MyExpensio sandbox provider configuration evidence before touching MyExpensio app code.
+- Track 6N defined the MyExpensio sandbox provider configuration evidence gate before touching MyExpensio app code.
+- The next product step is Track 6O: prepare the MyExpensio thin PayGate client plan and code prep after Track 6N evidence is green.
 - PayGate product completion requires guided UI-driven onboarding, not only manual docs and exported JSON.
 `;
 

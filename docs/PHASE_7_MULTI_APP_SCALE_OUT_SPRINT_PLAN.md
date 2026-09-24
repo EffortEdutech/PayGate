@@ -848,15 +848,30 @@ Evidence: `docs/PHASE_7_TRACK_6M_MYEXPENSIO_SANDBOX_PROVIDER_SETUP_PLAN.md`.
 
 ## Phase 7 Track 6N - MyExpensio Sandbox Provider Configuration Evidence
 
-Status: next recommended operator evidence track.
+Status: complete as a configuration evidence runbook and pre-code gate.
 
-Goal: collect proof that the sandbox provider, lookup key, webhook endpoint, and PayGate MyExpensio Supabase JWT configuration are ready before touching MyExpensio app code.
+Goal: define the proof required to show the sandbox provider, lookup key, webhook endpoint, and PayGate MyExpensio Supabase JWT configuration are ready before touching MyExpensio app code.
 
 Checklist:
 
-- [ ] Confirm or create Stripe sandbox Product/Price lookup key `myexpensio_pro_monthly` at MYR 18/month.
-- [ ] Add/confirm PayGate Vercel MyExpensio Supabase JWT variables.
-- [ ] Preserve existing multi-app `SUPABASE_JWT_APPS` values while adding `myexpensio`.
-- [ ] Redeploy PayGate only if Vercel env vars changed.
-- [ ] Run protected `/diagnostics/ready` and `/diagnostics/runtime` and confirm MyExpensio auth readiness.
-- [ ] Stop before MyExpensio app code changes until provider/auth boundary is green.
+- [x] Define Stripe sandbox Product/Price evidence for lookup key `myexpensio_pro_monthly` at MYR 18/month.
+- [x] Define PayGate Vercel MyExpensio Supabase JWT variable evidence.
+- [x] Preserve existing multi-app `SUPABASE_JWT_APPS` values while adding `myexpensio`.
+- [x] Require PayGate redeploy only if Vercel env vars changed.
+- [x] Define protected `/diagnostics/ready`, `/diagnostics/runtime`, and `/admin/summary` evidence commands.
+- [x] Stop before MyExpensio app code changes until provider/auth boundary is green.
+Evidence: `docs/PHASE_7_TRACK_6N_MYEXPENSIO_SANDBOX_PROVIDER_CONFIGURATION_EVIDENCE.md`.
+
+## Phase 7 Track 6O - MyExpensio Thin PayGate Client Plan and Code Prep
+
+Status: next recommended implementation planning track.
+
+Goal: prepare the MyExpensio app-side migration from direct Stripe checkout routes to PayGate for the Pro monthly sandbox slice, only after Track 6N provider/auth evidence is green.
+
+Checklist:
+
+- [ ] Confirm Track 6N evidence is green before code changes.
+- [ ] Identify MyExpensio files/routes authorized for a thin PayGate client change.
+- [ ] Plan server-side token/JWT forwarding from MyExpensio to PayGate without browser-visible PayGate secrets.
+- [ ] Preserve legacy direct Stripe routes until PayGate checkout/webhook/entitlement proof passes.
+- [ ] Keep Premium, ORG/workspace subscriptions, portal migration, live payment, and refunds deferred.
